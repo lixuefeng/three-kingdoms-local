@@ -147,3 +147,16 @@ test('LLM shared windows use a uniform 15 seconds regardless of response-card ow
  const g=game();g.botPacing=false;g.players.forEach(p=>p.botMode='classic');g.llmProvider={enabled:true};let deadline;g.botAnswer=(p,q,defaults)=>{deadline=q.deadline-q.startedAt;return defaults;};
  await g.sharedResponses('rescue','Rescue?',p=>p.id==='a'?[{id:'tao'},{id:'pass'}]:[{id:'pass'}],{kind:'rescue'});assert.equal(deadline,5000);
 });
+
+test('Claude has independent reasoning budget and Haiku adaptive controls, preserving other models',async()=>{
+ const c=llmConfig({LLM_BASE_URL:'https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1',LLM_MODEL:'moonshotai.kimi-k2.5',LLM_API_KEY:'test',LLM_MAX_TOKENS:'700'});
+ const claude=c.profiles.find(p=>p.id==='claude');assert.equal(claude.maxTokens,8192);assert.equal(claude.timeoutMs,20000);assert.equal(c.profiles.find(p=>p.id==='kimi').maxTokens,700);assert.equal(c.profiles.find(p=>p.id==='deepseek').maxTokens,700);
+ let body;const traces=[];const p=createLLMProvider({...claude,debug:true},{onTrace:t=>traces.push(t),fetchImpl:async(u,r)=>{body=JSON.parse(r.body);return new Response(JSON.stringify({output:{message:{content:[{reasoningContent:{}},{text:'{"ids":["end"],"targets":[]}'}]}},usage:{inputTokens:20,outputTokens:1800},stopReason:'end_turn'}));}});
+ assert.ok(await p.decide({view:game().view('a'),playerId:'a',prompt,matchId:'claude-budget'}));assert.equal(body.inferenceConfig.maxTokens,8192);assert.deepEqual(body.additionalModelRequestFields,{thinking:{type:'adaptive'},output_config:{effort:'medium'}});assert.equal(traces[0].reasoningOnly,false);
+ const custom=llmConfig({BEDROCK_BASE_URL:'https://bedrock-runtime.us-east-1.amazonaws.com',LLM_CLAUDE_MAX_TOKENS:'5000',LLM_CLAUDE_EFFORT:'low'}).profiles.find(p=>p.id==='claude');assert.equal(custom.maxTokens,5000);assert.equal(custom.adaptiveEffort,'low');
+ const older=llmConfig({BEDROCK_BASE_URL:'https://bedrock-runtime.us-east-1.amazonaws.com',LLM_CLAUDE_MODEL:'anthropic.claude-haiku-4-5'}).profiles.find(p=>p.id==='claude');assert.equal(older.adaptiveEffort,undefined);
+});
+test('reasoning-only truncation records the exhausted budget without fabricating an action',async()=>{
+ const traces=[],p=createLLMProvider({...config(),transport:'bedrock-converse',debug:true},{onTrace:t=>traces.push(t),fetchImpl:async()=>new Response(JSON.stringify({output:{message:{content:[{reasoningContent:{reasoningText:{text:'',signature:'opaque'}}}]}},usage:{inputTokens:34883,outputTokens:1500},stopReason:'max_tokens'}))});
+ assert.equal(await p.decide({view:game().view('a'),playerId:'a',prompt,matchId:'reasoning'}),null);assert.equal(traces[0].reasoningOnly,true);assert.match(traces[0].validationReason,/without an action/);assert.equal(p.status().seats['reasoning:a'].outputTokens,1500);
+});
