@@ -71,7 +71,7 @@ test('card selection ignores only redundant known player targets, never changes 
   const result=await provider.decide({view,playerId:'a',prompt:zone==='turn'?prompt:{...q,zone},matchId:'x'});
   assert.equal(!!result,ok,JSON.stringify({zone,ids,targets}));
   if(ok){assert.deepEqual(result,{ids:['c160'],targets:[]});assert.ok(traces[0].normalization);}
-  else{assert.equal(provider.status().seats['x:a'].inputTokens,100);assert.ok(traces[0].validationReason);}
+  else{assert.equal(provider.status().seats['x:a'].inputTokens,200);assert.ok(traces[0].validationReason);}
  }
 });
 test('truncated Claude and OpenAI output preserve usage and stop reason before JSON parsing',async()=>{
@@ -86,7 +86,7 @@ test('JSON failures and invalid actions retain provider token usage and detailed
  for(const [content,status,reason] of [['not json','invalid-response','valid JSON'],[JSON.stringify({plan:{objective:'wait'}}),'invalid-choice','ids'],[JSON.stringify({ids:['hit'],targets:['secret']}),'invalid-choice','Illegal target']]){
   const traces=[],p=createLLMProvider({...config(),debug:true},{fetchImpl:async()=>new Response(JSON.stringify({choices:[{message:{content},finish_reason:'stop'}],usage:{prompt_tokens:3743,completion_tokens:82}})),onTrace:t=>traces.push(t)});
   assert.equal(await p.decide({view:game().view('a'),playerId:'a',prompt,matchId:'x'}),null);
-  assert.equal(p.status().seats['x:a'].lastStatus,status);assert.equal(p.status().seats['x:a'].outputTokens,82);assert.ok(traces[0].validationReason.includes(reason));
+  assert.equal(p.status().seats['x:a'].lastStatus,status);assert.equal(p.status().seats['x:a'].outputTokens,164);assert.ok(traces[0].validationReason.includes(reason));
  }
 });
 test('chat parse failures also retain usage and truncation status',async()=>{

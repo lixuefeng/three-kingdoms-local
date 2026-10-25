@@ -14,7 +14,7 @@ test('benchmark distinguishes strategy failure from illegal output and retains u
  const c=cases[0];
  const good=await runCase(c,config,'current',{fetchImpl:mock({ids:['play:tao:c1'],targets:[]})});assert.deepEqual(good.grade,{legality:'pass',strategy:'pass'});
  const bad=await runCase(c,config,'current',{fetchImpl:mock({ids:['end'],targets:[]})});assert.deepEqual(bad.grade,{legality:'pass',strategy:'fail'});
- const invalid=await runCase(c,config,'current',{fetchImpl:mock({ids:['missing'],targets:[]})});assert.equal(invalid.status,'invalid-choice');assert.equal(invalid.usage.completion_tokens,12);assert.equal(invalid.grade.strategy,'not-scored');
+ const invalid=await runCase(c,config,'current',{fetchImpl:mock({ids:['missing'],targets:[]})});assert.equal(invalid.status,'invalid-choice');assert.equal(invalid.usage.completion_tokens,24);assert.equal(invalid.grade.strategy,'not-scored');
 });
 test('production normalization is reported separately from raw legality',async()=>{
  const result=await runCase(cases[0],config,'current',{fetchImpl:mock({ids:['play:tao:c1','end'],targets:[]})});

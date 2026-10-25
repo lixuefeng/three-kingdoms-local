@@ -8,6 +8,44 @@
       ]
     },
     "observation": {
+      "actionContract": {
+        "version": 1,
+        "instruction": "Submit one explicit action. Fields not listed for that action must be omitted. notes/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.",
+        "selectionAction": "choose_options",
+        "min": 1,
+        "max": 1,
+        "context": null,
+        "options": [
+          {
+            "option_id": "play:tao:c1",
+            "label": "♥6 Peach",
+            "card_ids": [
+              "c1"
+            ],
+            "action": "play_card",
+            "target_ids": [],
+            "target_min": 0,
+            "target_max": 0,
+            "response_fields": [
+              "action",
+              "option_id",
+              "target_ids"
+            ]
+          },
+          {
+            "option_id": "end",
+            "label": "End Play Phase",
+            "card_ids": [],
+            "action": "end_phase",
+            "target_ids": [],
+            "target_min": 0,
+            "target_max": 0,
+            "response_fields": [
+              "action"
+            ]
+          }
+        ]
+      },
       "generalStrategy": {
         "generalId": "weiyan",
         "generalName": "Wei Yan",
@@ -541,6 +579,76 @@
       ]
     },
     "observation": {
+      "actionContract": {
+        "version": 1,
+        "instruction": "Submit one explicit action. Fields not listed for that action must be omitted. notes/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.",
+        "selectionAction": "discard_cards",
+        "min": 1,
+        "max": 1,
+        "context": null,
+        "options": [
+          {
+            "option_id": "c1",
+            "card_ids": [],
+            "card": {
+              "id": "c1",
+              "kind": "tao",
+              "suit": "♥",
+              "rank": 6,
+              "pack": "standard"
+            },
+            "response_fields": [
+              "action",
+              "card_ids"
+            ]
+          },
+          {
+            "option_id": "c2",
+            "card_ids": [],
+            "card": {
+              "id": "c2",
+              "kind": "sha",
+              "suit": "♠",
+              "rank": 7,
+              "pack": "standard"
+            },
+            "response_fields": [
+              "action",
+              "card_ids"
+            ]
+          },
+          {
+            "option_id": "c3",
+            "card_ids": [],
+            "card": {
+              "id": "c3",
+              "kind": "sha",
+              "suit": "♠",
+              "rank": 7,
+              "pack": "standard"
+            },
+            "response_fields": [
+              "action",
+              "card_ids"
+            ]
+          },
+          {
+            "option_id": "c4",
+            "card_ids": [],
+            "card": {
+              "id": "c4",
+              "kind": "sha",
+              "suit": "♠",
+              "rank": 7,
+              "pack": "standard"
+            },
+            "response_fields": [
+              "action",
+              "card_ids"
+            ]
+          }
+        ]
+      },
       "generalStrategy": {
         "generalId": "weiyan",
         "generalName": "Wei Yan",
@@ -1079,6 +1187,90 @@
     "description": "Engine-generated play choices include Benevolence. All legal actions are accepted; gifting is not mandatory.",
     "expected": null,
     "observation": {
+      "actionContract": {
+        "version": 1,
+        "instruction": "Submit one explicit action. Fields not listed for that action must be omitted. notes/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.",
+        "selectionAction": "choose_options",
+        "min": 1,
+        "max": 1,
+        "context": null,
+        "options": [
+          {
+            "option_id": "play:tao:c1",
+            "label": "♥6 Peach",
+            "card_ids": [
+              "c1"
+            ],
+            "action": "play_card",
+            "target_ids": [],
+            "target_min": 0,
+            "target_max": 0,
+            "response_fields": [
+              "action",
+              "option_id",
+              "target_ids"
+            ]
+          },
+          {
+            "option_id": "skill:rende",
+            "label": "Benevolence",
+            "card_ids": [],
+            "action": "use_skill",
+            "target_ids": [
+              "p2",
+              "p3",
+              "p4"
+            ],
+            "target_min": 1,
+            "target_max": 1,
+            "skill": {
+              "actionKind": "rende",
+              "kind": "rende-plan",
+              "skillName": "Benevolence",
+              "cardIds": [
+                "c1",
+                "c2",
+                "c3"
+              ],
+              "cardMin": 1,
+              "cardMax": 3,
+              "targetIds": [
+                "p2",
+                "p3",
+                "p4"
+              ],
+              "targetCount": 1,
+              "facts": {
+                "givenThisPhase": 0,
+                "healedThisPhase": false,
+                "healThreshold": 2,
+                "recovery": 1,
+                "drawsCards": false,
+                "rule": "Giving 2 total this phase heals once; this skill never draws cards."
+              }
+            },
+            "response_fields": [
+              "action",
+              "option_id",
+              "card_ids",
+              "target_ids",
+              "mode_id (only if skill offers modes)"
+            ]
+          },
+          {
+            "option_id": "end",
+            "label": "End Play Phase",
+            "card_ids": [],
+            "action": "end_phase",
+            "target_ids": [],
+            "target_min": 0,
+            "target_max": 0,
+            "response_fields": [
+              "action"
+            ]
+          }
+        ]
+      },
       "generalStrategy": {
         "generalId": "liubei",
         "generalName": "Liu Bei",
@@ -1636,6 +1828,34 @@
     "description": "Eight Trigrams is equipped, with no Dodge in hand. Choose armor activation or decline. Strategy requires manual review.",
     "expected": null,
     "observation": {
+      "actionContract": {
+        "version": 1,
+        "instruction": "Submit one explicit action. Fields not listed for that action must be omitted. notes/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.",
+        "selectionAction": "respond",
+        "min": 1,
+        "max": 1,
+        "context": null,
+        "options": [
+          {
+            "option_id": "bagua",
+            "label": "Eight Trigrams: judge; red counts as Dodge",
+            "card_ids": [],
+            "response_fields": [
+              "action",
+              "option_ids"
+            ]
+          },
+          {
+            "option_id": "pass",
+            "label": "Pass",
+            "card_ids": [],
+            "response_fields": [
+              "action",
+              "option_ids"
+            ]
+          }
+        ]
+      },
       "generalStrategy": {
         "generalId": "zhangfei",
         "generalName": "Zhang Fei",
@@ -2130,6 +2350,34 @@
       ]
     },
     "observation": {
+      "actionContract": {
+        "version": 1,
+        "instruction": "Submit one explicit action. Fields not listed for that action must be omitted. notes/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.",
+        "selectionAction": "select_cards",
+        "min": 1,
+        "max": 1,
+        "context": null,
+        "options": [
+          {
+            "option_id": "c1",
+            "label": "undefined, rank 2",
+            "card_ids": [],
+            "response_fields": [
+              "action",
+              "card_ids"
+            ]
+          },
+          {
+            "option_id": "c2",
+            "label": "undefined, rank 13",
+            "card_ids": [],
+            "response_fields": [
+              "action",
+              "card_ids"
+            ]
+          }
+        ]
+      },
       "generalStrategy": {
         "generalId": "taishici",
         "generalName": "Taishi Ci",

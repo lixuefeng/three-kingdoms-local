@@ -2,6 +2,7 @@ import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {llmConfig} from '../llm-provider.mjs';
 import {prepareCase,runCase,markdownReport} from './decision-bench.mjs';
+const appVersion=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;
 const args=process.argv.slice(2),options={};
 for(let i=0;i<args.length;i++){
  const key=args[i];if(['--list','--dry-run','--help'].includes(key))options[key]=true;
@@ -20,8 +21,8 @@ const config=llmConfig(),catalog=config.profiles?.length?config.profiles:[{...co
 if(options['--dry-run'])for(const id of ['kimi','claude','deepseek'])if(!catalog.some(p=>p.id===id))catalog.push({id,enabled:false});
 const ids=(options['--models']||config.defaultProfile||catalog[0].id).split(',');
 const profiles=ids[0]==='all'?catalog.filter(p=>p.enabled):ids.map(id=>{const p=catalog.find(p=>p.id===id);if(!p)throw Error('Unknown model: '+id);return p;});
-const count=cases.length*profiles.length*runs*variants.reduce((n,v)=>n+(v==='tools'?4:1),0);if(!count||count>300)throw Error('Select 1..300 requests per invocation');
-console.log( `Up to ${count} requests, sequential, no retries. Cases: ${cases.length}; variants: ${variants.join(', ')}; runs: ${runs}`);
+const count=cases.length*profiles.length*runs*variants.reduce((n,v)=>n+(v==='tools'?4:2),0);if(!count||count>300)throw Error('Select 1..300 requests per invocation');
+console.log( `Up to ${count} requests, sequential, no transport retries; at most one invalid-action correction. Cases: ${cases.length}; variants: ${variants.join(', ')}; runs: ${runs}`);
 if(options['--dry-run']){console.log('Dry run: no network requests or reports.');process.exit(0);}
 for(const p of profiles)if(!p.enabled)throw Error('Model not configured: '+p.id);
 const out=resolve(options['--out']||'data/ai-benchmarks/'+new Date().toISOString().replaceAll(':','-'));await mkdir(out,{recursive:true});
@@ -31,7 +32,7 @@ outer:for(const p of profiles)for(const variant of variants)for(const c of cases
  if(controller.signal.aborted)break outer;
  const row={profile:p.id,model:p.model,run,...await runCase(c,p,variant,{signal:controller.signal})};rows.push(row);
  // Checkpoint after every request so interrupted runs remain reviewable.
- await writeFile(resolve(out,'results.json'),JSON.stringify({version:1,cases:cases.map(c=>({id:c.id,description:c.description,expected:c.expected})),rows},null,2),{mode:0o600});
+ await writeFile(resolve(out,'results.json'),JSON.stringify({version:1,appVersion,cases:cases.map(c=>({id:c.id,description:c.description,expected:c.expected})),rows},null,2),{mode:0o600});
  await writeFile(resolve(out,'report.md'),markdownReport(rows),{mode:0o600});
  console.log(`${p.id} ${variant} ${c.id} #${run}: ${row.status}; strategy ${row.grade.strategy}`);
 }

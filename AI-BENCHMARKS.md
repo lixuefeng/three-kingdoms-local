@@ -61,3 +61,22 @@ The tools read only the saved bot observation. They cannot access the deck, hidd
 The built-in fixtures were corrected in v0.71.0: turn options and tactical facts now come from engine positions; Attack allowance is explicitly spent in the healing case; discard has four cards at three HP in Discard phase; armor is actually equipped; the Pindian opponent has a card. Regenerate with `node scripts/build-decision-cases.mjs`. Do not combine old and new fixture scores as if they were the same test.
 
 Live-game bots continue using the existing single-request mode. This experiment measures whether investigation helps before enabling it in matches.
+
+## Explicit action contract and correction (v0.72.0)
+
+The gameplay prompt now uses explicit named actions rather than overloaded `ids`/`targets`. Each observation includes `actionContract`, describing the current action names, exact offered option/card/target IDs, counts, skill restrictions and required response fields. Examples:
+
+```json
+{"action":"discard_cards","card_ids":["c2"]}
+{"action":"play_card","option_id":"play:sha:c4","target_ids":["p2"]}
+{"action":"use_skill","option_id":"skill:rende","card_ids":["c2","c3"],"target_ids":["p3"]}
+{"action":"end_phase"}
+```
+
+This is locally validated JSON, not native provider tool calling or an MCP server. The decoder maps named fields deterministically to the engine's existing internal selections. Legacy responses remain supported for old adapters and archived tests, but are not advertised to the model. Explicit submissions reject unexpected fields; missing arguments cannot be filled from memory or plans. Omit `mode_id` unless the skill offers actual modes. For reactive skill-plan prompts omit `option_id`; for non-card responses/options use `option_ids`. Stargazing uses `arrange_cards` with ordered `option_ids`, including the bottom marker. Current card-selection prompts identify whether selecting a card means discarding it.
+
+Live gameplay permits one correction after invalid JSON or an invalid action, within the original overall request timeout and decision deadline. Nothing executes before a valid response; a legal but poor choice is never overridden based on its explanation. HTTP errors, timeouts, stale windows and truncation do not receive automatic retries. Model-call caps include correction calls. Debug traces retain both attempts and sum provider usage, including failures; nested attempts are credential-redacted too.
+
+Benchmarks also permit one invalid-action correction. Normal mode uses at most two calls within one configured timeout; tool mode retains its four-call total budget. Dry-run caps now count two calls per normal case and four per tools case. These are maximum budgets, not mandatory extra thinking. Reports include `appVersion` so results from different contracts can be distinguished. Do not compare v0.72 scores with older contracts without noting this change.
+
+The bot's knowledge now includes factual feedback: the last submitted selection, observed HP/hand changes, current own hand, and recent own public card events (e.g. Discarded Peach). Submission does not prove success; observed changes can include intervening actions. The model must use these facts instead of treating its prior notes as what happened.
