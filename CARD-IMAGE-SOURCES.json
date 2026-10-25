@@ -1,0 +1,224 @@
+{
+  "sha": {
+    "referenceName": "Attack",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014284266ed161a63759.jpg",
+    "file": "public/card-faces/sha.jpg",
+    "referenceId": 173
+  },
+  "shan": {
+    "referenceName": "Dodge",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014233766ed14e9bebdb.jpg",
+    "file": "public/card-faces/shan.jpg",
+    "referenceId": 56
+  },
+  "tao": {
+    "referenceName": "Peach",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014270466ed15b8dfbbe.jpg",
+    "file": "public/card-faces/tao.jpg",
+    "referenceId": 171
+  },
+  "duel": {
+    "referenceName": "Duel",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014345866ed1792871c0.jpg",
+    "file": "public/card-faces/duel.jpg",
+    "referenceId": 185
+  },
+  "dismantle": {
+    "referenceName": "Burning Bridges",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014290866ed1634c9083.jpg",
+    "file": "public/card-faces/dismantle.jpg",
+    "referenceId": 174
+  },
+  "steal": {
+    "referenceName": "Steal",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014363066ed17eed2877.jpg",
+    "file": "public/card-faces/steal.jpg",
+    "referenceId": 189
+  },
+  "draw2": {
+    "referenceName": "Something Out of Nothing",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014343666ed177cc16a3.jpg",
+    "file": "public/card-faces/draw2.jpg",
+    "referenceId": 184
+  },
+  "barbarian": {
+    "referenceName": "Barbarian Invasion",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014305266ed169cc2b59.jpg",
+    "file": "public/card-faces/barbarian.jpg",
+    "referenceId": 178
+  },
+  "arrows": {
+    "referenceName": "Raining Arrows",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014340966ed1761909c6.jpg",
+    "file": "public/card-faces/arrows.jpg",
+    "referenceId": 183
+  },
+  "feast": {
+    "referenceName": "Oath of the Peach Garden",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014165366ed1355169ef.jpg",
+    "file": "public/card-faces/feast.jpg",
+    "referenceId": 81
+  },
+  "harvest": {
+    "referenceName": "Bumper Harvest",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014241966ed1513d7125.jpg",
+    "file": "public/card-faces/harvest.jpg",
+    "referenceId": 57
+  },
+  "negate": {
+    "referenceName": "Negation",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2013323166ed08efecc76.jpg",
+    "file": "public/card-faces/negate.jpg",
+    "referenceId": 108
+  },
+  "borrow": {
+    "referenceName": "Borrowed Sword",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014312966ed16c1789af.jpg",
+    "file": "public/card-faces/borrow.jpg",
+    "referenceId": 179
+  },
+  "indulgence": {
+    "referenceName": "Overindulgence",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014302766ed1683b32cf.jpg",
+    "file": "public/card-faces/indulgence.jpg",
+    "referenceId": 177
+  },
+  "lightning": {
+    "referenceName": "Lightning",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014180066ed13985ce62.jpg",
+    "file": "public/card-faces/lightning.jpg",
+    "referenceId": 107
+  },
+  "crossbow": {
+    "referenceName": "Zhuge Crossbow",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014293266ed164c8ef28.jpg",
+    "file": "public/card-faces/crossbow.jpg",
+    "referenceId": 175
+  },
+  "doubleSword": {
+    "referenceName": "Yin-Yang Swords",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014360566ed17d5469de.jpg",
+    "file": "public/card-faces/doubleSword.jpg",
+    "referenceId": 188
+  },
+  "qinggang": {
+    "referenceName": "Blue Steel Sword",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014371866ed181e49171.jpg",
+    "file": "public/card-faces/qinggang.jpg",
+    "referenceId": 191
+  },
+  "greenDragon": {
+    "referenceName": "Green Dragon Blade",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014323066ed16fe2df5b.jpg",
+    "file": "public/card-faces/greenDragon.jpg",
+    "referenceId": 180
+  },
+  "serpent": {
+    "referenceName": "Serpent Spear",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014330566ed172177f08.jpg",
+    "file": "public/card-faces/serpent.jpg",
+    "referenceId": 181
+  },
+  "axe": {
+    "referenceName": "Rock Cleaving Axe",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014352166ed17a9aefbc.jpg",
+    "file": "public/card-faces/axe.jpg",
+    "referenceId": 186
+  },
+  "halberd": {
+    "referenceName": "Sky Piercing Halberd",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014354466ed17c0bfab7.jpg",
+    "file": "public/card-faces/halberd.jpg",
+    "referenceId": 187
+  },
+  "kylin": {
+    "referenceName": "Kirin Bow",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014281666ed1600db743.jpg",
+    "file": "public/card-faces/kylin.jpg",
+    "referenceId": 172
+  },
+  "bagua": {
+    "referenceName": "Eight Trigrams Formation",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014300366ed166b24f71.jpg",
+    "file": "public/card-faces/bagua.jpg",
+    "referenceId": 176
+  },
+  "renwang": {
+    "referenceName": "Nio Shield",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2013365666ed09f899277.jpg",
+    "file": "public/card-faces/renwang.jpg",
+    "referenceId": 54
+  },
+  "plusHorse": {
+    "referenceName": "Shadowrunner",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014365066ed1802e8169.jpg",
+    "file": "public/card-faces/plusHorse.jpg",
+    "referenceId": 190
+  },
+  "minusHorse": {
+    "referenceName": "Fergana Steed",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014334766ed174b2c963.jpg",
+    "file": "public/card-faces/minusHorse.jpg",
+    "referenceId": 182
+  },
+  "fireSha": {
+    "referenceName": "Fire Attack",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014394766ed18b3abfd2.jpg",
+    "file": "public/card-faces/fireSha.jpg",
+    "referenceId": 194
+  },
+  "thunderSha": {
+    "referenceName": "Thunder Attack",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014444466ed19dc0749a.jpg",
+    "file": "public/card-faces/thunderSha.jpg",
+    "referenceId": 200
+  },
+  "wine": {
+    "referenceName": "Wine",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014452766ed1a07699f7.jpg",
+    "file": "public/card-faces/wine.jpg",
+    "referenceId": 202
+  },
+  "fireAttack": {
+    "referenceName": "Flame Tactic",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014392266ed189a4c6a4.jpg",
+    "file": "public/card-faces/fireAttack.jpg",
+    "referenceId": 193
+  },
+  "chain": {
+    "referenceName": "Iron Chains",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014450866ed19f413551.jpg",
+    "file": "public/card-faces/chain.jpg",
+    "referenceId": 201
+  },
+  "supply": {
+    "referenceName": "Rations Depleted",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014441566ed19bfae6cc.jpg",
+    "file": "public/card-faces/supply.jpg",
+    "referenceId": 199
+  },
+  "rattan": {
+    "referenceName": "Rattan Armor",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014435266ed19a85192a.jpg",
+    "file": "public/card-faces/rattan.jpg",
+    "referenceId": 198
+  },
+  "silverLion": {
+    "referenceName": "Silver Lion Helmet",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014405366ed18f572589.jpg",
+    "file": "public/card-faces/silverLion.jpg",
+    "referenceId": 197
+  },
+  "fan": {
+    "referenceName": "Feathered Fan",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2014403066ed18deeb3d4.jpg",
+    "file": "public/card-faces/fan.jpg",
+    "referenceId": 196
+  },
+  "frost": {
+    "referenceName": "Frost Sword",
+    "source": "https://sjsea-2cstatic.oss-cn-hongkong.aliyuncs.com/uploads/banner/2013400466ed0ab4a08ad.jpg",
+    "file": "public/card-faces/frost.jpg",
+    "referenceId": 40
+  }
+}

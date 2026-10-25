@@ -2,7 +2,7 @@
 
 A self-hosted multiplayer identity card game inspired by Sanguosha, built for friends. English interface, no runtime npm dependencies, and optional LLM opponents.
 
-Independent fan project, unaffiliated with YOKAGAMES or WTK Games. This public edition uses original vector card emblems and geometric general tokens. No downloaded commercial illustrations or official audio are included.
+Independent fan project, unaffiliated with YOKAGAMES or WTK Games. General portraits and card faces are bundled from the WTK reference sources, with original vector fallbacks. Third-party artwork is excluded from the MIT code license; see ARTWORK.md and the source manifests. No official audio is bundled.
 
 ## Run locally
 

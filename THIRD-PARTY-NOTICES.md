@@ -1,7 +1,7 @@
 # References and rights
 
-This independent project implements a game inspired by Sanguosha. Sanguosha, YOKAGAMES, War of the Three Kingdoms and related names/marks belong to their respective holders. No affiliation or endorsement is implied.
+This independent fan project is unaffiliated with YOKAGAMES or WTK Games. Sanguosha, War of the Three Kingdoms and related marks belong to their respective holders.
 
-English terminology was checked against WTK Games public reference pages. Rules and strategy summaries are independently phrased. Strategy source links refer to official OL articles/general introductions and an archived old-rulebook reproduction; they do not grant rights to redistribute the originals.
+Bundled third-party general/card artwork is credited in ARTWORK.md and the two source manifests. It is excluded from the MIT license; no ownership or redistribution license is claimed for those images. The MIT license covers original code, geometric tokens, vector emblems and synthesized audio. Browser voices are not bundled.
 
-No third-party card scans, illustrations, logos, official recordings or reference articles are bundled. Original code, geometric tokens, vector emblems and synthesized audio are MIT licensed. Browser voices are not bundled.
+Rules and strategy summaries are independently phrased. Links to strategy articles do not relicense the original articles.

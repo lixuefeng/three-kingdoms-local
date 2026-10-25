@@ -1,10 +1,10 @@
-# Public-edition assets
+# Artwork and source credits
 
-No downloaded card/general illustrations, official logos or official audio are bundled.
+General portraits (`public/portraits/*.jpg`) and card faces (`public/card-faces/*.jpg`) are bundled from the WTK Games references and the source URLs recorded in `PORTRAIT-SOURCES.json` and `CARD-IMAGE-SOURCES.json`.
 
-- `public/portraits/*.svg`: original geometric tokens drawn in code, using initials and faction colors.
-- `public/card-art.mjs`: original inline SVG card emblems.
-- `public/damage-*.wav`: original formant-synthesized vowel exclamations, not human recordings or extracted audio.
-- Other effects are synthesized in the browser. Optional speech uses browser-provided voices; those voices are not bundled or relicensed.
-
-Original code and bundled assets are under MIT. The license does not grant rights to third-party names, trademarks, reference websites or user-added assets. No third-party artwork download script is included.
+- General reference: https://wtkgames.com/generalCard
+- Card reference: https://wtkgames.com/gameCard
+- These third-party illustrations are not covered by this repository MIT code license. Rights remain with their respective holders. Source attribution is not a grant of redistribution permission.
+- Guding Blade has no matching reference image and uses the original vector fallback.
+- Original geometric SVG tokens and inline vector emblems remain available in the source.
+- `public/damage-*.wav` are original synthesized sounds. Other effects are browser-synthesized; browser voices are not bundled.

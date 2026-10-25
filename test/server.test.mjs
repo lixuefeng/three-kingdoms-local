@@ -30,7 +30,7 @@ test('HTTP serves local assets, rejects cross-origin mutations and path traversa
 test('authenticated event stream restores personalized state after reconnect',async t=>{const {base,req}=await fixture(t);const a=(await req('create',{name:'A'})).data;const ctrl=new AbortController();const res=await fetch(base+'/api/events',{headers:{Authorization:'Bearer '+a.token},signal:ctrl.signal});assert.equal(res.status,200);const reader=res.body.getReader();let text='';while(!text.includes('data: ')){const r=await reader.read();text+=new TextDecoder().decode(r.value);}assert.match(text, new RegExp(a.state.room.code));ctrl.abort();await reader.cancel().catch(()=>{});assert.equal((await req('state',undefined,a.token)).data.room.me,a.state.room.me);});
 test('all general portraits and seating assets are served locally with safe paths and image caching',async t=>{
  const {base}=await fixture(t);const {ALL_GENERALS:GENERALS}=await import('../cards.mjs');
- for(const g of GENERALS){const res=await fetch(base+'/portraits/'+g.id+'.svg');assert.equal(res.status,200,g.id);assert.equal(res.headers.get('content-type'),'image/svg+xml');assert.match(res.headers.get('cache-control'),/max-age=86400/);assert.match(await res.text(),/<svg/);}
+ for(const g of GENERALS){const res=await fetch(base+'/portraits/'+g.id+'.jpg');assert.equal(res.status,200,g.id);assert.equal(res.headers.get('content-type'),'image/jpeg');assert.match(res.headers.get('cache-control'),/max-age=86400/);assert.deepEqual([...new Uint8Array(await res.arrayBuffer()).slice(0,2)],[255,216]);}
  assert.equal((await fetch(base+'/network.mjs')).status,200);assert.equal((await fetch(base+'/tabletop.css')).status,200);assert.equal((await fetch(base+'/feedback.mjs')).status,200);assert.equal((await fetch(base+'/table.mjs')).status,200);assert.equal((await fetch(base+'/interaction.mjs')).status,200);assert.equal((await fetch(base+'/interaction.css')).status,200);assert.equal((await fetch(base+'/seating.css')).status,200);assert.equal((await fetch(base+'/fullscreen.css')).status,200);assert.equal((await fetch(base+'/portraits/not-a-general.jpg')).status,404);
 });
 
@@ -123,7 +123,7 @@ test('finished state exposes review stats and revealed roles; failed profile sig
  const state=(await req('state',undefined,host.token)).data;assert.equal(state.review.players[0].kills,2);assert.equal(state.review.players[0].role,'lord');assert.equal(state.review.players[0].won,true);
  assert.equal((await req('save-results',{},host.token)).status,200);assert.equal((await req('state',undefined,host.token)).data.review.ranked,false);
 });
-test('unlicensed card artwork is absent and private asset manifests stay inaccessible',async t=>{const {base}=await fixture(t);for(const path of ['/card-faces/sha.jpg','/portraits/zhangjiao.jpg','/CARD-IMAGE-SOURCES.json','/PORTRAIT-SOURCES.json','/archive-access.key','/data/archive-access.key'])assert.equal((await fetch(base+path)).status,404,path);});
+test('source manifests and private runtime files stay inaccessible',async t=>{const {base}=await fixture(t);for(const path of ['/CARD-IMAGE-SOURCES.json','/PORTRAIT-SOURCES.json','/archive-access.key','/data/archive-access.key'])assert.equal((await fetch(base+path)).status,404,path);});
 
 test('selected-general switch is independent, host-controlled and removes disabled expansion presets',async t=>{
  const {req,base}=await fixture(t);const h=(await req('create',{name:'Host',testing:true})).data,host=h.token;
@@ -136,7 +136,7 @@ test('selected-general switch is independent, host-controlled and removes disabl
  assert.equal((await req('test-general',{playerId:h.state.room.me,generalId:'zhangjiao'},host)).status,200);
  assert.equal((await req('settings',{expandedGenerals:false},host)).status,200);state=(await req('state',undefined,host)).data;assert.equal(state.generals.length,25);assert.equal(state.room.players[0].testGeneral,null);
  assert.equal((await req('settings',{expandedGenerals:'true'},host)).status,400);
- const picture=await fetch(base+'/portraits/zhangjiao.svg');assert.equal(picture.status,200);assert.equal(picture.headers.get('content-type'),'image/svg+xml');
+ const picture=await fetch(base+'/portraits/zhangjiao.jpg');assert.equal(picture.status,200);assert.equal(picture.headers.get('content-type'),'image/jpeg');
 });
 
 test('all human players can ban; the union is enforced and one player cannot undo another ban',async t=>{
