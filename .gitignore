@@ -1,0 +1,14 @@
+node_modules/
+data/
+.env
+.env.*
+*.env
+!LLM.env.example
+*.key
+*.pem
+*.jsonl
+*.zip
+*.log
+.DS_Store
+coverage/
+qa-*

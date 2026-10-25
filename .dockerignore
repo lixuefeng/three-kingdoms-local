@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+*.env
+*.key
+data
+node_modules
+*.jsonl
+*.zip
+*.log

@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {eventText,eventTokens,turnHistory} from '../public/event-history.mjs';
+import {Game} from '../engine.mjs';
+const players=[{id:'a',name:'Alice',general:{name:'Zhang Fei',skills:'Lust: Do something.'}},{id:'b',name:'Bob',general:{name:'Zhao Yun'}}];
+test('event names use general identities with simultaneous whole-name replacement',()=>{assert.equal(eventText('Alice attacks Bob. Alicea watches.',players),'Zhang Fei attacks Zhao Yun. Alicea watches.');assert.equal(eventText('<Alice> uses Attack',players),'<Zhang Fei> uses Attack');});
+test('tokenization distinguishes generals, cards and skills without changing raw text',()=>{const text='Zhang Fei uses Attack and Lust → Zhao Yun';const tokens=eventTokens(text,players,[{kind:'sha',name:'Attack'}]);assert.equal(tokens.map(t=>t.text).join(''),text);assert.deepEqual(tokens.filter(t=>t.type!=='text').map(t=>t.type),['general','card','skill','general']);assert.equal(tokens.find(t=>t.type==='card').kind,'sha');});
+test('turn history keeps responses in the initiating action and separates successive turns',()=>{const logs=[{turn:1,turnPlayerId:'a',groupId:'one',message:'Attack'},{turn:1,turnPlayerId:'a',groupId:'one',message:'Dodge'},{turn:1,turnPlayerId:'a',groupId:'two',message:'Duel'},{turn:2,turnPlayerId:'b',groupId:'three',message:'Draw'}];const h=turnHistory(logs);assert.equal(h.length,2);assert.deepEqual(h[0].actions.map(a=>a.entries.length),[2,1]);assert.equal(h[1].playerId,'b');});
+test('public logs retain turn, action and general name snapshots without private hand contents',()=>{const g=new Game(players);g.players.forEach((p,i)=>p.general=players[i].general);g.current=g.players[0];g.turn=3;g.beginAction('Attack');g.log('Alice attacks Bob.');const l=g.logs.at(-1);assert.equal(l.displayMessage,'Zhang Fei attacks Zhao Yun.');assert.equal(l.turn,3);assert.equal(l.turnGeneral,'Zhang Fei');assert.equal(l.groupId,g.actionGroup.id);assert.equal(l.groupLabel,'Attack');});
+
+test('current action appears once as the heading, with responses and results below',async()=>{
+ const {actionSummary}=await import('../public/event-history.mjs');const logs=[{id:'start',eventType:'action',message:'Alice uses Attack → Bob.',groupId:'g',turn:1},{id:'dodge',eventType:'response',actorId:'b',cardKind:'shan',message:'Bob plays Dodge.',groupId:'g',turn:1},{id:'result',eventType:'dodge-result',actorId:'b',message:'Bob dodges the Attack.',groupId:'g',turn:1}];const summary=actionSummary({actionGroup:{id:'g'},turn:1,logs});assert.equal(summary.heading.id,'start');assert.deepEqual(summary.entries.map(e=>e.id),['dodge']);
+});
+test('compaction retains two real Dodges, repeated judgments and events from other actions',async()=>{
+ const {compactEvents}=await import('../public/event-history.mjs');const entries=[{id:'a',eventType:'response',actorId:'b',cardKind:'shan',groupId:'g',turn:1},{id:'b',eventType:'response',actorId:'b',cardKind:'shan',groupId:'g',turn:1},{id:'j1',message:'Judgment',groupId:'g',turn:1},{id:'j2',message:'Judgment',groupId:'g',turn:1}];assert.deepEqual(compactEvents(entries),entries);
+});
+test('overlapping trigger, draw and narrative entries consolidate without hiding distinct movement',async()=>{
+ const {compactEvents}=await import('../public/event-history.mjs');const entries=[{id:'t',eventType:'trigger',actorId:'a',actorName:'Alice',skill:'Cultivation',message:'Alice · Cultivation · Draw 1 card',groupId:'g',turn:1},{id:'d',eventType:'movement',actorId:'a',actorName:'Alice',movementKind:'draw',count:1,message:'Alice draws 1 card(s).',groupId:'g',turn:1},{id:'other',eventType:'movement',actorId:'b',actorName:'Bob',movementKind:'draw',count:1,message:'Bob draws 1 card(s).',groupId:'g',turn:1}];assert.deepEqual(compactEvents(entries).map(e=>e.id),['t','other']);
+ const armor=[{id:'t',eventType:'trigger',actorId:'a',actorName:'Alice',skill:'Nio Shield',message:'Alice · Nio Shield · Black Attack blocked',groupId:'g',turn:1},{id:'n',message:"Alice's Nio Shield cancels the black Attack.",groupId:'g',turn:1}];assert.deepEqual(compactEvents(armor).map(e=>e.id),['n']);
+});
