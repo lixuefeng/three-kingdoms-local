@@ -34,7 +34,7 @@ Keep `SGS_DATA_DIR` outside releases. It stores private profiles, results, match
 - Spectating, resizable chat, testing tools and persistent profile-based leaderboards.
 - Practice bots and optional Kimi, DeepSeek or Claude opponents.
 - Private match archives, AI inputs/outputs, diagnostics, plans and decision analysis.
-- Source-linked classic-version strategy playbooks for all 44 generals.
+- Source-linked classic-version playbooks for all 44 generals, with play sequences, reserves, response decisions and worked examples.
 
 Hobby implementation, not official rules certification. Models may make poor choices; invalid or timed-out responses use the practice bot.
 

@@ -1,4 +1,6 @@
-# LLM bots (v0.65)
+# LLM bots (v0.66)
+
+v0.66 expands every general with concrete play sequences, card reserves, skill/response decisions and hypothetical worked examples, informed by additional Chinese-language research. `generalStrategy.tactics` selects sections for the current decision; only the acting general receives these details. Revised-version source advice is filtered against the local classic rules. Full source notes and all 44 playbooks are in `GENERAL-STRATEGY.md`; regenerate it with `node scripts/build-strategy-guide.mjs`. This increases input context, not the number of model calls. Match quality still needs live evaluation.
 
 v0.65 adds a source-linked `generalStrategy` playbook for every supported general, adapted to this build's skill versions. The model receives its own guide plus short public matchup notes, not the whole 44-general collection. General selection receives plans for the offered candidates. See `GENERAL-STRATEGY.md` for all summaries, sources and version exclusions. These are context instructions, not fine-tuning or guaranteed optimal strategy. One decision remains one request; the guide increases input tokens modestly.
 

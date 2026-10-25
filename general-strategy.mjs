@@ -1,5 +1,6 @@
 // Original English syntheses, researched against official guides and adapted to cards.mjs.
 // Sources are provenance, not runtime fetches. Supplied skill text/legal options override advice.
+import {tacticalContext} from './general-tactics.mjs';
 const ol=id=>'https://www.sanguosha.com/news/'+id;
 function guide(source,plan,priorities,avoid,facing,version='Classic skills in this build; ignore revised, SP, national-war and mobile-only upgrades.'){
  return {plan,priorities,avoid,facing,version,sources:[{url:source,kind:source.includes('gltjk.com')?'Archived rulebook reproduction; strategy inferred from classic rules':'Official strategy guide or official general introduction; advice synthesized and adapted'}]};
@@ -231,5 +232,5 @@ export function generalStrategyContext(view,playerId,prompt){
  const own=view.players.find(p=>p.id===playerId),id=own?.general?.id;
  if(!id){if(prompt.zone!=='general')return null;return {candidateNotes:prompt.options.filter(o=>GENERAL_STRATEGIES[o.id]).map(o=>({generalId:o.id,plan:GENERAL_STRATEGIES[o.id].plan})),notice:'Select for your role, allies, seat and classic skill text; no universal best general.'};}
  const g=GENERAL_STRATEGIES[id];if(!g)return null;
- return {generalId:id,generalName:own.general.name,...g,provenance:'Researched English synthesis with implementation-specific tactical inferences; not a proven optimal policy. Skill text and current legal choices override external versions.',matchups:view.players.filter(p=>p.alive&&p.id!==playerId&&GENERAL_STRATEGIES[p.general?.id]).map(p=>({playerId:p.id,generalId:p.general.id,note:GENERAL_STRATEGIES[p.general.id].facing}))};
+ return {generalId:id,generalName:own.general.name,...g,tactics:tacticalContext(id,prompt),provenance:'Researched English synthesis plus original rule-derived sequences and hypothetical examples; not a proven optimal policy. Skill text and current legal choices override external versions.',matchups:view.players.filter(p=>p.alive&&p.id!==playerId&&GENERAL_STRATEGIES[p.general?.id]).map(p=>({playerId:p.id,generalId:p.general.id,note:GENERAL_STRATEGIES[p.general.id].facing}))};
 }

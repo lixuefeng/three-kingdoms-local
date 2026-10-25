@@ -2,7 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ALL_GENERALS} from '../cards.mjs';
 import {GENERAL_STRATEGIES,generalStrategyContext} from '../general-strategy.mjs';
+import {GENERAL_TACTICS,tacticalContext} from '../general-tactics.mjs';
 import {botObservation,createLLMProvider,llmConfig} from '../llm-provider.mjs';
+test('detailed tactics cover the complete roster without leaking other manuals',()=>{
+ assert.deepEqual(Object.keys(GENERAL_TACTICS).sort(),ALL_GENERALS.map(g=>g.id).sort());
+ for(const [id,t] of Object.entries(GENERAL_TACTICS))for(const k of ['sequence','reserve','react','example'])assert.ok(t[k]?.length>70,`${id}.${k}`);
+ const players=['zhugeliang','sunquan'].map((id,i)=>({id:String(i),general:ALL_GENERALS.find(g=>g.id===id),alive:true}));
+ const ctx=generalStrategyContext({players},'0',{zone:'stargazing'});
+ assert.match(ctx.tactics.sequence,/pending judgments/);assert.ok(!JSON.stringify(ctx).includes(GENERAL_TACTICS.sunquan.sequence));
+ assert.equal(tacticalContext('sunquan',{zone:'turn'}).decision,undefined);
+ assert.equal(tacticalContext('sunquan',{zone:'response'}).sequence,undefined);
+ assert.ok(tacticalContext('sunquan',{zone:'skill-plan'}).sequence);
+ assert.ok(tacticalContext('sunquan',{zone:'skill-plan'}).decision);
+});
+test('tactics address observed mistakes and classic-specific exceptions',()=>{
+ assert.match(GENERAL_TACTICS.zhangliao.sequence,/Choose zero/);
+ assert.match(GENERAL_TACTICS.zhangliao.react,/Empty Fortress or Second Wind/);
+ assert.match(GENERAL_TACTICS.liubei.example,/one Spy and one Rebel/);
+ assert.match(GENERAL_TACTICS.xuchu.example,/resolve draw-two/);
+ assert.match(GENERAL_TACTICS.sunquan.reserve,/no bonus/);
+ assert.match(GENERAL_TACTICS.zhugeliang.react,/not AOE/);
+ assert.match(GENERAL_TACTICS.zhangjiao.example,/Spade-only/);
+ assert.match(GENERAL_TACTICS.guojia.sequence,/still waiting to respond/);
+});
 test('every supported general has a sourced version-aware strategic playbook',()=>{
  assert.deepEqual(Object.keys(GENERAL_STRATEGIES).sort(),ALL_GENERALS.map(g=>g.id).sort());
  for(const g of ALL_GENERALS){const s=GENERAL_STRATEGIES[g.id];assert.ok(s.plan&&s.avoid&&s.facing&&s.version,g.id);assert.equal(s.priorities.length,3,g.id);assert.ok(s.sources.length,g.id);assert.ok(s.sources.every(x=>/^https:\/\/(www\.sanguosha\.(com|cn)|sanguosha\.com|gltjk\.com)\//.test(x.url)),g.id);}
