@@ -44,3 +44,20 @@ The importer uses only the bot's original request observation, never omniscient 
 A custom fixture file is an array of `{id, description, observation, expected?}`. `observation` has the same shape as the production bot input and includes `you`, `players` and `prompt`. Optional rubric fields: `anyIds` (at least one selected ID must match), `avoidIds` (none selected), `targets` (exact ordered target array). Omit `expected` for manual review. Rubrics should allow reasonable alternatives and must not use hidden information unavailable at the decision.
 
 `npm test` uses mocked responses only. It never runs the paid benchmark.
+
+## Experimental investigation tools (v0.71.0)
+
+```sh
+npm run llm:bench -- --models kimi --variants current,tools --runs 3 --dry-run
+npm run llm:bench -- --models kimi --variants current,tools --runs 3
+```
+
+`tools` lets the model investigate before submitting: inspect self/public players/rules/legal options; preview a current action; or explore one follow-up present in the engine's recorded equipment projection. These are JSON tool requests handled locally, compatible with both existing provider transports. No provider-specific native function-calling API is required. There is no prescribed target, sequence, or mandatory planning stage. The model can submit immediately.
+
+Each tool decision permits at most **four total model calls**. The last call must submit an action; another tool call returns `tool-budget-exhausted`, without a substituted action. Total wall-clock budget is four configured request timeouts. External cancellation stops the loop. Dry-run request counts include the maximum tool budget, and the 300-request cap uses that upper bound. Reports include `modelCalls`, every round's request/response/tool result, total token usage including failures, and total latency. This costs more than single-request mode; compare quality as well as cost.
+
+The tools read only the saved bot observation. They cannot access the deck, hidden hands, authoritative match state, or external sites. They do not execute actions. Preview coverage is intentionally limited: absent engine projections return unavailable, not an invented simulation. Explore supports only one recorded follow-up, not arbitrary multi-step rollouts. Old logs may lack previews; use newer logs for meaningful tool tests. Tool responses and prior tool calls are supplied as data in the next request; private chain-of-thought is neither requested nor scored.
+
+The built-in fixtures were corrected in v0.71.0: turn options and tactical facts now come from engine positions; Attack allowance is explicitly spent in the healing case; discard has four cards at three HP in Discard phase; armor is actually equipped; the Pindian opponent has a card. Regenerate with `node scripts/build-decision-cases.mjs`. Do not combine old and new fixture scores as if they were the same test.
+
+Live-game bots continue using the existing single-request mode. This experiment measures whether investigation helps before enabling it in matches.

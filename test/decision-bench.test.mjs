@@ -33,3 +33,29 @@ test('all scored expectations offer at least one legal action; complete Rende is
  assert.equal(gradeAction(c,{status:'model',action:{ids:['end'],targets:[]}}).strategy,'review');
  assert.match(markdownReport([{profile:'mock',variant:'current',elapsedMs:10,status:'model',grade:{legality:'pass',strategy:'review'}}]),/0\/0/);
 });
+
+test('tool mode investigates and submits without prescribing a move; usage includes every call',async()=>{
+ let count=0;const row=await runCase(cases[0],config,'tools',{fetchImpl:async(u,o)=>{
+  const body=JSON.parse(o.body),input=JSON.parse(body.messages[1].content);count++;
+  if(count===1)return mock({tool:'preview',optionId:'play:tao:c1'})();
+  assert.equal(input.toolHistory[0].result.option.id,'play:tao:c1');
+  assert.ok(input.toolHistory[0].result.preview);return mock({ids:['play:tao:c1'],targets:[]})();
+ }});
+ assert.equal(row.status,'model');assert.equal(row.modelCalls,2);assert.equal(row.usage.prompt_tokens,200);assert.equal(row.rounds[0].toolCall.tool,'preview');
+});
+test('tool budget, invalid tools, cancellation and recorded follow-up boundaries',async()=>{
+ const {decisionTool}=await import('../scripts/decision-tools.mjs');const observation=cases[0].observation;
+ assert.match(decisionTool(observation,{tool:'preview',optionId:'invented'}).error,/Unknown/);
+ assert.match(decisionTool(observation,{tool:'explore',optionId:'play:tao:c1',followUpId:'invented'}).error,/not in recorded/);
+ const row=await runCase(cases[0],config,'tools',{fetchImpl:mock({tool:'inspect',subject:'self'})});assert.equal(row.status,'tool-budget-exhausted');assert.equal(row.modelCalls,4);assert.equal(row.usage.completion_tokens,48);
+ const controller=new AbortController();controller.abort();let calls=0;const cancelled=await runCase(cases[0],config,'tools',{signal:controller.signal,fetchImpl:()=>{calls++;}});assert.equal(cancelled.status,'cancelled');assert.equal(calls,0);
+});
+test('corrected synthetic positions expose exact economy and consistent public state',()=>{
+ const heal=cases[0].observation,tactics=heal.agentState.tactics;
+ const peach=tactics.actionPreviews.find(p=>p.optionId==='play:tao:c1');assert.equal(peach.hpAfter,4);assert.equal(peach.handCountAfterKnownChanges,3);assert.equal(peach.handLimitAfterKnownChanges,4);assert.equal(peach.discardCountAfterKnownChanges,0);
+ assert.equal(tactics.attackUsesRemaining,0);assert.equal(heal.players[0].handCount,4);
+ assert.equal(tactics.actionPreviews.find(p=>p.optionId==='end').discardCountIfNoOtherEffects,1);
+ const discard=cases[1].observation;assert.equal(discard.phase,'Discard');assert.equal(discard.players[0].handCount,4);
+ assert.equal(cases[3].observation.players[0].equip.armor.kind,'bagua');
+ assert.equal(cases[4].observation.players[1].handCount,1);assert.equal(cases[4].observation.players[1].hand,undefined);
+});

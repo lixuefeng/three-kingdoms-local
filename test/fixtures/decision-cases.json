@@ -1,7 +1,7 @@
 [
   {
     "id": "weiyan-heal-before-end",
-    "description": "Synthetic isolated resource check: wounded at 3/4 HP, four cards, only Peach or End available. Healing leaves three cards and prevents forced discard.",
+    "description": "Attack allowance already spent. Peach yields 4 HP / 3 cards; End yields 3 HP / 4 cards and one forced discard. Engine-generated play options.",
     "expected": {
       "anyIds": [
         "play:tao:c1"
@@ -40,13 +40,13 @@
           },
           {
             "playerId": "p3",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "caocao",
+            "note": "Damaging him can supply the same AOE for a counterattack."
           },
           {
             "playerId": "p4",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "sunquan",
+            "note": "Control his draw/play phase and hand; spare cards can become something useful."
           }
         ]
       },
@@ -55,7 +55,7 @@
         "lord": {
           "playerId": "p2",
           "general": "Zhang Fei",
-          "hp": 4,
+          "hp": 5,
           "handCount": 0
         },
         "objective": "Defeat the Lord; cooperate with likely Rebels.",
@@ -63,14 +63,14 @@
           {
             "playerId": "p2",
             "general": "Zhang Fei",
-            "hp": 4,
+            "hp": 5,
             "handCount": 0,
             "publicRole": "lord",
             "alliedProbability": null
           },
           {
             "playerId": "p3",
-            "general": "Zhang Fei",
+            "general": "Cao Cao",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
@@ -78,18 +78,100 @@
           },
           {
             "playerId": "p4",
-            "general": "Zhang Fei",
+            "general": "Sun Quan",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
             "alliedProbability": null
           }
         ],
+        "endPhaseForecast": {
+          "handCount": 4,
+          "handLimit": 3,
+          "excessBeforeOptionalSkip": 1,
+          "discardCountIfEndNow": 1,
+          "optionalComposureSkip": false,
+          "forecastAppliesToCurrentPlayPhase": true,
+          "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+        },
         "availableResourceActions": [],
         "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
       },
+      "agentState": {
+        "tactics": {
+          "legalChoicesAreAuthoritative": true,
+          "handEconomy": {
+            "handCount": 4,
+            "handLimit": 3,
+            "excessBeforeOptionalSkip": 1,
+            "discardCountIfEndNow": 1,
+            "optionalComposureSkip": false,
+            "forecastAppliesToCurrentPlayPhase": true,
+            "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+          },
+          "actionPreviews": [
+            {
+              "optionId": "play:tao:c1",
+              "handCardsSpent": 1,
+              "hpAfter": 4,
+              "handCountAfterKnownChanges": 3,
+              "handLimitAfterKnownChanges": 4,
+              "discardCountAfterKnownChanges": 0,
+              "pendingUnknownEffects": [],
+              "certainty": "Known self-heal and hand-limit changes if this play resolves. Unknown skill draws and later actions are unresolved."
+            },
+            {
+              "optionId": "end",
+              "effect": "End Play Phase",
+              "discardCountIfNoOtherEffects": 1
+            }
+          ],
+          "turnBonuses": {
+            "baredBodiedActive": false,
+            "wineBonus": 0,
+            "expireAtTurnEnd": true
+          },
+          "attackPlayRestrictionsApply": true,
+          "responsesDoNotConsumeAttackLimit": true,
+          "attackUsesRemaining": 0,
+          "unlimitedAttacks": false,
+          "attackForbidden": false,
+          "currentRange": 1,
+          "distances": [
+            {
+              "playerId": "p2",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 5,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p3",
+              "distance": 2,
+              "inCurrentAttackRange": false,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p4",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            }
+          ],
+          "attackChoices": [],
+          "caveat": "Attack range and usage limits apply to Attack plays, not Attack responses in Duel or Barbarian Invasion. Damage figures assume a hit and exclude responses, judgments, optional prevention, damage transfer and chained spread. Reconsider after every result. Future plan steps are intentions, never pre-authorized actions."
+        }
+      },
       "you": "p1",
-      "turn": 0,
+      "turn": 8,
       "phase": "Play",
       "current": "p1",
       "players": [
@@ -168,8 +250,8 @@
             "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
           },
           "role": "lord",
-          "hp": 4,
-          "maxHp": 4,
+          "hp": 5,
+          "maxHp": 5,
           "alive": true,
           "chained": false,
           "wineBoost": 0,
@@ -181,13 +263,13 @@
         },
         {
           "id": "p3",
-          "name": "Zhang Fei",
+          "name": "Cao Cao",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "caocao",
+            "name": "Cao Cao",
+            "kingdom": "Wei",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Treachery: After taking damage, you may take its physical card(s) if they are still resolving. Entourage (Lord): Ask other Wei characters to supply a Dodge when you need one."
           },
           "role": null,
           "hp": 4,
@@ -203,13 +285,13 @@
         },
         {
           "id": "p4",
-          "name": "Zhang Fei",
+          "name": "Sun Quan",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "sunquan",
+            "name": "Sun Quan",
+            "kingdom": "Wu",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Equilibrium: Once per Play Phase, discard any number of hand or equipment cards, then draw that many. Deliverance (Lord): A Peach used by another Wu character during your rescue restores 1 additional HP."
           },
           "role": null,
           "hp": 4,
@@ -232,24 +314,26 @@
       "action": null,
       "prompt": {
         "id": "weiyan-heal-before-end",
-        "title": "Play a card",
+        "title": "Play a card; your one Attack has already been used this phase.",
         "zone": "turn",
         "min": 1,
         "max": 1,
         "options": [
           {
             "id": "play:tao:c1",
-            "label": "Peach: recover 1 HP",
+            "label": "♥6 Peach",
+            "description": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character.",
+            "cardIds": [
+              "c1"
+            ],
+            "kind": "tao",
+            "targetIds": [],
             "targetMin": 0,
-            "targetMax": 0,
-            "targetIds": []
+            "targetMax": 0
           },
           {
             "id": "end",
-            "label": "End play phase",
-            "targetMin": 0,
-            "targetMax": 0,
-            "targetIds": []
+            "label": "End Play Phase"
           }
         ]
       },
@@ -450,7 +534,7 @@
   },
   {
     "id": "weiyan-discard-peach",
-    "description": "Synthetic discard check: wounded at 3/4, discard exactly one of Peach or surplus Attack. No current attack can be played during discard.",
+    "description": "At 3/4 HP with four cards, discard one. Three spare Attacks versus one Peach; keeping Peach is the test preference, not a proof of optimal play.",
     "expected": {
       "avoidIds": [
         "c1"
@@ -490,13 +574,13 @@
           },
           {
             "playerId": "p3",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "caocao",
+            "note": "Damaging him can supply the same AOE for a counterattack."
           },
           {
             "playerId": "p4",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "sunquan",
+            "note": "Control his draw/play phase and hand; spare cards can become something useful."
           }
         ]
       },
@@ -505,7 +589,7 @@
         "lord": {
           "playerId": "p2",
           "general": "Zhang Fei",
-          "hp": 4,
+          "hp": 5,
           "handCount": 0
         },
         "objective": "Defeat the Lord; cooperate with likely Rebels.",
@@ -513,14 +597,14 @@
           {
             "playerId": "p2",
             "general": "Zhang Fei",
-            "hp": 4,
+            "hp": 5,
             "handCount": 0,
             "publicRole": "lord",
             "alliedProbability": null
           },
           {
             "playerId": "p3",
-            "general": "Zhang Fei",
+            "general": "Cao Cao",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
@@ -528,19 +612,85 @@
           },
           {
             "playerId": "p4",
-            "general": "Zhang Fei",
+            "general": "Sun Quan",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
             "alliedProbability": null
           }
         ],
+        "endPhaseForecast": {
+          "handCount": 4,
+          "handLimit": 3,
+          "excessBeforeOptionalSkip": 1,
+          "discardCountIfEndNow": 1,
+          "optionalComposureSkip": false,
+          "forecastAppliesToCurrentPlayPhase": false,
+          "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+        },
         "availableResourceActions": [],
         "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
       },
+      "agentState": {
+        "tactics": {
+          "legalChoicesAreAuthoritative": true,
+          "handEconomy": {
+            "handCount": 4,
+            "handLimit": 3,
+            "excessBeforeOptionalSkip": 1,
+            "discardCountIfEndNow": 1,
+            "optionalComposureSkip": false,
+            "forecastAppliesToCurrentPlayPhase": false,
+            "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+          },
+          "actionPreviews": [],
+          "turnBonuses": {
+            "baredBodiedActive": false,
+            "wineBonus": 0,
+            "expireAtTurnEnd": true
+          },
+          "attackPlayRestrictionsApply": false,
+          "responsesDoNotConsumeAttackLimit": true,
+          "attackUsesRemaining": 0,
+          "unlimitedAttacks": false,
+          "attackForbidden": false,
+          "currentRange": 1,
+          "distances": [
+            {
+              "playerId": "p2",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 5,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p3",
+              "distance": 2,
+              "inCurrentAttackRange": false,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p4",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            }
+          ],
+          "attackChoices": [],
+          "caveat": "Attack range and usage limits apply to Attack plays, not Attack responses in Duel or Barbarian Invasion. Damage figures assume a hit and exclude responses, judgments, optional prevention, damage transfer and chained spread. Reconsider after every result. Future plan steps are intentions, never pre-authorized actions."
+        }
+      },
       "you": "p1",
-      "turn": 0,
-      "phase": "Play",
+      "turn": 8,
+      "phase": "Discard",
       "current": "p1",
       "players": [
         {
@@ -559,7 +709,7 @@
           "alive": true,
           "chained": false,
           "wineBoost": 0,
-          "handCount": 2,
+          "handCount": 4,
           "hand": [
             {
               "id": "c1",
@@ -573,6 +723,26 @@
             },
             {
               "id": "c2",
+              "kind": "sha",
+              "name": "Attack",
+              "suit": "♠",
+              "rank": 7,
+              "type": "basic",
+              "text": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage.",
+              "nature": "normal"
+            },
+            {
+              "id": "c3",
+              "kind": "sha",
+              "name": "Attack",
+              "suit": "♠",
+              "rank": 7,
+              "type": "basic",
+              "text": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage.",
+              "nature": "normal"
+            },
+            {
+              "id": "c4",
               "kind": "sha",
               "name": "Attack",
               "suit": "♠",
@@ -598,8 +768,8 @@
             "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
           },
           "role": "lord",
-          "hp": 4,
-          "maxHp": 4,
+          "hp": 5,
+          "maxHp": 5,
           "alive": true,
           "chained": false,
           "wineBoost": 0,
@@ -611,13 +781,13 @@
         },
         {
           "id": "p3",
-          "name": "Zhang Fei",
+          "name": "Cao Cao",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "caocao",
+            "name": "Cao Cao",
+            "kingdom": "Wei",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Treachery: After taking damage, you may take its physical card(s) if they are still resolving. Entourage (Lord): Ask other Wei characters to supply a Dodge when you need one."
           },
           "role": null,
           "hp": 4,
@@ -633,13 +803,13 @@
         },
         {
           "id": "p4",
-          "name": "Zhang Fei",
+          "name": "Sun Quan",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "sunquan",
+            "name": "Sun Quan",
+            "kingdom": "Wu",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Equilibrium: Once per Play Phase, discard any number of hand or equipment cards, then draw that many. Deliverance (Lord): A Peach used by another Wu character during your rescue restores 1 additional HP."
           },
           "role": null,
           "hp": 4,
@@ -662,18 +832,50 @@
       "action": null,
       "prompt": {
         "id": "weiyan-discard-peach",
-        "title": "Discard one card",
+        "title": "Discard one card to your hand limit of 3.",
         "zone": "cards",
         "min": 1,
         "max": 1,
         "options": [
           {
             "id": "c1",
-            "label": "Peach"
+            "card": {
+              "id": "c1",
+              "kind": "tao",
+              "suit": "♥",
+              "rank": 6,
+              "pack": "standard"
+            }
           },
           {
             "id": "c2",
-            "label": "Attack"
+            "card": {
+              "id": "c2",
+              "kind": "sha",
+              "suit": "♠",
+              "rank": 7,
+              "pack": "standard"
+            }
+          },
+          {
+            "id": "c3",
+            "card": {
+              "id": "c3",
+              "kind": "sha",
+              "suit": "♠",
+              "rank": 7,
+              "pack": "standard"
+            }
+          },
+          {
+            "id": "c4",
+            "card": {
+              "id": "c4",
+              "kind": "sha",
+              "suit": "♠",
+              "rank": 7,
+              "pack": "standard"
+            }
           }
         ]
       },
@@ -874,7 +1076,7 @@
   },
   {
     "id": "rende-complete-action",
-    "description": "Benevolence must include cost and recipient in the submitted action. Strategy is reviewed, not forced.",
+    "description": "Engine-generated play choices include Benevolence. All legal actions are accepted; gifting is not mandatory.",
     "expected": null,
     "observation": {
       "generalStrategy": {
@@ -909,13 +1111,13 @@
           },
           {
             "playerId": "p3",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "caocao",
+            "note": "Damaging him can supply the same AOE for a counterattack."
           },
           {
             "playerId": "p4",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "sunquan",
+            "note": "Control his draw/play phase and hand; spare cards can become something useful."
           }
         ]
       },
@@ -924,7 +1126,7 @@
         "lord": {
           "playerId": "p2",
           "general": "Zhang Fei",
-          "hp": 4,
+          "hp": 5,
           "handCount": 0
         },
         "objective": "Defeat the Lord; cooperate with likely Rebels.",
@@ -932,14 +1134,14 @@
           {
             "playerId": "p2",
             "general": "Zhang Fei",
-            "hp": 4,
+            "hp": 5,
             "handCount": 0,
             "publicRole": "lord",
             "alliedProbability": null
           },
           {
             "playerId": "p3",
-            "general": "Zhang Fei",
+            "general": "Cao Cao",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
@@ -947,18 +1149,100 @@
           },
           {
             "playerId": "p4",
-            "general": "Zhang Fei",
+            "general": "Sun Quan",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
             "alliedProbability": null
           }
         ],
+        "endPhaseForecast": {
+          "handCount": 3,
+          "handLimit": 3,
+          "excessBeforeOptionalSkip": 0,
+          "discardCountIfEndNow": 0,
+          "optionalComposureSkip": false,
+          "forecastAppliesToCurrentPlayPhase": true,
+          "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+        },
         "availableResourceActions": [],
         "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
       },
+      "agentState": {
+        "tactics": {
+          "legalChoicesAreAuthoritative": true,
+          "handEconomy": {
+            "handCount": 3,
+            "handLimit": 3,
+            "excessBeforeOptionalSkip": 0,
+            "discardCountIfEndNow": 0,
+            "optionalComposureSkip": false,
+            "forecastAppliesToCurrentPlayPhase": true,
+            "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+          },
+          "actionPreviews": [
+            {
+              "optionId": "play:tao:c1",
+              "handCardsSpent": 1,
+              "hpAfter": 4,
+              "handCountAfterKnownChanges": 2,
+              "handLimitAfterKnownChanges": 4,
+              "discardCountAfterKnownChanges": 0,
+              "pendingUnknownEffects": [],
+              "certainty": "Known self-heal and hand-limit changes if this play resolves. Unknown skill draws and later actions are unresolved."
+            },
+            {
+              "optionId": "end",
+              "effect": "End Play Phase",
+              "discardCountIfNoOtherEffects": 0
+            }
+          ],
+          "turnBonuses": {
+            "baredBodiedActive": false,
+            "wineBonus": 0,
+            "expireAtTurnEnd": true
+          },
+          "attackPlayRestrictionsApply": true,
+          "responsesDoNotConsumeAttackLimit": true,
+          "attackUsesRemaining": 0,
+          "unlimitedAttacks": false,
+          "attackForbidden": false,
+          "currentRange": 1,
+          "distances": [
+            {
+              "playerId": "p2",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 5,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p3",
+              "distance": 2,
+              "inCurrentAttackRange": false,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p4",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            }
+          ],
+          "attackChoices": [],
+          "caveat": "Attack range and usage limits apply to Attack plays, not Attack responses in Duel or Barbarian Invasion. Damage figures assume a hit and exclude responses, judgments, optional prevention, damage transfer and chained spread. Reconsider after every result. Future plan steps are intentions, never pre-authorized actions."
+        }
+      },
       "you": "p1",
-      "turn": 0,
+      "turn": 8,
       "phase": "Play",
       "current": "p1",
       "players": [
@@ -1027,8 +1311,8 @@
             "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
           },
           "role": "lord",
-          "hp": 4,
-          "maxHp": 4,
+          "hp": 5,
+          "maxHp": 5,
           "alive": true,
           "chained": false,
           "wineBoost": 0,
@@ -1040,13 +1324,13 @@
         },
         {
           "id": "p3",
-          "name": "Zhang Fei",
+          "name": "Cao Cao",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "caocao",
+            "name": "Cao Cao",
+            "kingdom": "Wei",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Treachery: After taking damage, you may take its physical card(s) if they are still resolving. Entourage (Lord): Ask other Wei characters to supply a Dodge when you need one."
           },
           "role": null,
           "hp": 4,
@@ -1062,13 +1346,13 @@
         },
         {
           "id": "p4",
-          "name": "Zhang Fei",
+          "name": "Sun Quan",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "sunquan",
+            "name": "Sun Quan",
+            "kingdom": "Wu",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Equilibrium: Once per Play Phase, discard any number of hand or equipment cards, then draw that many. Deliverance (Lord): A Peach used by another Wu character during your rescue restores 1 additional HP."
           },
           "role": null,
           "hp": 4,
@@ -1091,23 +1375,31 @@
       "action": null,
       "prompt": {
         "id": "rende-complete-action",
-        "title": "Play a card or skill",
+        "title": "Play a card or skill; Attack allowance already spent.",
         "zone": "turn",
         "min": 1,
         "max": 1,
         "options": [
           {
+            "id": "play:tao:c1",
+            "label": "♥6 Peach",
+            "description": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character.",
+            "cardIds": [
+              "c1"
+            ],
+            "kind": "tao",
+            "targetIds": [],
+            "targetMin": 0,
+            "targetMax": 0
+          },
+          {
             "id": "skill:rende",
             "label": "Benevolence",
-            "targetMin": 1,
-            "targetMax": 1,
-            "targetIds": [
-              "p2",
-              "p3",
-              "p4"
-            ],
+            "description": "Give hand cards to another character. Giving 2 in total heals you once this Play Phase.",
             "actionSpec": {
+              "actionKind": "rende",
               "kind": "rende-plan",
+              "skillName": "Benevolence",
               "cardIds": [
                 "c1",
                 "c2",
@@ -1122,18 +1414,25 @@
               ],
               "targetCount": 1,
               "facts": {
-                "drawsCards": false,
+                "givenThisPhase": 0,
+                "healedThisPhase": false,
                 "healThreshold": 2,
-                "recovery": 1
+                "recovery": 1,
+                "drawsCards": false,
+                "rule": "Giving 2 total this phase heals once; this skill never draws cards."
               }
-            }
+            },
+            "targetIds": [
+              "p2",
+              "p3",
+              "p4"
+            ],
+            "targetMax": 1,
+            "targetMin": 1
           },
           {
             "id": "end",
-            "label": "End play phase",
-            "targetMin": 0,
-            "targetMax": 0,
-            "targetIds": []
+            "label": "End Play Phase"
           }
         ]
       },
@@ -1334,7 +1633,7 @@
   },
   {
     "id": "armor-response-contract",
-    "description": "Armor activation requires the bagua option. Empty ids cannot activate armor. Either offered response is legal; no strategy score.",
+    "description": "Eight Trigrams is equipped, with no Dodge in hand. Choose armor activation or decline. Strategy requires manual review.",
     "expected": null,
     "observation": {
       "generalStrategy": {
@@ -1369,13 +1668,13 @@
           },
           {
             "playerId": "p3",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "caocao",
+            "note": "Damaging him can supply the same AOE for a counterattack."
           },
           {
             "playerId": "p4",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "sunquan",
+            "note": "Control his draw/play phase and hand; spare cards can become something useful."
           }
         ]
       },
@@ -1384,7 +1683,7 @@
         "lord": {
           "playerId": "p2",
           "general": "Zhang Fei",
-          "hp": 4,
+          "hp": 5,
           "handCount": 0
         },
         "objective": "Defeat the Lord; cooperate with likely Rebels.",
@@ -1392,14 +1691,14 @@
           {
             "playerId": "p2",
             "general": "Zhang Fei",
-            "hp": 4,
+            "hp": 5,
             "handCount": 0,
             "publicRole": "lord",
             "alliedProbability": null
           },
           {
             "playerId": "p3",
-            "general": "Zhang Fei",
+            "general": "Cao Cao",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
@@ -1407,18 +1706,84 @@
           },
           {
             "playerId": "p4",
-            "general": "Zhang Fei",
+            "general": "Sun Quan",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
             "alliedProbability": null
           }
         ],
+        "endPhaseForecast": {
+          "handCount": 0,
+          "handLimit": 3,
+          "excessBeforeOptionalSkip": 0,
+          "discardCountIfEndNow": 0,
+          "optionalComposureSkip": false,
+          "forecastAppliesToCurrentPlayPhase": false,
+          "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+        },
         "availableResourceActions": [],
         "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
       },
+      "agentState": {
+        "tactics": {
+          "legalChoicesAreAuthoritative": true,
+          "handEconomy": {
+            "handCount": 0,
+            "handLimit": 3,
+            "excessBeforeOptionalSkip": 0,
+            "discardCountIfEndNow": 0,
+            "optionalComposureSkip": false,
+            "forecastAppliesToCurrentPlayPhase": false,
+            "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+          },
+          "actionPreviews": [],
+          "turnBonuses": {
+            "baredBodiedActive": false,
+            "wineBonus": 0,
+            "expireAtTurnEnd": true
+          },
+          "attackPlayRestrictionsApply": false,
+          "responsesDoNotConsumeAttackLimit": true,
+          "attackUsesRemaining": null,
+          "unlimitedAttacks": true,
+          "attackForbidden": false,
+          "currentRange": 1,
+          "distances": [
+            {
+              "playerId": "p2",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 5,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p3",
+              "distance": 2,
+              "inCurrentAttackRange": false,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p4",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            }
+          ],
+          "attackChoices": [],
+          "caveat": "Attack range and usage limits apply to Attack plays, not Attack responses in Duel or Barbarian Invasion. Damage figures assume a hit and exclude responses, judgments, optional prevention, damage transfer and chained spread. Reconsider after every result. Future plan steps are intentions, never pre-authorized actions."
+        }
+      },
       "you": "p1",
-      "turn": 0,
+      "turn": 8,
       "phase": "Play",
       "current": "p1",
       "players": [
@@ -1438,20 +1803,20 @@
           "alive": true,
           "chained": false,
           "wineBoost": 0,
-          "handCount": 1,
-          "hand": [
-            {
-              "id": "c1",
-              "kind": "shan",
-              "name": "Dodge",
-              "suit": "♥",
+          "handCount": 0,
+          "hand": [],
+          "equip": {
+            "armor": {
+              "id": "armor1",
+              "kind": "bagua",
+              "name": "Eight Trigrams Formation",
+              "suit": "♠",
               "rank": 2,
-              "type": "basic",
-              "text": "Respond to Attack or Raining Arrows to avoid its damage.",
+              "type": "armor",
+              "text": "When you need Dodge, you may judge. A red judgment counts as playing Dodge.",
               "nature": "normal"
             }
-          ],
-          "equip": {},
+          },
           "judge": [],
           "wounds": [],
           "nirvanaUsed": false
@@ -1467,8 +1832,8 @@
             "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
           },
           "role": "lord",
-          "hp": 4,
-          "maxHp": 4,
+          "hp": 5,
+          "maxHp": 5,
           "alive": true,
           "chained": false,
           "wineBoost": 0,
@@ -1480,13 +1845,13 @@
         },
         {
           "id": "p3",
-          "name": "Zhang Fei",
+          "name": "Cao Cao",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "caocao",
+            "name": "Cao Cao",
+            "kingdom": "Wei",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Treachery: After taking damage, you may take its physical card(s) if they are still resolving. Entourage (Lord): Ask other Wei characters to supply a Dodge when you need one."
           },
           "role": null,
           "hp": 4,
@@ -1502,13 +1867,13 @@
         },
         {
           "id": "p4",
-          "name": "Zhang Fei",
+          "name": "Sun Quan",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "sunquan",
+            "name": "Sun Quan",
+            "kingdom": "Wu",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Equilibrium: Once per Play Phase, discard any number of hand or equipment cards, then draw that many. Deliverance (Lord): A Peach used by another Wu character during your rescue restores 1 additional HP."
           },
           "role": null,
           "hp": 4,
@@ -1531,7 +1896,7 @@
       "action": null,
       "prompt": {
         "id": "armor-response-contract",
-        "title": "An Attack targets you. Activate Eight Trigrams or pass.",
+        "title": "Lord Zhang Fei attacks you. Activate Eight Trigrams or pass.",
         "zone": "response",
         "min": 1,
         "max": 1,
@@ -1758,7 +2123,7 @@
   },
   {
     "id": "pindian-card-selection",
-    "description": "Select the highest rank in this isolated Pindian case. The opponent is already chosen; targets must be empty.",
+    "description": "Pindian against a player with one unknown card. Prefer rank 13 to rank 2 for winning this contest.",
     "expected": {
       "anyIds": [
         "c2"
@@ -1798,13 +2163,13 @@
           },
           {
             "playerId": "p3",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "caocao",
+            "note": "Damaging him can supply the same AOE for a counterattack."
           },
           {
             "playerId": "p4",
-            "generalId": "zhangfei",
-            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+            "generalId": "sunquan",
+            "note": "Control his draw/play phase and hand; spare cards can become something useful."
           }
         ]
       },
@@ -1813,22 +2178,22 @@
         "lord": {
           "playerId": "p2",
           "general": "Zhang Fei",
-          "hp": 4,
-          "handCount": 0
+          "hp": 5,
+          "handCount": 1
         },
         "objective": "Defeat the Lord; cooperate with likely Rebels.",
         "relations": [
           {
             "playerId": "p2",
             "general": "Zhang Fei",
-            "hp": 4,
-            "handCount": 0,
+            "hp": 5,
+            "handCount": 1,
             "publicRole": "lord",
             "alliedProbability": null
           },
           {
             "playerId": "p3",
-            "general": "Zhang Fei",
+            "general": "Cao Cao",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
@@ -1836,18 +2201,84 @@
           },
           {
             "playerId": "p4",
-            "general": "Zhang Fei",
+            "general": "Sun Quan",
             "hp": 4,
             "handCount": 0,
             "publicRole": null,
             "alliedProbability": null
           }
         ],
+        "endPhaseForecast": {
+          "handCount": 2,
+          "handLimit": 3,
+          "excessBeforeOptionalSkip": 0,
+          "discardCountIfEndNow": 0,
+          "optionalComposureSkip": false,
+          "forecastAppliesToCurrentPlayPhase": false,
+          "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+        },
         "availableResourceActions": [],
         "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
       },
+      "agentState": {
+        "tactics": {
+          "legalChoicesAreAuthoritative": true,
+          "handEconomy": {
+            "handCount": 2,
+            "handLimit": 3,
+            "excessBeforeOptionalSkip": 0,
+            "discardCountIfEndNow": 0,
+            "optionalComposureSkip": false,
+            "forecastAppliesToCurrentPlayPhase": false,
+            "assumption": "Current HP, equipment and skill state; ignores future triggered effects. If Composure is offered, zero discard assumes accepting it."
+          },
+          "actionPreviews": [],
+          "turnBonuses": {
+            "baredBodiedActive": false,
+            "wineBonus": 0,
+            "expireAtTurnEnd": true
+          },
+          "attackPlayRestrictionsApply": false,
+          "responsesDoNotConsumeAttackLimit": true,
+          "attackUsesRemaining": 0,
+          "unlimitedAttacks": false,
+          "attackForbidden": false,
+          "currentRange": 1,
+          "distances": [
+            {
+              "playerId": "p2",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 5,
+              "handCount": 1,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p3",
+              "distance": 2,
+              "inCurrentAttackRange": false,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            },
+            {
+              "playerId": "p4",
+              "distance": 1,
+              "inCurrentAttackRange": true,
+              "hp": 4,
+              "handCount": 0,
+              "armor": null,
+              "chained": false
+            }
+          ],
+          "attackChoices": [],
+          "caveat": "Attack range and usage limits apply to Attack plays, not Attack responses in Duel or Barbarian Invasion. Damage figures assume a hit and exclude responses, judgments, optional prevention, damage transfer and chained spread. Reconsider after every result. Future plan steps are intentions, never pre-authorized actions."
+        }
+      },
       "you": "p1",
-      "turn": 0,
+      "turn": 8,
       "phase": "Play",
       "current": "p1",
       "players": [
@@ -1906,12 +2337,12 @@
             "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
           },
           "role": "lord",
-          "hp": 4,
-          "maxHp": 4,
+          "hp": 5,
+          "maxHp": 5,
           "alive": true,
           "chained": false,
           "wineBoost": 0,
-          "handCount": 0,
+          "handCount": 1,
           "equip": {},
           "judge": [],
           "wounds": [],
@@ -1919,13 +2350,13 @@
         },
         {
           "id": "p3",
-          "name": "Zhang Fei",
+          "name": "Cao Cao",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "caocao",
+            "name": "Cao Cao",
+            "kingdom": "Wei",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Treachery: After taking damage, you may take its physical card(s) if they are still resolving. Entourage (Lord): Ask other Wei characters to supply a Dodge when you need one."
           },
           "role": null,
           "hp": 4,
@@ -1941,13 +2372,13 @@
         },
         {
           "id": "p4",
-          "name": "Zhang Fei",
+          "name": "Sun Quan",
           "general": {
-            "id": "zhangfei",
-            "name": "Zhang Fei",
-            "kingdom": "Shu",
+            "id": "sunquan",
+            "name": "Sun Quan",
+            "kingdom": "Wu",
             "sex": "m",
-            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+            "skills": "Equilibrium: Once per Play Phase, discard any number of hand or equipment cards, then draw that many. Deliverance (Lord): A Peach used by another Wu character during your rescue restores 1 additional HP."
           },
           "role": null,
           "hp": 4,
@@ -1970,19 +2401,19 @@
       "action": null,
       "prompt": {
         "id": "pindian-card-selection",
-        "title": "Pindian with Zhang Fei: choose one card; higher rank wins",
+        "title": "Pindian with Lord Zhang Fei: choose one card; higher rank wins.",
         "zone": "cards",
         "min": 1,
         "max": 1,
         "options": [
           {
             "id": "c1",
-            "label": "Attack, rank 2",
+            "label": "undefined, rank 2",
             "rank": 2
           },
           {
             "id": "c2",
-            "label": "Dodge, rank 13",
+            "label": "undefined, rank 13",
             "rank": 13
           }
         ]

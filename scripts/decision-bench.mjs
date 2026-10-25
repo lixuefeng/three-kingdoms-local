@@ -1,10 +1,11 @@
+import {decisionTool,TOOL_INSTRUCTIONS} from './decision-tools.mjs';
 import {evaluateSavedDecision,gameplaySystemPrompt} from '../llm-provider.mjs';
 export function prepareCase(testCase,variant='current'){
  const observation=structuredClone(testCase.observation);
  if(!observation?.prompt?.options?.length||!Array.isArray(observation.players)||!observation.players.some(p=>p.id===observation.you))throw Error('Invalid fixture: '+testCase.id);
  // Saved wall-clock deadlines must not expire replayed decisions.
  delete observation.prompt.deadline;
- if(!['current','focused'].includes(variant))throw Error('Unknown variant: '+variant);
+ if(!['current','focused','tools'].includes(variant))throw Error('Unknown variant: '+variant);
  if(variant==='focused'){
   // Experimental ordering only: preserve every fact and the exact action contract.
   const {you,players,prompt,decisionBriefing,agentState,...rest}=observation;
@@ -21,7 +22,9 @@ export function gradeAction(testCase,result){
  return {legality:'pass',strategy:pass?'pass':'fail'};
 }
 export async function runCase(testCase,config,variant='current',options={}){
- const input=prepareCase(testCase,variant),result=await evaluateSavedDecision(config,{...input,...options});
+ const input=prepareCase(testCase,variant);
+ if(variant==='tools'){input.system=TOOL_INSTRUCTIONS+'\n\n'+input.system;input.toolHandler=call=>decisionTool(input.observation,call);}
+ const result=await evaluateSavedDecision(config,{...input,...options});
  return {caseId:testCase.id,variant,...result,grade:gradeAction(testCase,result)};
 }
 export function markdownReport(rows){

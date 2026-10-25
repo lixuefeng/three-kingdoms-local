@@ -37,7 +37,9 @@ export function actionPreviews(game,p,q,attackFacts=()=>[]){
   }else if(o.kind==='wine'){
    previews.push({optionId:o.id,handCardsSpent:cards.length,nextAttackBonus:1,expires:'End of this turn',attackUsesRemaining:remaining(game,p),certainty:'Does not grant another Attack use. Damage depends on armor, responses and skills.'});
   }else if(o.kind==='tao'){
-   previews.push({optionId:o.id,handCardsSpent:cards.length,hpAfter:Math.min(p.maxHp,p.hp+1),certainty:'Self-heal if this play resolves; recalculate hand limit and options afterward.'});
+   const g=projection(game,p),a=g.players.find(x=>x.id===p.id);
+   a.hand=a.hand.filter(c=>!cards.some(x=>x.id===c.id));a.hp=Math.min(a.maxHp,a.hp+1);
+   previews.push({optionId:o.id,handCardsSpent:cards.length,hpAfter:a.hp,handCountAfterKnownChanges:a.hand.length,handLimitAfterKnownChanges:g.handLimit(a),discardCountAfterKnownChanges:a.general.id==='lvmeng'&&!g.used.shaDuringPlay?0:Math.max(0,a.hand.length-g.handLimit(a)),pendingUnknownEffects:!a.hand.length&&a.general.id==='luxun'?['Second Wind draws 1 unknown card when the last hand card is lost.']:[],certainty:'Known self-heal and hand-limit changes if this play resolves. Unknown skill draws and later actions are unresolved.'});
   }
  }
  return previews;

@@ -100,3 +100,5 @@ LLM bots can initiate table chat after completed plays: react to damage/card los
 ### Saved-position AI tests (v0.70.0)
 
 Run `npm run llm:bench -- --dry-run` to preview the request count, then configure your models and run `npm run llm:bench -- --models kimi --runs 3`. See [AI-BENCHMARKS.md](AI-BENCHMARKS.md) for comparison reports, synthetic regression cases and importing private saved decisions. Regular tests never call live models.
+
+v0.71.0 adds an experimental `--variants current,tools` comparison: models can inspect and request recorded action projections before submitting. Up to four calls per tool-assisted decision; see the benchmark guide for limits. Built-in inconsistent positions from v0.70.0 have been corrected.

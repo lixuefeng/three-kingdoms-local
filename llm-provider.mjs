@@ -192,23 +192,38 @@ export function createModelRouter(config=llmConfig(),options={}){
 
 // Offline-position evaluation entry point. Not used by the game/server.
 // Reuses the production transport, parsing, normalization and legality checks.
-export async function evaluateSavedDecision(config,{observation,system=SYSTEM+'\n\n'+COACHING,signal,fetchImpl=fetch}={}){
- const start=Date.now(),controller=new AbortController(),trace={},abort=()=>controller.abort(new Error('cancelled'));
+export async function evaluateSavedDecision(config,{observation,system=SYSTEM+'\n\n'+COACHING,signal,fetchImpl=fetch,toolHandler=null,maxCalls=4}={}){
+ const start=Date.now(),controller=new AbortController(),trace={rounds:[]},abort=()=>controller.abort(new Error('cancelled'));
+ const totalUsage={prompt_tokens:0,completion_tokens:0};
  signal?.addEventListener('abort',abort,{once:true});
  try{
   if(signal?.aborted)throw Error('cancelled');
   if(!config.enabled)throw Error('unavailable');
-  const result=await Promise.race([exchange({...config,debug:true},system,JSON.stringify(observation),controller.signal,trace,fetchImpl),requestLimit(controller,config.timeoutMs||10000,'request-timeout')]);
-  const parsed=parseExchange(result,trace);
-  trace.rawValidationReason=botDecisionError(observation.prompt,parsed);
-  const action=normalizeDecision(observation.prompt,parsed,{players:observation.players},trace,observation.you);
-  trace.validationReason=botDecisionError(observation.prompt,action);
-  if(trace.validationReason)throw Error('invalid-choice');
-  trace.action=action;trace.status='model';
+  if(!Number.isInteger(maxCalls)||maxCalls<1||maxCalls>6)throw Error('Invalid call budget');
+  const history=[],limit=requestLimit(controller,(config.timeoutMs||10000)*(toolHandler?maxCalls:1),'request-timeout');
+  for(let round=0;round<(toolHandler?maxCalls:1);round++){
+   const current={};trace.rounds.push(current);
+   try{
+    const input=history.length?{observation,toolHistory:history,remainingModelCalls:maxCalls-round}:observation;
+    const result=await Promise.race([exchange({...config,debug:true},system,JSON.stringify(input),controller.signal,current,fetchImpl),limit]);
+    const parsed=parseExchange(result,current);
+    if(toolHandler&&parsed?.tool){
+     if(round===maxCalls-1)throw Error('tool-budget-exhausted');
+     const answer=toolHandler(parsed);current.toolCall=parsed;current.toolResult=answer;history.push({call:parsed,result:answer});continue;
+    }
+    current.rawValidationReason=botDecisionError(observation.prompt,parsed);
+    const action=normalizeDecision(observation.prompt,parsed,{players:observation.players},current,observation.you);
+    current.validationReason=botDecisionError(observation.prompt,action);
+    if(current.validationReason)throw Error('invalid-choice');
+    trace.action=action;trace.status='model';break;
+   }finally{
+    totalUsage.prompt_tokens+=Number(current.usage?.prompt_tokens)||0;totalUsage.completion_tokens+=Number(current.usage?.completion_tokens)||0;
+    for(const k of ['request','response','normalization','rawValidationReason','validationReason','stopReason'])if(current[k]!==undefined)trace[k]=current[k];
+   }
+  }
  }catch(e){trace.status=e.message;}
  finally{clearTimeout(controller.timer);controller.abort();signal?.removeEventListener('abort',abort);}
- trace.elapsedMs=Date.now()-start;
- // Debug reports never include the configured credential, even if echoed.
+ trace.usage=totalUsage;trace.modelCalls=trace.rounds.length;trace.elapsedMs=Date.now()-start;
  const text=JSON.stringify(trace);return JSON.parse(config.key?text.split(config.key).join('[REDACTED]'):text);
 }
 export const gameplaySystemPrompt=()=>SYSTEM+'\n\n'+COACHING;
