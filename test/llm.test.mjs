@@ -160,3 +160,8 @@ test('reasoning-only truncation records the exhausted budget without fabricating
  const traces=[],p=createLLMProvider({...config(),transport:'bedrock-converse',debug:true},{onTrace:t=>traces.push(t),fetchImpl:async()=>new Response(JSON.stringify({output:{message:{content:[{reasoningContent:{reasoningText:{text:'',signature:'opaque'}}}]}},usage:{inputTokens:34883,outputTokens:1500},stopReason:'max_tokens'}))});
  assert.equal(await p.decide({view:game().view('a'),playerId:'a',prompt,matchId:'reasoning'}),null);assert.equal(traces[0].reasoningOnly,true);assert.match(traces[0].validationReason,/without an action/);assert.equal(p.status().seats['reasoning:a'].outputTokens,1500);
 });
+
+test('optional celebration intent survives a valid action without changing its execution fields',async()=>{
+ const p=createLLMProvider(config(),{fetchImpl:async()=>response({ids:['end'],targets:[],chatIntent:'celebrate_if_successful'})});
+ const d=await p.decide({view:game().view('a'),playerId:'a',prompt,matchId:'intent'});assert.deepEqual(d.ids,['end']);assert.deepEqual(d.targets,[]);assert.equal(d.chatIntent,'celebrate_if_successful');
+});

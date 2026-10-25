@@ -223,3 +223,10 @@ test('host AI connection test validates a real response without game data or gam
  assert.equal((await req('llm-check',{model:'custom'},guest.token)).status,400);assert.equal(requests,0);
  const result=await req('llm-check',{model:'custom'},host.token);assert.equal(result.status,200);assert.equal(result.data.ok,true);assert.equal(result.data.inputTokens,12);assert.equal(result.data.outputTokens,7);assert.equal(requests,1);assert.ok(!JSON.stringify(seen).includes('Guest'));assert.ok(!JSON.stringify(seen).includes(host.state.room.code));assert.equal((await req('llm-check',{model:'custom'},host.token)).status,400);assert.deepEqual((await req('llm-status',{},host.token)).data.seats,{});
 });
+
+
+test('only the host controls spontaneous chatter, with validated levels and default Occasional',async t=>{
+ const {req}=await fixture(t);const h=(await req('create',{name:'Host'})).data,f=(await req('join',{name:'Friend',code:h.state.room.code})).data;
+ assert.equal(h.state.room.botChatter,'occasional');assert.equal((await req('bot-chatter',{mode:'lively'},f.token)).status,400);assert.equal((await req('bot-chatter',{mode:'invalid'},h.token)).status,400);
+ for(const mode of ['off','lively','occasional']){assert.equal((await req('bot-chatter',{mode},h.token)).status,200);assert.equal((await req('state',undefined,h.token)).data.room.botChatter,mode);}
+});

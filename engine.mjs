@@ -56,7 +56,7 @@ export class Game {
    const invalidReason=()=>this.stopped||this.winner?'match-ended':p.botMode!=='llm'||p.botModel!==modelProfile?'model-switched':q.deadline&&Date.now()>=q.deadline?'decision-expired':shared&&this.prompts.get(p.id)?.id!==q.id?'window-closed':!shared&&!this.decisions.has(p.id)?'decision-expired':null;
    try{decision=await this.llmProvider.decide({view:{...ownView,publicChat:this.publicChatFor?.(p)||[]},agentState,playerId:p.id,prompt:q,matchId:this.matchId,modelProfile,signal:AbortSignal.any([this.botAbort.signal,request.signal]),isCurrent:()=>!invalidReason(),invalidReason});}finally{if(this.botRequests.get(p.id)===request)this.botRequests.delete(p.id);}
    if(this.stopped||this.winner)throw new Finished();
-   if(decision&&p.botMode==='llm'&&p.botModel===modelProfile){this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:'model',promptId:q.id,zone:q.zone,ids:decision.ids,targets:decision.targets,costs:decision.costs||[],mode:decision.mode});knowledge?.updatePlan(decision.plan,ownView,q);knowledge?.noteChoice(q,decision);this.llmProvider.recordPlan?.(this.matchId,p.id,q.id,knowledge?.plan);if(q.zone==='turn')this.plannedPlays.set(p.id,{optionId:decision.ids[0],targetIds:decision.targets||[],costIds:decision.costs||[],mode:decision.mode});return decision.ids;}
+   if(decision&&p.botMode==='llm'&&p.botModel===modelProfile){this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:'model',promptId:q.id,zone:q.zone,ids:decision.ids,targets:decision.targets,costs:decision.costs||[],mode:decision.mode});knowledge?.updatePlan(decision.plan,ownView,q);knowledge?.noteChoice(q,decision);this.llmProvider.recordPlan?.(this.matchId,p.id,q.id,knowledge?.plan);if(q.zone==='turn')this.plannedPlays.set(p.id,{optionId:decision.ids[0],targetIds:decision.targets||[],costIds:decision.costs||[],mode:decision.mode,chatIntent:decision.chatIntent});return decision.ids;}
   }
   const result=this.botAnswer(p,q,defaults);const plan=this.plannedPlays.get(p.id);this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:p.botMode==='llm'?'fallback':'practice',promptId:q.id,zone:q.zone,ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});this.botKnowledge.get(p.id)?.noteChoice(q,{ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});return result;
  }
@@ -391,7 +391,13 @@ export class Game {
   if(g==='zhouyu'&&!this.used.fanjian&&p.hand.length)opts.push({id:'skill:fanjian',label:'Sowing Distrust',description:'Another character guesses a suit and gains a random card from your hand. A wrong guess deals 1 damage.'});
   opts.push(...this.generalPlayOptions(p));opts.push({id:'end',label:'End Play Phase'});for(const o of opts)if(atomicSkills.includes(o.id.slice(6))&&o.id.startsWith('skill:')){const spec=this.actionSpec(p,o.id.slice(6));o.actionSpec=spec;o.targetIds=spec.targetIds;o.targetMin=o.targetMax=spec.targetCount;}return opts;
  }
+ publicChatSnapshot(){return this.players.map(p=>({id:p.id,general:p.general?.name||p.name,hp:p.hp,alive:p.alive,handCount:p.hand.length,equipment:Object.values(p.equip).map(c=>META[c.kind]?.[0]||c.kind)}));}
  async play(p,id){
+  const before=this.publicChatSnapshot(),group=this.actionGroup?.id,logId=this.logs.at(-1)?.id,intent=this.plannedPlays.get(p.id)?.chatIntent;
+  await this.playAction(p,id);
+  if(!this.stopped&&this.actionGroup?.id!==group){const index=this.logs.findIndex(e=>e.id===logId);this.remember({type:'action-complete',actorId:p.id,label:this.actionGroup?.label||'Play',chatIntent:intent==='celebrate_if_successful'?intent:null,before,after:this.publicChatSnapshot(),publicEvents:this.logs.slice(index<0?-20:index+1).slice(-20).map(e=>e.displayMessage||e.message)});}
+ }
+ async playAction(p,id){
   const plan=this.plannedPlays.get(p.id);this.plannedPlays.delete(p.id);const planned=plan?.optionId===id?plan:null;
   if(id.startsWith('recast:chain:')){this.beginAction('Recast Iron Chains');return this.recastChains(p,id.slice('recast:chain:'.length));}
   if(id.startsWith('skill:'))return this.skill(p,id.slice(6),planned);

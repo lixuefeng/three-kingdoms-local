@@ -92,3 +92,7 @@ Chat floats above the table without changing hand/table dimensions when resized.
 ## v0.68.0
 
 LLM observations now include factual action previews under `agentState.tactics.actionPreviews`. Equipment previews use the existing rules engine on a private-card-safe projection: changed range/distances, new or removed actions/targets, Attack allowance, conversions, armor calculations, replacement effects, known hand count and conditional discard count. Draw/recast, Peach, Wine and ending have compact effect summaries. Previews never choose moves, inspect the deck/opponent hand identities, or execute future actions. Unknown draws and reactions remain unresolved; large follow-up lists are explicitly bounded.
+
+## v0.69.0
+
+LLM bots can initiate table chat after completed plays: react to damage/card loss, thank help, ask for support, discuss public events, and celebrate their own successful actions. Host AI controls offer Off / Occasional (default) / Lively, available during a match. Direct human-addressed replies continue when spontaneous chatter is Off. Messages are optional, short and generated asynchronously from public information only. Practice bots do not initiate model chat.
