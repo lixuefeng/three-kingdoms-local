@@ -1,6 +1,6 @@
 {
   "name": "three-kingdoms-local",
-  "version": "0.69.0",
+  "version": "0.70.0",
   "description": "English edition of a self-hosted multiplayer Three Kingdoms card game",
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "dev": "PORT=4173 node server.mjs",
     "start:llm": "node --env-file=.env.local server.mjs",
     "llm:check": "node --env-file=.env.local scripts/llm-check.mjs",
-    "logs:key": "node scripts/archive-key.mjs"
+    "logs:key": "node scripts/archive-key.mjs",
+    "llm:bench": "node --env-file-if-exists=.env.local scripts/llm-bench.mjs"
   },
   "engines": {
     "node": ">=22"

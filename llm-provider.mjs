@@ -189,3 +189,26 @@ export function createModelRouter(config=llmConfig(),options={}){
  };
 }
 
+
+// Offline-position evaluation entry point. Not used by the game/server.
+// Reuses the production transport, parsing, normalization and legality checks.
+export async function evaluateSavedDecision(config,{observation,system=SYSTEM+'\n\n'+COACHING,signal,fetchImpl=fetch}={}){
+ const start=Date.now(),controller=new AbortController(),trace={},abort=()=>controller.abort(new Error('cancelled'));
+ signal?.addEventListener('abort',abort,{once:true});
+ try{
+  if(signal?.aborted)throw Error('cancelled');
+  if(!config.enabled)throw Error('unavailable');
+  const result=await Promise.race([exchange({...config,debug:true},system,JSON.stringify(observation),controller.signal,trace,fetchImpl),requestLimit(controller,config.timeoutMs||10000,'request-timeout')]);
+  const parsed=parseExchange(result,trace);
+  trace.rawValidationReason=botDecisionError(observation.prompt,parsed);
+  const action=normalizeDecision(observation.prompt,parsed,{players:observation.players},trace,observation.you);
+  trace.validationReason=botDecisionError(observation.prompt,action);
+  if(trace.validationReason)throw Error('invalid-choice');
+  trace.action=action;trace.status='model';
+ }catch(e){trace.status=e.message;}
+ finally{clearTimeout(controller.timer);controller.abort();signal?.removeEventListener('abort',abort);}
+ trace.elapsedMs=Date.now()-start;
+ // Debug reports never include the configured credential, even if echoed.
+ const text=JSON.stringify(trace);return JSON.parse(config.key?text.split(config.key).join('[REDACTED]'):text);
+}
+export const gameplaySystemPrompt=()=>SYSTEM+'\n\n'+COACHING;

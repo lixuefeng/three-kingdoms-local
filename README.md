@@ -96,3 +96,7 @@ LLM observations now include factual action previews under `agentState.tactics.a
 ## v0.69.0
 
 LLM bots can initiate table chat after completed plays: react to damage/card loss, thank help, ask for support, discuss public events, and celebrate their own successful actions. Host AI controls offer Off / Occasional (default) / Lively, available during a match. Direct human-addressed replies continue when spontaneous chatter is Off. Messages are optional, short and generated asynchronously from public information only. Practice bots do not initiate model chat.
+
+### Saved-position AI tests (v0.70.0)
+
+Run `npm run llm:bench -- --dry-run` to preview the request count, then configure your models and run `npm run llm:bench -- --models kimi --runs 3`. See [AI-BENCHMARKS.md](AI-BENCHMARKS.md) for comparison reports, synthetic regression cases and importing private saved decisions. Regular tests never call live models.

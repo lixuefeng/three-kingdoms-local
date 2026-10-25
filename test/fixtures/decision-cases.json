@@ -1,0 +1,2185 @@
+[
+  {
+    "id": "weiyan-heal-before-end",
+    "description": "Synthetic isolated resource check: wounded at 3/4 HP, four cards, only Peach or End available. Healing leaves three cards and prevents forced discard.",
+    "expected": {
+      "anyIds": [
+        "play:tao:c1"
+      ]
+    },
+    "observation": {
+      "generalStrategy": {
+        "generalId": "weiyan",
+        "generalName": "Wei Yan",
+        "plan": "Make damage at distance one also restore your HP.",
+        "priorities": [
+          "Use -1 Horse and target access to put valuable enemies within distance one.",
+          "Compare hit probability and potential recovery when choosing Attack or spell targets.",
+          "At full health prioritize team damage; healing is not permission to attack an ally."
+        ],
+        "avoid": "Long weapon range alone is not distance one. No Qimou or draw-instead-of-heal upgrade here.",
+        "facing": "Distance-one damage may heal him; distance control can deny recovery.",
+        "version": "Source discusses revised Wei Yan too; only classic distance-one recovery is used; tactics are rule-derived adaptations.",
+        "sources": [
+          {
+            "url": "https://www.sanguosha.com/news/20161026_9772_0011",
+            "kind": "Official strategy guide or official general introduction; advice synthesized and adapted"
+          }
+        ],
+        "tactics": {
+          "sequence": "Choose meaningful enemies at actual distance one; an ordinary spell hit there can also be relevant. Equip -1 Horse before committing if it changes distance. Use recovery potential to compare otherwise similar attacks, not to justify harming teammates.",
+          "reserve": "At full HP, the healing portion has no immediate value. At low HP, a reliable distance-one hit can improve both offense and survival, but a long weapon alone does not shorten distance.",
+          "workedExample": "Range 4 reaches an enemy four seats away but does not by itself make that target distance one for recovery."
+        },
+        "provenance": "Researched English synthesis plus original rule-derived sequences and hypothetical examples; not a proven optimal policy. Skill text and current legal choices override external versions.",
+        "matchups": [
+          {
+            "playerId": "p2",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p3",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p4",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          }
+        ]
+      },
+      "decisionBriefing": {
+        "yourRole": "rebel",
+        "lord": {
+          "playerId": "p2",
+          "general": "Zhang Fei",
+          "hp": 4,
+          "handCount": 0
+        },
+        "objective": "Defeat the Lord; cooperate with likely Rebels.",
+        "relations": [
+          {
+            "playerId": "p2",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": "lord",
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p3",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p4",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          }
+        ],
+        "availableResourceActions": [],
+        "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
+      },
+      "you": "p1",
+      "turn": 0,
+      "phase": "Play",
+      "current": "p1",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Wei Yan",
+          "general": {
+            "id": "weiyan",
+            "name": "Wei Yan",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Rebellious Spine: After dealing damage, recover that much HP if the recipient was within distance 1 immediately before losing HP."
+          },
+          "role": "rebel",
+          "hp": 3,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 4,
+          "hand": [
+            {
+              "id": "c1",
+              "kind": "tao",
+              "name": "Peach",
+              "suit": "♥",
+              "rank": 6,
+              "type": "basic",
+              "text": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character.",
+              "nature": "normal"
+            },
+            {
+              "id": "c2",
+              "kind": "shan",
+              "name": "Dodge",
+              "suit": "♥",
+              "rank": 2,
+              "type": "basic",
+              "text": "Respond to Attack or Raining Arrows to avoid its damage.",
+              "nature": "normal"
+            },
+            {
+              "id": "c3",
+              "kind": "shan",
+              "name": "Dodge",
+              "suit": "♥",
+              "rank": 2,
+              "type": "basic",
+              "text": "Respond to Attack or Raining Arrows to avoid its damage.",
+              "nature": "normal"
+            },
+            {
+              "id": "c4",
+              "kind": "sha",
+              "name": "Attack",
+              "suit": "♠",
+              "rank": 7,
+              "type": "basic",
+              "text": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage.",
+              "nature": "normal"
+            }
+          ],
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p2",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": "lord",
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p3",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p4",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        }
+      ],
+      "publicChat": [],
+      "events": [],
+      "table": [],
+      "effects": [],
+      "judgments": [],
+      "action": null,
+      "prompt": {
+        "id": "weiyan-heal-before-end",
+        "title": "Play a card",
+        "zone": "turn",
+        "min": 1,
+        "max": 1,
+        "options": [
+          {
+            "id": "play:tao:c1",
+            "label": "Peach: recover 1 HP",
+            "targetMin": 0,
+            "targetMax": 0,
+            "targetIds": []
+          },
+          {
+            "id": "end",
+            "label": "End play phase",
+            "targetMin": 0,
+            "targetMax": 0,
+            "targetIds": []
+          }
+        ]
+      },
+      "memory": "",
+      "cardRules": {
+        "sha": {
+          "name": "Attack",
+          "type": "basic",
+          "rule": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage."
+        },
+        "shan": {
+          "name": "Dodge",
+          "type": "basic",
+          "rule": "Respond to Attack or Raining Arrows to avoid its damage."
+        },
+        "tao": {
+          "name": "Peach",
+          "type": "basic",
+          "rule": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character."
+        },
+        "duel": {
+          "name": "Duel",
+          "type": "trick",
+          "rule": "Starting with the target, alternate playing Attack. The first to stop takes 1 damage from the other character."
+        },
+        "dismantle": {
+          "name": "Burning Bridges",
+          "type": "trick",
+          "rule": "Discard one card from another character's hand, equipment, or judgment area."
+        },
+        "steal": {
+          "name": "Steal",
+          "type": "trick",
+          "rule": "Take one card from another character's hand, equipment, or judgment area. Distance limit: 1."
+        },
+        "draw2": {
+          "name": "Something Out of Nothing",
+          "type": "trick",
+          "rule": "Draw 2 cards."
+        },
+        "barbarian": {
+          "name": "Barbarian Invasion",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Attack or take 1 damage."
+        },
+        "arrows": {
+          "name": "Raining Arrows",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Dodge or take 1 damage."
+        },
+        "feast": {
+          "name": "Brotherhood",
+          "type": "trick",
+          "rule": "Each living character recovers 1 HP, up to their maximum."
+        },
+        "harvest": {
+          "name": "Bumper Harvest",
+          "type": "trick",
+          "rule": "Reveal one card per living character. In turn order, each character takes one revealed card."
+        },
+        "negate": {
+          "name": "Negation",
+          "type": "trick",
+          "rule": "Cancel a Strategy card's effect on one character. Can also counter another Negation."
+        },
+        "borrow": {
+          "name": "Borrowed Sword",
+          "type": "trick",
+          "rule": "Choose another armed character and a target in their attack range. They must use Attack on that target or give you their weapon."
+        },
+        "indulgence": {
+          "name": "Acedia",
+          "type": "delay",
+          "rule": "During Judgment Phase, reveal a judgment card. Unless it is a Heart, skip your Play Phase."
+        },
+        "lightning": {
+          "name": "Lightning",
+          "type": "delay",
+          "rule": "Place in your own judgment area. A judgment of Spades 2–9 deals 3 thunder damage with no source. Otherwise, pass Lightning to the next eligible character."
+        },
+        "crossbow": {
+          "name": "Zhuge Crossbow",
+          "type": "weapon",
+          "rule": "Range 1. Removes the limit on how many Attacks you may use during your Play Phase."
+        },
+        "doubleSword": {
+          "name": "Yin-Yang Swords",
+          "type": "weapon",
+          "rule": "Range 2. When you Attack a character of the opposite sex, you may make them discard a hand card or let you draw 1."
+        },
+        "qinggang": {
+          "name": "Blue Steel Sword",
+          "type": "weapon",
+          "rule": "Range 2. Ignore the target's armor while resolving your Attack."
+        },
+        "greenDragon": {
+          "name": "Green Dragon Blade",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may use another Attack on the same target."
+        },
+        "serpent": {
+          "name": "Serpent Spear",
+          "type": "weapon",
+          "rule": "Range 3. You may combine 2 hand cards into one Attack, including when responding."
+        },
+        "axe": {
+          "name": "Rock Cleaving Axe",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may discard 2 other cards to make it deal damage anyway."
+        },
+        "halberd": {
+          "name": "Sky Piercing Halberd",
+          "type": "weapon",
+          "rule": "Range 4. An Attack that is your last hand card may target up to 3 characters."
+        },
+        "kylin": {
+          "name": "Kirin Bow",
+          "type": "weapon",
+          "rule": "Range 5. After your Attack deals damage, you may discard one of the target's mounts."
+        },
+        "bagua": {
+          "name": "Eight Trigrams Formation",
+          "type": "armor",
+          "rule": "When you need Dodge, you may judge. A red judgment counts as playing Dodge."
+        },
+        "renwang": {
+          "name": "Nio Shield",
+          "type": "armor",
+          "rule": "Black Attacks have no effect on you."
+        },
+        "plusHorse": {
+          "name": "+1 Horse",
+          "type": "plus",
+          "rule": "Other characters add 1 when calculating their distance to you."
+        },
+        "minusHorse": {
+          "name": "−1 Horse",
+          "type": "minus",
+          "rule": "Subtract 1 when calculating your distance to other characters."
+        },
+        "fireSha": {
+          "name": "Fire Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 fire damage. Shares the normal Attack limit."
+        },
+        "thunderSha": {
+          "name": "Thunder Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 thunder damage. Shares the normal Attack limit."
+        },
+        "wine": {
+          "name": "Wine",
+          "type": "basic",
+          "rule": "Once per turn during Play, your next Attack this turn deals +1 damage. When dying, use Wine to recover 1 HP yourself."
+        },
+        "fireAttack": {
+          "name": "Flame Tactic",
+          "type": "trick",
+          "rule": "Choose a character with hand cards. They reveal one. You may discard a hand card of the same suit to deal 1 fire damage."
+        },
+        "chain": {
+          "name": "Iron Chains",
+          "type": "trick",
+          "rule": "Choose 1–2 characters and toggle each chained state. Or recast: discard this card and draw 1, without using its effect."
+        },
+        "supply": {
+          "name": "Rations Depleted",
+          "type": "delay",
+          "rule": "Choose another character within distance 1. During their Judgment Phase, a non-Club judgment skips their Draw Phase."
+        },
+        "rattan": {
+          "name": "Rattan Armor",
+          "type": "armor",
+          "rule": "Normal Attack, Barbarian Invasion and Raining Arrows have no effect on you. Fire damage you take is increased by 1."
+        },
+        "silverLion": {
+          "name": "Silver Lion Helmet",
+          "type": "armor",
+          "rule": "Damage you take is capped at 1 per event. Recover 1 HP when this equipped armor leaves your equipment zone."
+        },
+        "fan": {
+          "name": "Feathered Fan",
+          "type": "weapon",
+          "rule": "Range 4. You may use an ordinary Attack card as Fire Attack."
+        },
+        "guding": {
+          "name": "Guding Blade",
+          "type": "weapon",
+          "rule": "Range 2. Your Attack deals +1 damage to a target with no hand cards."
+        },
+        "frost": {
+          "name": "Frost Sword",
+          "type": "weapon",
+          "rule": "Range 2. When your Attack would deal damage, you may prevent that damage and discard up to 2 of the target’s hand or equipment cards instead."
+        }
+      }
+    }
+  },
+  {
+    "id": "weiyan-discard-peach",
+    "description": "Synthetic discard check: wounded at 3/4, discard exactly one of Peach or surplus Attack. No current attack can be played during discard.",
+    "expected": {
+      "avoidIds": [
+        "c1"
+      ]
+    },
+    "observation": {
+      "generalStrategy": {
+        "generalId": "weiyan",
+        "generalName": "Wei Yan",
+        "plan": "Make damage at distance one also restore your HP.",
+        "priorities": [
+          "Use -1 Horse and target access to put valuable enemies within distance one.",
+          "Compare hit probability and potential recovery when choosing Attack or spell targets.",
+          "At full health prioritize team damage; healing is not permission to attack an ally."
+        ],
+        "avoid": "Long weapon range alone is not distance one. No Qimou or draw-instead-of-heal upgrade here.",
+        "facing": "Distance-one damage may heal him; distance control can deny recovery.",
+        "version": "Source discusses revised Wei Yan too; only classic distance-one recovery is used; tactics are rule-derived adaptations.",
+        "sources": [
+          {
+            "url": "https://www.sanguosha.com/news/20161026_9772_0011",
+            "kind": "Official strategy guide or official general introduction; advice synthesized and adapted"
+          }
+        ],
+        "tactics": {
+          "sequence": "Choose meaningful enemies at actual distance one; an ordinary spell hit there can also be relevant. Equip -1 Horse before committing if it changes distance. Use recovery potential to compare otherwise similar attacks, not to justify harming teammates.",
+          "decision": "Recovery requires damage to occur. Dodge, prevention or immunity can leave you wounded after spending your action; do not spend your only rescue assuming a hit is guaranteed.",
+          "reserve": "At full HP, the healing portion has no immediate value. At low HP, a reliable distance-one hit can improve both offense and survival, but a long weapon alone does not shorten distance.",
+          "workedExample": "Range 4 reaches an enemy four seats away but does not by itself make that target distance one for recovery."
+        },
+        "provenance": "Researched English synthesis plus original rule-derived sequences and hypothetical examples; not a proven optimal policy. Skill text and current legal choices override external versions.",
+        "matchups": [
+          {
+            "playerId": "p2",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p3",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p4",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          }
+        ]
+      },
+      "decisionBriefing": {
+        "yourRole": "rebel",
+        "lord": {
+          "playerId": "p2",
+          "general": "Zhang Fei",
+          "hp": 4,
+          "handCount": 0
+        },
+        "objective": "Defeat the Lord; cooperate with likely Rebels.",
+        "relations": [
+          {
+            "playerId": "p2",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": "lord",
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p3",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p4",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          }
+        ],
+        "availableResourceActions": [],
+        "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
+      },
+      "you": "p1",
+      "turn": 0,
+      "phase": "Play",
+      "current": "p1",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Wei Yan",
+          "general": {
+            "id": "weiyan",
+            "name": "Wei Yan",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Rebellious Spine: After dealing damage, recover that much HP if the recipient was within distance 1 immediately before losing HP."
+          },
+          "role": "rebel",
+          "hp": 3,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 2,
+          "hand": [
+            {
+              "id": "c1",
+              "kind": "tao",
+              "name": "Peach",
+              "suit": "♥",
+              "rank": 6,
+              "type": "basic",
+              "text": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character.",
+              "nature": "normal"
+            },
+            {
+              "id": "c2",
+              "kind": "sha",
+              "name": "Attack",
+              "suit": "♠",
+              "rank": 7,
+              "type": "basic",
+              "text": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage.",
+              "nature": "normal"
+            }
+          ],
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p2",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": "lord",
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p3",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p4",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        }
+      ],
+      "publicChat": [],
+      "events": [],
+      "table": [],
+      "effects": [],
+      "judgments": [],
+      "action": null,
+      "prompt": {
+        "id": "weiyan-discard-peach",
+        "title": "Discard one card",
+        "zone": "cards",
+        "min": 1,
+        "max": 1,
+        "options": [
+          {
+            "id": "c1",
+            "label": "Peach"
+          },
+          {
+            "id": "c2",
+            "label": "Attack"
+          }
+        ]
+      },
+      "memory": "",
+      "cardRules": {
+        "sha": {
+          "name": "Attack",
+          "type": "basic",
+          "rule": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage."
+        },
+        "shan": {
+          "name": "Dodge",
+          "type": "basic",
+          "rule": "Respond to Attack or Raining Arrows to avoid its damage."
+        },
+        "tao": {
+          "name": "Peach",
+          "type": "basic",
+          "rule": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character."
+        },
+        "duel": {
+          "name": "Duel",
+          "type": "trick",
+          "rule": "Starting with the target, alternate playing Attack. The first to stop takes 1 damage from the other character."
+        },
+        "dismantle": {
+          "name": "Burning Bridges",
+          "type": "trick",
+          "rule": "Discard one card from another character's hand, equipment, or judgment area."
+        },
+        "steal": {
+          "name": "Steal",
+          "type": "trick",
+          "rule": "Take one card from another character's hand, equipment, or judgment area. Distance limit: 1."
+        },
+        "draw2": {
+          "name": "Something Out of Nothing",
+          "type": "trick",
+          "rule": "Draw 2 cards."
+        },
+        "barbarian": {
+          "name": "Barbarian Invasion",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Attack or take 1 damage."
+        },
+        "arrows": {
+          "name": "Raining Arrows",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Dodge or take 1 damage."
+        },
+        "feast": {
+          "name": "Brotherhood",
+          "type": "trick",
+          "rule": "Each living character recovers 1 HP, up to their maximum."
+        },
+        "harvest": {
+          "name": "Bumper Harvest",
+          "type": "trick",
+          "rule": "Reveal one card per living character. In turn order, each character takes one revealed card."
+        },
+        "negate": {
+          "name": "Negation",
+          "type": "trick",
+          "rule": "Cancel a Strategy card's effect on one character. Can also counter another Negation."
+        },
+        "borrow": {
+          "name": "Borrowed Sword",
+          "type": "trick",
+          "rule": "Choose another armed character and a target in their attack range. They must use Attack on that target or give you their weapon."
+        },
+        "indulgence": {
+          "name": "Acedia",
+          "type": "delay",
+          "rule": "During Judgment Phase, reveal a judgment card. Unless it is a Heart, skip your Play Phase."
+        },
+        "lightning": {
+          "name": "Lightning",
+          "type": "delay",
+          "rule": "Place in your own judgment area. A judgment of Spades 2–9 deals 3 thunder damage with no source. Otherwise, pass Lightning to the next eligible character."
+        },
+        "crossbow": {
+          "name": "Zhuge Crossbow",
+          "type": "weapon",
+          "rule": "Range 1. Removes the limit on how many Attacks you may use during your Play Phase."
+        },
+        "doubleSword": {
+          "name": "Yin-Yang Swords",
+          "type": "weapon",
+          "rule": "Range 2. When you Attack a character of the opposite sex, you may make them discard a hand card or let you draw 1."
+        },
+        "qinggang": {
+          "name": "Blue Steel Sword",
+          "type": "weapon",
+          "rule": "Range 2. Ignore the target's armor while resolving your Attack."
+        },
+        "greenDragon": {
+          "name": "Green Dragon Blade",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may use another Attack on the same target."
+        },
+        "serpent": {
+          "name": "Serpent Spear",
+          "type": "weapon",
+          "rule": "Range 3. You may combine 2 hand cards into one Attack, including when responding."
+        },
+        "axe": {
+          "name": "Rock Cleaving Axe",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may discard 2 other cards to make it deal damage anyway."
+        },
+        "halberd": {
+          "name": "Sky Piercing Halberd",
+          "type": "weapon",
+          "rule": "Range 4. An Attack that is your last hand card may target up to 3 characters."
+        },
+        "kylin": {
+          "name": "Kirin Bow",
+          "type": "weapon",
+          "rule": "Range 5. After your Attack deals damage, you may discard one of the target's mounts."
+        },
+        "bagua": {
+          "name": "Eight Trigrams Formation",
+          "type": "armor",
+          "rule": "When you need Dodge, you may judge. A red judgment counts as playing Dodge."
+        },
+        "renwang": {
+          "name": "Nio Shield",
+          "type": "armor",
+          "rule": "Black Attacks have no effect on you."
+        },
+        "plusHorse": {
+          "name": "+1 Horse",
+          "type": "plus",
+          "rule": "Other characters add 1 when calculating their distance to you."
+        },
+        "minusHorse": {
+          "name": "−1 Horse",
+          "type": "minus",
+          "rule": "Subtract 1 when calculating your distance to other characters."
+        },
+        "fireSha": {
+          "name": "Fire Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 fire damage. Shares the normal Attack limit."
+        },
+        "thunderSha": {
+          "name": "Thunder Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 thunder damage. Shares the normal Attack limit."
+        },
+        "wine": {
+          "name": "Wine",
+          "type": "basic",
+          "rule": "Once per turn during Play, your next Attack this turn deals +1 damage. When dying, use Wine to recover 1 HP yourself."
+        },
+        "fireAttack": {
+          "name": "Flame Tactic",
+          "type": "trick",
+          "rule": "Choose a character with hand cards. They reveal one. You may discard a hand card of the same suit to deal 1 fire damage."
+        },
+        "chain": {
+          "name": "Iron Chains",
+          "type": "trick",
+          "rule": "Choose 1–2 characters and toggle each chained state. Or recast: discard this card and draw 1, without using its effect."
+        },
+        "supply": {
+          "name": "Rations Depleted",
+          "type": "delay",
+          "rule": "Choose another character within distance 1. During their Judgment Phase, a non-Club judgment skips their Draw Phase."
+        },
+        "rattan": {
+          "name": "Rattan Armor",
+          "type": "armor",
+          "rule": "Normal Attack, Barbarian Invasion and Raining Arrows have no effect on you. Fire damage you take is increased by 1."
+        },
+        "silverLion": {
+          "name": "Silver Lion Helmet",
+          "type": "armor",
+          "rule": "Damage you take is capped at 1 per event. Recover 1 HP when this equipped armor leaves your equipment zone."
+        },
+        "fan": {
+          "name": "Feathered Fan",
+          "type": "weapon",
+          "rule": "Range 4. You may use an ordinary Attack card as Fire Attack."
+        },
+        "guding": {
+          "name": "Guding Blade",
+          "type": "weapon",
+          "rule": "Range 2. Your Attack deals +1 damage to a target with no hand cards."
+        },
+        "frost": {
+          "name": "Frost Sword",
+          "type": "weapon",
+          "rule": "Range 2. When your Attack would deal damage, you may prevent that damage and discard up to 2 of the target’s hand or equipment cards instead."
+        }
+      }
+    }
+  },
+  {
+    "id": "rende-complete-action",
+    "description": "Benevolence must include cost and recipient in the submitted action. Strategy is reviewed, not forced.",
+    "expected": null,
+    "observation": {
+      "generalStrategy": {
+        "generalId": "liubei",
+        "generalName": "Liu Bei",
+        "plan": "Put cards into the hands that can create the most team value.",
+        "priorities": [
+          "Give Attacks/reach to offensive allies and defense/healing to the endangered Lord or teammate.",
+          "When wounded, combine two total gifts this phase for the once-only heal; avoid wasting team resources chasing redundant healing.",
+          "Retain essential self-defense and use Influencing only with a concrete legal Attack objective and plausible Shu support."
+        ],
+        "avoid": "Benevolence does not draw cards. A Spy gift helps a future opponent; a Loyalist should not strengthen a likely Rebel.",
+        "facing": "His gifts fuel specialist allies; track recipients and disruption of the support chain.",
+        "version": "Classic skills in this build; ignore revised, SP, national-war and mobile-only upgrades.",
+        "sources": [
+          {
+            "url": "https://www.sanguosha.com/news/20161024_3693_3617",
+            "kind": "Official strategy guide or official general introduction; advice synthesized and adapted"
+          }
+        ],
+        "tactics": {
+          "sequence": "Form a concrete recipient-and-use plan before gifting. An offensive ally with reach can use Attack now/next turn; an endangered Lord needs defense now. Track total gifts toward the once-per-phase two-card heal and reassess after it triggers.",
+          "reserve": "Keep essential self-defense and personally usable draw/control unless a recipient uses them better. Two gifts heal once; further gifts do not keep healing. Shared Shu faction is not shared identity.",
+          "workedExample": "Lord Liu Bei, one Spy and one Rebel remain: default to self-preservation and enemy denial, not routine gifts to the Rebel."
+        },
+        "provenance": "Researched English synthesis plus original rule-derived sequences and hypothetical examples; not a proven optimal policy. Skill text and current legal choices override external versions.",
+        "matchups": [
+          {
+            "playerId": "p2",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p3",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p4",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          }
+        ]
+      },
+      "decisionBriefing": {
+        "yourRole": "rebel",
+        "lord": {
+          "playerId": "p2",
+          "general": "Zhang Fei",
+          "hp": 4,
+          "handCount": 0
+        },
+        "objective": "Defeat the Lord; cooperate with likely Rebels.",
+        "relations": [
+          {
+            "playerId": "p2",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": "lord",
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p3",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p4",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          }
+        ],
+        "availableResourceActions": [],
+        "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
+      },
+      "you": "p1",
+      "turn": 0,
+      "phase": "Play",
+      "current": "p1",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Liu Bei",
+          "general": {
+            "id": "liubei",
+            "name": "Liu Bei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Benevolence: Give any number of hand cards to another character during Play. Once per Play Phase, recover 1 HP when you have given at least 2 cards in total. Influencing (Lord): Ask other Shu characters to supply an Attack when you need one."
+          },
+          "role": "rebel",
+          "hp": 3,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 3,
+          "hand": [
+            {
+              "id": "c1",
+              "kind": "tao",
+              "name": "Peach",
+              "suit": "♥",
+              "rank": 6,
+              "type": "basic",
+              "text": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character.",
+              "nature": "normal"
+            },
+            {
+              "id": "c2",
+              "kind": "sha",
+              "name": "Attack",
+              "suit": "♠",
+              "rank": 7,
+              "type": "basic",
+              "text": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage.",
+              "nature": "normal"
+            },
+            {
+              "id": "c3",
+              "kind": "shan",
+              "name": "Dodge",
+              "suit": "♥",
+              "rank": 2,
+              "type": "basic",
+              "text": "Respond to Attack or Raining Arrows to avoid its damage.",
+              "nature": "normal"
+            }
+          ],
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p2",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": "lord",
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p3",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p4",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        }
+      ],
+      "publicChat": [],
+      "events": [],
+      "table": [],
+      "effects": [],
+      "judgments": [],
+      "action": null,
+      "prompt": {
+        "id": "rende-complete-action",
+        "title": "Play a card or skill",
+        "zone": "turn",
+        "min": 1,
+        "max": 1,
+        "options": [
+          {
+            "id": "skill:rende",
+            "label": "Benevolence",
+            "targetMin": 1,
+            "targetMax": 1,
+            "targetIds": [
+              "p2",
+              "p3",
+              "p4"
+            ],
+            "actionSpec": {
+              "kind": "rende-plan",
+              "cardIds": [
+                "c1",
+                "c2",
+                "c3"
+              ],
+              "cardMin": 1,
+              "cardMax": 3,
+              "targetIds": [
+                "p2",
+                "p3",
+                "p4"
+              ],
+              "targetCount": 1,
+              "facts": {
+                "drawsCards": false,
+                "healThreshold": 2,
+                "recovery": 1
+              }
+            }
+          },
+          {
+            "id": "end",
+            "label": "End play phase",
+            "targetMin": 0,
+            "targetMax": 0,
+            "targetIds": []
+          }
+        ]
+      },
+      "memory": "",
+      "cardRules": {
+        "sha": {
+          "name": "Attack",
+          "type": "basic",
+          "rule": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage."
+        },
+        "shan": {
+          "name": "Dodge",
+          "type": "basic",
+          "rule": "Respond to Attack or Raining Arrows to avoid its damage."
+        },
+        "tao": {
+          "name": "Peach",
+          "type": "basic",
+          "rule": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character."
+        },
+        "duel": {
+          "name": "Duel",
+          "type": "trick",
+          "rule": "Starting with the target, alternate playing Attack. The first to stop takes 1 damage from the other character."
+        },
+        "dismantle": {
+          "name": "Burning Bridges",
+          "type": "trick",
+          "rule": "Discard one card from another character's hand, equipment, or judgment area."
+        },
+        "steal": {
+          "name": "Steal",
+          "type": "trick",
+          "rule": "Take one card from another character's hand, equipment, or judgment area. Distance limit: 1."
+        },
+        "draw2": {
+          "name": "Something Out of Nothing",
+          "type": "trick",
+          "rule": "Draw 2 cards."
+        },
+        "barbarian": {
+          "name": "Barbarian Invasion",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Attack or take 1 damage."
+        },
+        "arrows": {
+          "name": "Raining Arrows",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Dodge or take 1 damage."
+        },
+        "feast": {
+          "name": "Brotherhood",
+          "type": "trick",
+          "rule": "Each living character recovers 1 HP, up to their maximum."
+        },
+        "harvest": {
+          "name": "Bumper Harvest",
+          "type": "trick",
+          "rule": "Reveal one card per living character. In turn order, each character takes one revealed card."
+        },
+        "negate": {
+          "name": "Negation",
+          "type": "trick",
+          "rule": "Cancel a Strategy card's effect on one character. Can also counter another Negation."
+        },
+        "borrow": {
+          "name": "Borrowed Sword",
+          "type": "trick",
+          "rule": "Choose another armed character and a target in their attack range. They must use Attack on that target or give you their weapon."
+        },
+        "indulgence": {
+          "name": "Acedia",
+          "type": "delay",
+          "rule": "During Judgment Phase, reveal a judgment card. Unless it is a Heart, skip your Play Phase."
+        },
+        "lightning": {
+          "name": "Lightning",
+          "type": "delay",
+          "rule": "Place in your own judgment area. A judgment of Spades 2–9 deals 3 thunder damage with no source. Otherwise, pass Lightning to the next eligible character."
+        },
+        "crossbow": {
+          "name": "Zhuge Crossbow",
+          "type": "weapon",
+          "rule": "Range 1. Removes the limit on how many Attacks you may use during your Play Phase."
+        },
+        "doubleSword": {
+          "name": "Yin-Yang Swords",
+          "type": "weapon",
+          "rule": "Range 2. When you Attack a character of the opposite sex, you may make them discard a hand card or let you draw 1."
+        },
+        "qinggang": {
+          "name": "Blue Steel Sword",
+          "type": "weapon",
+          "rule": "Range 2. Ignore the target's armor while resolving your Attack."
+        },
+        "greenDragon": {
+          "name": "Green Dragon Blade",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may use another Attack on the same target."
+        },
+        "serpent": {
+          "name": "Serpent Spear",
+          "type": "weapon",
+          "rule": "Range 3. You may combine 2 hand cards into one Attack, including when responding."
+        },
+        "axe": {
+          "name": "Rock Cleaving Axe",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may discard 2 other cards to make it deal damage anyway."
+        },
+        "halberd": {
+          "name": "Sky Piercing Halberd",
+          "type": "weapon",
+          "rule": "Range 4. An Attack that is your last hand card may target up to 3 characters."
+        },
+        "kylin": {
+          "name": "Kirin Bow",
+          "type": "weapon",
+          "rule": "Range 5. After your Attack deals damage, you may discard one of the target's mounts."
+        },
+        "bagua": {
+          "name": "Eight Trigrams Formation",
+          "type": "armor",
+          "rule": "When you need Dodge, you may judge. A red judgment counts as playing Dodge."
+        },
+        "renwang": {
+          "name": "Nio Shield",
+          "type": "armor",
+          "rule": "Black Attacks have no effect on you."
+        },
+        "plusHorse": {
+          "name": "+1 Horse",
+          "type": "plus",
+          "rule": "Other characters add 1 when calculating their distance to you."
+        },
+        "minusHorse": {
+          "name": "−1 Horse",
+          "type": "minus",
+          "rule": "Subtract 1 when calculating your distance to other characters."
+        },
+        "fireSha": {
+          "name": "Fire Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 fire damage. Shares the normal Attack limit."
+        },
+        "thunderSha": {
+          "name": "Thunder Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 thunder damage. Shares the normal Attack limit."
+        },
+        "wine": {
+          "name": "Wine",
+          "type": "basic",
+          "rule": "Once per turn during Play, your next Attack this turn deals +1 damage. When dying, use Wine to recover 1 HP yourself."
+        },
+        "fireAttack": {
+          "name": "Flame Tactic",
+          "type": "trick",
+          "rule": "Choose a character with hand cards. They reveal one. You may discard a hand card of the same suit to deal 1 fire damage."
+        },
+        "chain": {
+          "name": "Iron Chains",
+          "type": "trick",
+          "rule": "Choose 1–2 characters and toggle each chained state. Or recast: discard this card and draw 1, without using its effect."
+        },
+        "supply": {
+          "name": "Rations Depleted",
+          "type": "delay",
+          "rule": "Choose another character within distance 1. During their Judgment Phase, a non-Club judgment skips their Draw Phase."
+        },
+        "rattan": {
+          "name": "Rattan Armor",
+          "type": "armor",
+          "rule": "Normal Attack, Barbarian Invasion and Raining Arrows have no effect on you. Fire damage you take is increased by 1."
+        },
+        "silverLion": {
+          "name": "Silver Lion Helmet",
+          "type": "armor",
+          "rule": "Damage you take is capped at 1 per event. Recover 1 HP when this equipped armor leaves your equipment zone."
+        },
+        "fan": {
+          "name": "Feathered Fan",
+          "type": "weapon",
+          "rule": "Range 4. You may use an ordinary Attack card as Fire Attack."
+        },
+        "guding": {
+          "name": "Guding Blade",
+          "type": "weapon",
+          "rule": "Range 2. Your Attack deals +1 damage to a target with no hand cards."
+        },
+        "frost": {
+          "name": "Frost Sword",
+          "type": "weapon",
+          "rule": "Range 2. When your Attack would deal damage, you may prevent that damage and discard up to 2 of the target’s hand or equipment cards instead."
+        }
+      }
+    }
+  },
+  {
+    "id": "armor-response-contract",
+    "description": "Armor activation requires the bagua option. Empty ids cannot activate armor. Either offered response is legal; no strategy score.",
+    "expected": null,
+    "observation": {
+      "generalStrategy": {
+        "generalId": "zhangfei",
+        "generalName": "Zhang Fei",
+        "plan": "Turn a stock of Attacks into a focused burst.",
+        "priorities": [
+          "Develop reach and use draw cards before deciding the burst is finished.",
+          "Concentrate repeated Attacks on a valuable enemy when exhausting their Dodge can secure a kill.",
+          "Reassess after each hit, kill reward or lost weapon; unlimited uses do not remove range or armor."
+        ],
+        "avoid": "Do not stop after the ordinary one-Attack limit; do not waste every Attack into immunity.",
+        "facing": "Expect follow-up Attacks after one Dodge; deny his hand or reach.",
+        "version": "Classic skills in this build; ignore revised, SP, national-war and mobile-only upgrades.",
+        "sources": [
+          {
+            "url": "https://www.sanguosha.com/news/20161025_2537_0516",
+            "kind": "Official strategy guide or official general introduction; advice synthesized and adapted"
+          }
+        ],
+        "tactics": {
+          "decision": "Do not exhaust all Attacks answering an avoidable low-impact Duel when those cards can secure a team-winning burst; survival and mandatory response legality still take priority.",
+          "reserve": "Attacks are immediately spendable burst resources, not redundant after the first use. A long weapon can be more valuable than one extra Attack. Keep enough defense to survive if no achievable kill exists.",
+          "workedExample": "An enemy used their last known Dodge: a second Attack now may be better than saving it for next turn."
+        },
+        "provenance": "Researched English synthesis plus original rule-derived sequences and hypothetical examples; not a proven optimal policy. Skill text and current legal choices override external versions.",
+        "matchups": [
+          {
+            "playerId": "p2",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p3",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p4",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          }
+        ]
+      },
+      "decisionBriefing": {
+        "yourRole": "rebel",
+        "lord": {
+          "playerId": "p2",
+          "general": "Zhang Fei",
+          "hp": 4,
+          "handCount": 0
+        },
+        "objective": "Defeat the Lord; cooperate with likely Rebels.",
+        "relations": [
+          {
+            "playerId": "p2",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": "lord",
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p3",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p4",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          }
+        ],
+        "availableResourceActions": [],
+        "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
+      },
+      "you": "p1",
+      "turn": 0,
+      "phase": "Play",
+      "current": "p1",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": "rebel",
+          "hp": 3,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 1,
+          "hand": [
+            {
+              "id": "c1",
+              "kind": "shan",
+              "name": "Dodge",
+              "suit": "♥",
+              "rank": 2,
+              "type": "basic",
+              "text": "Respond to Attack or Raining Arrows to avoid its damage.",
+              "nature": "normal"
+            }
+          ],
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p2",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": "lord",
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p3",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p4",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        }
+      ],
+      "publicChat": [],
+      "events": [],
+      "table": [],
+      "effects": [],
+      "judgments": [],
+      "action": null,
+      "prompt": {
+        "id": "armor-response-contract",
+        "title": "An Attack targets you. Activate Eight Trigrams or pass.",
+        "zone": "response",
+        "min": 1,
+        "max": 1,
+        "responseContract": {
+          "instruction": "Choose exactly one offered option ID. An empty ids array does not activate armor. Memory never executes actions.",
+          "armorActivation": {
+            "ids": [
+              "bagua"
+            ],
+            "targets": []
+          },
+          "decline": {
+            "ids": [
+              "pass"
+            ],
+            "targets": []
+          }
+        },
+        "options": [
+          {
+            "id": "bagua",
+            "label": "Eight Trigrams: judge; red counts as Dodge"
+          },
+          {
+            "id": "pass",
+            "label": "Pass"
+          }
+        ]
+      },
+      "memory": "",
+      "cardRules": {
+        "sha": {
+          "name": "Attack",
+          "type": "basic",
+          "rule": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage."
+        },
+        "shan": {
+          "name": "Dodge",
+          "type": "basic",
+          "rule": "Respond to Attack or Raining Arrows to avoid its damage."
+        },
+        "tao": {
+          "name": "Peach",
+          "type": "basic",
+          "rule": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character."
+        },
+        "duel": {
+          "name": "Duel",
+          "type": "trick",
+          "rule": "Starting with the target, alternate playing Attack. The first to stop takes 1 damage from the other character."
+        },
+        "dismantle": {
+          "name": "Burning Bridges",
+          "type": "trick",
+          "rule": "Discard one card from another character's hand, equipment, or judgment area."
+        },
+        "steal": {
+          "name": "Steal",
+          "type": "trick",
+          "rule": "Take one card from another character's hand, equipment, or judgment area. Distance limit: 1."
+        },
+        "draw2": {
+          "name": "Something Out of Nothing",
+          "type": "trick",
+          "rule": "Draw 2 cards."
+        },
+        "barbarian": {
+          "name": "Barbarian Invasion",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Attack or take 1 damage."
+        },
+        "arrows": {
+          "name": "Raining Arrows",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Dodge or take 1 damage."
+        },
+        "feast": {
+          "name": "Brotherhood",
+          "type": "trick",
+          "rule": "Each living character recovers 1 HP, up to their maximum."
+        },
+        "harvest": {
+          "name": "Bumper Harvest",
+          "type": "trick",
+          "rule": "Reveal one card per living character. In turn order, each character takes one revealed card."
+        },
+        "negate": {
+          "name": "Negation",
+          "type": "trick",
+          "rule": "Cancel a Strategy card's effect on one character. Can also counter another Negation."
+        },
+        "borrow": {
+          "name": "Borrowed Sword",
+          "type": "trick",
+          "rule": "Choose another armed character and a target in their attack range. They must use Attack on that target or give you their weapon."
+        },
+        "indulgence": {
+          "name": "Acedia",
+          "type": "delay",
+          "rule": "During Judgment Phase, reveal a judgment card. Unless it is a Heart, skip your Play Phase."
+        },
+        "lightning": {
+          "name": "Lightning",
+          "type": "delay",
+          "rule": "Place in your own judgment area. A judgment of Spades 2–9 deals 3 thunder damage with no source. Otherwise, pass Lightning to the next eligible character."
+        },
+        "crossbow": {
+          "name": "Zhuge Crossbow",
+          "type": "weapon",
+          "rule": "Range 1. Removes the limit on how many Attacks you may use during your Play Phase."
+        },
+        "doubleSword": {
+          "name": "Yin-Yang Swords",
+          "type": "weapon",
+          "rule": "Range 2. When you Attack a character of the opposite sex, you may make them discard a hand card or let you draw 1."
+        },
+        "qinggang": {
+          "name": "Blue Steel Sword",
+          "type": "weapon",
+          "rule": "Range 2. Ignore the target's armor while resolving your Attack."
+        },
+        "greenDragon": {
+          "name": "Green Dragon Blade",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may use another Attack on the same target."
+        },
+        "serpent": {
+          "name": "Serpent Spear",
+          "type": "weapon",
+          "rule": "Range 3. You may combine 2 hand cards into one Attack, including when responding."
+        },
+        "axe": {
+          "name": "Rock Cleaving Axe",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may discard 2 other cards to make it deal damage anyway."
+        },
+        "halberd": {
+          "name": "Sky Piercing Halberd",
+          "type": "weapon",
+          "rule": "Range 4. An Attack that is your last hand card may target up to 3 characters."
+        },
+        "kylin": {
+          "name": "Kirin Bow",
+          "type": "weapon",
+          "rule": "Range 5. After your Attack deals damage, you may discard one of the target's mounts."
+        },
+        "bagua": {
+          "name": "Eight Trigrams Formation",
+          "type": "armor",
+          "rule": "When you need Dodge, you may judge. A red judgment counts as playing Dodge."
+        },
+        "renwang": {
+          "name": "Nio Shield",
+          "type": "armor",
+          "rule": "Black Attacks have no effect on you."
+        },
+        "plusHorse": {
+          "name": "+1 Horse",
+          "type": "plus",
+          "rule": "Other characters add 1 when calculating their distance to you."
+        },
+        "minusHorse": {
+          "name": "−1 Horse",
+          "type": "minus",
+          "rule": "Subtract 1 when calculating your distance to other characters."
+        },
+        "fireSha": {
+          "name": "Fire Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 fire damage. Shares the normal Attack limit."
+        },
+        "thunderSha": {
+          "name": "Thunder Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 thunder damage. Shares the normal Attack limit."
+        },
+        "wine": {
+          "name": "Wine",
+          "type": "basic",
+          "rule": "Once per turn during Play, your next Attack this turn deals +1 damage. When dying, use Wine to recover 1 HP yourself."
+        },
+        "fireAttack": {
+          "name": "Flame Tactic",
+          "type": "trick",
+          "rule": "Choose a character with hand cards. They reveal one. You may discard a hand card of the same suit to deal 1 fire damage."
+        },
+        "chain": {
+          "name": "Iron Chains",
+          "type": "trick",
+          "rule": "Choose 1–2 characters and toggle each chained state. Or recast: discard this card and draw 1, without using its effect."
+        },
+        "supply": {
+          "name": "Rations Depleted",
+          "type": "delay",
+          "rule": "Choose another character within distance 1. During their Judgment Phase, a non-Club judgment skips their Draw Phase."
+        },
+        "rattan": {
+          "name": "Rattan Armor",
+          "type": "armor",
+          "rule": "Normal Attack, Barbarian Invasion and Raining Arrows have no effect on you. Fire damage you take is increased by 1."
+        },
+        "silverLion": {
+          "name": "Silver Lion Helmet",
+          "type": "armor",
+          "rule": "Damage you take is capped at 1 per event. Recover 1 HP when this equipped armor leaves your equipment zone."
+        },
+        "fan": {
+          "name": "Feathered Fan",
+          "type": "weapon",
+          "rule": "Range 4. You may use an ordinary Attack card as Fire Attack."
+        },
+        "guding": {
+          "name": "Guding Blade",
+          "type": "weapon",
+          "rule": "Range 2. Your Attack deals +1 damage to a target with no hand cards."
+        },
+        "frost": {
+          "name": "Frost Sword",
+          "type": "weapon",
+          "rule": "Range 2. When your Attack would deal damage, you may prevent that damage and discard up to 2 of the target’s hand or equipment cards instead."
+        }
+      }
+    }
+  },
+  {
+    "id": "pindian-card-selection",
+    "description": "Select the highest rank in this isolated Pindian case. The opponent is already chosen; targets must be empty.",
+    "expected": {
+      "anyIds": [
+        "c2"
+      ]
+    },
+    "observation": {
+      "generalStrategy": {
+        "generalId": "taishici",
+        "generalName": "Taishi Ci",
+        "plan": "Commit Pindian costs only when enhanced attacks or denial pay.",
+        "priorities": [
+          "Reserve a strong rank for Justice of Heaven and enough actual Attacks to exploit victory.",
+          "Use victory to reach priority enemies and additional targets; reassess the board after each hit.",
+          "A denial-only Pindian may be worthwhile without Attacks, but compare both lost cards and your once-per-phase use."
+        ],
+        "avoid": "Losing prevents Attack this turn. Do not gamble away your only useful Attack without a payoff.",
+        "facing": "High rank hand cards resist Pindian; a win lets him attack more and ignore distance.",
+        "version": "Classic skills in this build; ignore revised, SP, national-war and mobile-only upgrades.",
+        "sources": [
+          {
+            "url": "https://www.sanguosha.com/news/20161026_3667_2211",
+            "kind": "Official strategy guide or official general introduction; advice synthesized and adapted"
+          }
+        ],
+        "tactics": {
+          "sequence": "Before Pindian, count remaining usable Attacks, valuable targets and the rank you can afford. Win, then exploit extra use/targets and unlimited distance with ordinary Attacks. After each hit, reassess targets rather than preserving a stale two-target plan.",
+          "decision": "Losing forbids Attack for the turn; do not risk a sure useful ordinary hit for a poor-rank gamble. When responding to enemy Pindian, preventing their burst can justify your strongest rank.",
+          "reserve": "The wager card and attack fuel are separate costs. A high Attack used for Pindian cannot also be played afterward. A denial-only Pindian can be valid but should beat the alternative uses of your card.",
+          "workedExample": "Only one Attack, also your highest card: spending it to win leaves no burst unless other conversion/draw is genuinely available."
+        },
+        "provenance": "Researched English synthesis plus original rule-derived sequences and hypothetical examples; not a proven optimal policy. Skill text and current legal choices override external versions.",
+        "matchups": [
+          {
+            "playerId": "p2",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p3",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          },
+          {
+            "playerId": "p4",
+            "generalId": "zhangfei",
+            "note": "Expect follow-up Attacks after one Dodge; deny his hand or reach."
+          }
+        ]
+      },
+      "decisionBriefing": {
+        "yourRole": "rebel",
+        "lord": {
+          "playerId": "p2",
+          "general": "Zhang Fei",
+          "hp": 4,
+          "handCount": 0
+        },
+        "objective": "Defeat the Lord; cooperate with likely Rebels.",
+        "relations": [
+          {
+            "playerId": "p2",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": "lord",
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p3",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          },
+          {
+            "playerId": "p4",
+            "general": "Zhang Fei",
+            "hp": 4,
+            "handCount": 0,
+            "publicRole": null,
+            "alliedProbability": null
+          }
+        ],
+        "availableResourceActions": [],
+        "reassess": "Current legal choices and facts override stale plans. Compare playing now with ending and discarding; do not invent a future Attack or carry turn-only bonuses forward."
+      },
+      "you": "p1",
+      "turn": 0,
+      "phase": "Play",
+      "current": "p1",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Taishi Ci",
+          "general": {
+            "id": "taishici",
+            "name": "Taishi Ci",
+            "kingdom": "Wu",
+            "sex": "m",
+            "skills": "Justice of Heaven: Once per Play Phase, Pindian with another character. If you win, your Attacks have no distance limit, their use limit increases by 1 and their target limit increases by 1 this turn. Otherwise, you cannot use Attack this turn."
+          },
+          "role": "rebel",
+          "hp": 3,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 2,
+          "hand": [
+            {
+              "id": "c1",
+              "kind": "sha",
+              "name": "Attack",
+              "suit": "♠",
+              "rank": 2,
+              "type": "basic",
+              "text": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage.",
+              "nature": "normal"
+            },
+            {
+              "id": "c2",
+              "kind": "shan",
+              "name": "Dodge",
+              "suit": "♥",
+              "rank": 13,
+              "type": "basic",
+              "text": "Respond to Attack or Raining Arrows to avoid its damage.",
+              "nature": "normal"
+            }
+          ],
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p2",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": "lord",
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p3",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        },
+        {
+          "id": "p4",
+          "name": "Zhang Fei",
+          "general": {
+            "id": "zhangfei",
+            "name": "Zhang Fei",
+            "kingdom": "Shu",
+            "sex": "m",
+            "skills": "Battle Cry: You may use any number of Attacks during your Play Phase."
+          },
+          "role": null,
+          "hp": 4,
+          "maxHp": 4,
+          "alive": true,
+          "chained": false,
+          "wineBoost": 0,
+          "handCount": 0,
+          "equip": {},
+          "judge": [],
+          "wounds": [],
+          "nirvanaUsed": false
+        }
+      ],
+      "publicChat": [],
+      "events": [],
+      "table": [],
+      "effects": [],
+      "judgments": [],
+      "action": null,
+      "prompt": {
+        "id": "pindian-card-selection",
+        "title": "Pindian with Zhang Fei: choose one card; higher rank wins",
+        "zone": "cards",
+        "min": 1,
+        "max": 1,
+        "options": [
+          {
+            "id": "c1",
+            "label": "Attack, rank 2",
+            "rank": 2
+          },
+          {
+            "id": "c2",
+            "label": "Dodge, rank 13",
+            "rank": 13
+          }
+        ]
+      },
+      "memory": "",
+      "cardRules": {
+        "sha": {
+          "name": "Attack",
+          "type": "basic",
+          "rule": "Once per Play Phase, target another character in your attack range. They must play Dodge or take 1 damage."
+        },
+        "shan": {
+          "name": "Dodge",
+          "type": "basic",
+          "rule": "Respond to Attack or Raining Arrows to avoid its damage."
+        },
+        "tao": {
+          "name": "Peach",
+          "type": "basic",
+          "rule": "During your Play Phase, recover 1 HP. During a rescue, restore 1 HP to the dying character."
+        },
+        "duel": {
+          "name": "Duel",
+          "type": "trick",
+          "rule": "Starting with the target, alternate playing Attack. The first to stop takes 1 damage from the other character."
+        },
+        "dismantle": {
+          "name": "Burning Bridges",
+          "type": "trick",
+          "rule": "Discard one card from another character's hand, equipment, or judgment area."
+        },
+        "steal": {
+          "name": "Steal",
+          "type": "trick",
+          "rule": "Take one card from another character's hand, equipment, or judgment area. Distance limit: 1."
+        },
+        "draw2": {
+          "name": "Something Out of Nothing",
+          "type": "trick",
+          "rule": "Draw 2 cards."
+        },
+        "barbarian": {
+          "name": "Barbarian Invasion",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Attack or take 1 damage."
+        },
+        "arrows": {
+          "name": "Raining Arrows",
+          "type": "trick",
+          "rule": "Each other character, in turn order, must play Dodge or take 1 damage."
+        },
+        "feast": {
+          "name": "Brotherhood",
+          "type": "trick",
+          "rule": "Each living character recovers 1 HP, up to their maximum."
+        },
+        "harvest": {
+          "name": "Bumper Harvest",
+          "type": "trick",
+          "rule": "Reveal one card per living character. In turn order, each character takes one revealed card."
+        },
+        "negate": {
+          "name": "Negation",
+          "type": "trick",
+          "rule": "Cancel a Strategy card's effect on one character. Can also counter another Negation."
+        },
+        "borrow": {
+          "name": "Borrowed Sword",
+          "type": "trick",
+          "rule": "Choose another armed character and a target in their attack range. They must use Attack on that target or give you their weapon."
+        },
+        "indulgence": {
+          "name": "Acedia",
+          "type": "delay",
+          "rule": "During Judgment Phase, reveal a judgment card. Unless it is a Heart, skip your Play Phase."
+        },
+        "lightning": {
+          "name": "Lightning",
+          "type": "delay",
+          "rule": "Place in your own judgment area. A judgment of Spades 2–9 deals 3 thunder damage with no source. Otherwise, pass Lightning to the next eligible character."
+        },
+        "crossbow": {
+          "name": "Zhuge Crossbow",
+          "type": "weapon",
+          "rule": "Range 1. Removes the limit on how many Attacks you may use during your Play Phase."
+        },
+        "doubleSword": {
+          "name": "Yin-Yang Swords",
+          "type": "weapon",
+          "rule": "Range 2. When you Attack a character of the opposite sex, you may make them discard a hand card or let you draw 1."
+        },
+        "qinggang": {
+          "name": "Blue Steel Sword",
+          "type": "weapon",
+          "rule": "Range 2. Ignore the target's armor while resolving your Attack."
+        },
+        "greenDragon": {
+          "name": "Green Dragon Blade",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may use another Attack on the same target."
+        },
+        "serpent": {
+          "name": "Serpent Spear",
+          "type": "weapon",
+          "rule": "Range 3. You may combine 2 hand cards into one Attack, including when responding."
+        },
+        "axe": {
+          "name": "Rock Cleaving Axe",
+          "type": "weapon",
+          "rule": "Range 3. When your Attack is dodged, you may discard 2 other cards to make it deal damage anyway."
+        },
+        "halberd": {
+          "name": "Sky Piercing Halberd",
+          "type": "weapon",
+          "rule": "Range 4. An Attack that is your last hand card may target up to 3 characters."
+        },
+        "kylin": {
+          "name": "Kirin Bow",
+          "type": "weapon",
+          "rule": "Range 5. After your Attack deals damage, you may discard one of the target's mounts."
+        },
+        "bagua": {
+          "name": "Eight Trigrams Formation",
+          "type": "armor",
+          "rule": "When you need Dodge, you may judge. A red judgment counts as playing Dodge."
+        },
+        "renwang": {
+          "name": "Nio Shield",
+          "type": "armor",
+          "rule": "Black Attacks have no effect on you."
+        },
+        "plusHorse": {
+          "name": "+1 Horse",
+          "type": "plus",
+          "rule": "Other characters add 1 when calculating their distance to you."
+        },
+        "minusHorse": {
+          "name": "−1 Horse",
+          "type": "minus",
+          "rule": "Subtract 1 when calculating your distance to other characters."
+        },
+        "fireSha": {
+          "name": "Fire Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 fire damage. Shares the normal Attack limit."
+        },
+        "thunderSha": {
+          "name": "Thunder Attack",
+          "type": "basic",
+          "rule": "An Attack that deals 1 thunder damage. Shares the normal Attack limit."
+        },
+        "wine": {
+          "name": "Wine",
+          "type": "basic",
+          "rule": "Once per turn during Play, your next Attack this turn deals +1 damage. When dying, use Wine to recover 1 HP yourself."
+        },
+        "fireAttack": {
+          "name": "Flame Tactic",
+          "type": "trick",
+          "rule": "Choose a character with hand cards. They reveal one. You may discard a hand card of the same suit to deal 1 fire damage."
+        },
+        "chain": {
+          "name": "Iron Chains",
+          "type": "trick",
+          "rule": "Choose 1–2 characters and toggle each chained state. Or recast: discard this card and draw 1, without using its effect."
+        },
+        "supply": {
+          "name": "Rations Depleted",
+          "type": "delay",
+          "rule": "Choose another character within distance 1. During their Judgment Phase, a non-Club judgment skips their Draw Phase."
+        },
+        "rattan": {
+          "name": "Rattan Armor",
+          "type": "armor",
+          "rule": "Normal Attack, Barbarian Invasion and Raining Arrows have no effect on you. Fire damage you take is increased by 1."
+        },
+        "silverLion": {
+          "name": "Silver Lion Helmet",
+          "type": "armor",
+          "rule": "Damage you take is capped at 1 per event. Recover 1 HP when this equipped armor leaves your equipment zone."
+        },
+        "fan": {
+          "name": "Feathered Fan",
+          "type": "weapon",
+          "rule": "Range 4. You may use an ordinary Attack card as Fire Attack."
+        },
+        "guding": {
+          "name": "Guding Blade",
+          "type": "weapon",
+          "rule": "Range 2. Your Attack deals +1 damage to a target with no hand cards."
+        },
+        "frost": {
+          "name": "Frost Sword",
+          "type": "weapon",
+          "rule": "Range 2. When your Attack would deal damage, you may prevent that damage and discard up to 2 of the target’s hand or equipment cards instead."
+        }
+      }
+    }
+  }
+]
