@@ -203,3 +203,15 @@ test('analysis endpoints are host/room scoped and return historical bot data wit
 test('match review browser module is served without exposing server-side analysis files',async t=>{
  const {base}=await fixture(t);const module=await fetch(base+'/match-review.mjs');assert.equal(module.status,200);assert.match(module.headers.get('content-type'),/javascript/);assert.equal((await fetch(base+'/match-analysis.mjs')).status,404);
 });
+
+test('footer version module matches health and has no hardcoded release',async t=>{
+ const {base,req}=await fixture(t);const health=await req('health');
+ const res=await fetch(base+'/version.mjs');assert.equal(res.status,200);
+ assert.equal(res.headers.get('cache-control'),'no-store');
+ const module=await import('data:text/javascript,'+encodeURIComponent(await res.text()));
+ assert.equal(module.APP_VERSION,health.data.version);
+ const app=await (await fetch(base+'/app.js')).text();
+ assert.match(app,/import \{APP_VERSION\} from '\.\/version\.mjs'/);
+ assert.match(app,/LOCAL EDITION \/ v\$\{esc\(APP_VERSION\)\}/);
+ assert.doesNotMatch(app,/LOCAL EDITION \/ v\d/);
+});
