@@ -83,3 +83,7 @@ Node's built-in test runner, mocked LLM responses, CI on Node 22. No dependency 
 ## License
 
 [MIT](LICENSE) for original source and bundled original assets. Third-party names, trademarks and linked reference materials are not relicensed. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+## v0.67.0
+
+Chat floats above the table without changing hand/table dimensions when resized. Use its −/+ button to minimize or restore it; the choice is remembered. Host AI controls are available in the lobby and match, with a per-model connection test showing latency, token usage and success/failure. Each test sends one small request with no live game data and does not use match request quotas or modify bot statistics. Tests require server credentials and may incur provider usage.

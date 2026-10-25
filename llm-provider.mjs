@@ -174,6 +174,14 @@ export function createModelRouter(config=llmConfig(),options={}){
  supports:id=>!!models.find(m=>m.id===id&&m.enabled),
  status:()=>({enabled:models.some(m=>m.enabled),model:config.model,models,seats:Object.fromEntries(aggregate)}),
  forget:matchId=>{history.delete(matchId);for(const p of providers.values())p.forget(matchId);for(const map of [aggregate,calls,chatCalls])for(const key of map.keys())if(key.startsWith(matchId+':'))map.delete(key);},
+ async check(modelProfile){
+  const profile=catalog.find(p=>p.id===modelProfile);if(!profile?.enabled)throw Error('That model is not configured.');
+  const diagnostics=[],provider=createLLMProvider({...profile,debug:false},{fetchImpl:options.fetchImpl,onDiagnostic:d=>diagnostics.push(d)});
+  const start=Date.now(),prompt={id:'connection-check',zone:'options',title:'Connection check: choose ready.',min:1,max:1,options:[{id:'ready',label:'Ready'}]};
+  const view={turn:0,phase:'Connection check',players:[{id:'test',name:'Connection test',general:null,role:'rebel',hp:4,maxHp:4,alive:true,hand:[],equip:{},judge:[]}],logs:[],table:[]};
+  const action=await provider.decide({view,playerId:'test',prompt,matchId:'connection-check'}),d=diagnostics.at(-1);
+  return {modelProfile,model:profile.model,ok:action?.ids?.[0]==='ready',status:d?.status||'invalid-response',latencyMs:Date.now()-start,inputTokens:d?.inputTokens||0,outputTokens:d?.outputTokens||0};
+ },
  async analyze(input){const n=analysisCalls.get(input.matchId)||0;if(n>=30)throw Error('Analysis limit reached: 30 requests per match per server session.');const provider=providers.get(input.modelProfile||defaultProfile);if(!provider?.enabled)throw Error('That analysis model is not configured.');analysisCalls.set(input.matchId,n+1);return await provider.analyze(input);},
  async reply(input){const key=input.matchId+':'+input.playerId;if((chatCalls.get(key)||0)>=(config.chatRequestLimit||60))return null;chatCalls.set(key,(chatCalls.get(key)||0)+1);return await providers.get(input.modelProfile||defaultProfile)?.reply(input)||null;},
  async decide(input){const key=input.matchId+':'+input.playerId;if((calls.get(key)||0)>=(config.requestLimit||300)){const s=aggregate.get(key);if(s){s.requests++;s.fallbacks++;s.lastStatus='request-limit';s.lastMs=0;}return null;}calls.set(key,(calls.get(key)||0)+1);return await providers.get(input.modelProfile||defaultProfile)?.decide(input)||null;}

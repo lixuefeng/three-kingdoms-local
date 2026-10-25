@@ -215,3 +215,11 @@ test('footer version module matches health and has no hardcoded release',async t
  assert.match(app,/LOCAL EDITION \/ v\$\{esc\(APP_VERSION\)\}/);
  assert.doesNotMatch(app,/LOCAL EDITION \/ v\d/);
 });
+
+test('host AI connection test validates a real response without game data or game stats',async t=>{
+ let requests=0,seen;const model=http.createServer(async(req,res)=>{let raw='';for await(const c of req)raw+=c;seen=JSON.parse(raw);requests++;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({choices:[{message:{content:'{"ids":["ready"],"targets":[]}'},finish_reason:'stop'}],usage:{prompt_tokens:12,completion_tokens:7}}));});await new Promise(r=>model.listen(0,'127.0.0.1',r));t.after(()=>{model.closeAllConnections();model.close();});
+ const {req}=await fixture(t,{llm:{enabled:true,model:'test',base:'http://127.0.0.1:'+model.address().port+'/v1',timeoutMs:1000,maxTokens:1500}});
+ const host=(await req('create',{name:'Host'})).data,guest=(await req('join',{name:'Guest',code:host.state.room.code})).data;
+ assert.equal((await req('llm-check',{model:'custom'},guest.token)).status,400);assert.equal(requests,0);
+ const result=await req('llm-check',{model:'custom'},host.token);assert.equal(result.status,200);assert.equal(result.data.ok,true);assert.equal(result.data.inputTokens,12);assert.equal(result.data.outputTokens,7);assert.equal(requests,1);assert.ok(!JSON.stringify(seen).includes('Guest'));assert.ok(!JSON.stringify(seen).includes(host.state.room.code));assert.equal((await req('llm-check',{model:'custom'},host.token)).status,400);assert.deepEqual((await req('llm-status',{},host.token)).data.seats,{});
+});

@@ -130,6 +130,7 @@ export function createApp({dataDirectory=process.env.SGS_DATA_DIR||fileURLToPath
      }
      case '/api/match-logs':{host(room,p);json(200,{logs:matchLogs.list(archiveContext),recovery:archiveContext.archiveRecovery});return;}
      case '/api/match-log':{host(room,p);matchLogs.download(body.matchId,archiveContext,res);return;}
+     case '/api/llm-check':{host(room,p);if(room.aiCheckPending||Date.now()-(room.aiCheckAt||0)<3000)throw Error('A connection test is running or just finished. Try again shortly.');room.aiCheckPending=true;try{json(200,await llmProvider.check(text(body.model,80)));}finally{room.aiCheckPending=false;room.aiCheckAt=Date.now();}return;}
      case '/api/llm-status':{host(room,p);const status=llmProvider.status(),prefix=room.game?.matchId+':';json(200,{enabled:status.enabled,model:status.model,models:llmProvider.models,debug:!!llm.debug,traces:llm.debug?llmProvider.traces(room.game?.matchId):[],seats:Object.fromEntries(Object.entries(status.seats).filter(([id])=>id.startsWith(prefix)))});return;}
      case '/api/kick':{
       host(room,p);lobby(room);const t=room.players.find(x=>x.id===body.id);if(!t||t===p)throw new Error('That player cannot be removed.');room.chatJobs?.get(t.id)?.controller.abort();for(const res of t.streams)res.end();room.players=room.players.filter(x=>x!==t);for(const [k,v]of sessions)if(v.id===t.id)sessions.delete(k);break;

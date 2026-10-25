@@ -1,18 +1,20 @@
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function createChat({send,onError}){
  const root=document.createElement('aside');root.className='room-chat';root.hidden=true;
- root.innerHTML='<button class="chat-resize" type="button" aria-label="Resize chat" title="Drag to resize chat. Arrow keys also resize.">↖</button><section id="chat-panel" class="chat-panel" aria-label="Room chat"><div class="chat-heading"><strong>Table chat</strong><small>Talk strategy · Talk trash</small></div><p class="chat-channel"></p><div class="chat-messages" role="log" aria-label="Messages" aria-live="polite"></div><p class="chat-typing" role="status"></p><form class="chat-form"><label class="chat-recipient-label">To <select class="chat-recipient" aria-label="Chat recipient"><option value="">Table · @mention a bot to get a reply</option></select></label><div class="chat-compose"><input name="message" aria-label="Chat message" placeholder="Say something…" maxlength="500" autocomplete="off" required><button type="submit">Send</button></div></form></section>';
+ root.innerHTML='<button class="chat-resize" type="button" aria-label="Resize chat" title="Drag to resize chat. Arrow keys also resize.">↖</button><section id="chat-panel" class="chat-panel" aria-label="Room chat"><div class="chat-heading"><strong>Table chat</strong><small>Talk strategy · Talk trash</small><button type="button" class="chat-minimize" aria-label="Minimize chat" aria-expanded="true">−</button></div><p class="chat-channel"></p><div class="chat-messages" role="log" aria-label="Messages" aria-live="polite"></div><p class="chat-typing" role="status"></p><form class="chat-form"><label class="chat-recipient-label">To <select class="chat-recipient" aria-label="Chat recipient"><option value="">Table · @mention a bot to get a reply</option></select></label><div class="chat-compose"><input name="message" aria-label="Chat message" placeholder="Say something…" maxlength="500" autocomplete="off" required><button type="submit">Send</button></div></form></section>';
  document.body.append(root);
+ let minimized=localStorage.getItem('sgs-chat-minimized')==='1';
+ const minimize=root.querySelector('.chat-minimize');
+ function setMinimized(value){minimized=value;root.classList.toggle('chat-minimized',value);minimize.textContent=value?'+':'−';minimize.setAttribute('aria-label',value?'Expand chat':'Minimize chat');minimize.setAttribute('aria-expanded',String(!value));for(const el of root.querySelectorAll('.chat-channel,.chat-messages,.chat-typing,.chat-form,.chat-resize'))el.hidden=value;try{localStorage.setItem('sgs-chat-minimized',value?'1':'0');}catch{}}
+ minimize.addEventListener('click',()=>setMinimized(!minimized));setMinimized(minimized);
  const log=root.querySelector('.chat-messages'),input=root.querySelector('input'),recipient=root.querySelector('select'),form=root.querySelector('form');let key=null,signature=null,botSignature='',sending=false;
  root.addEventListener('keydown',e=>e.stopPropagation());
  const grip=root.querySelector('.chat-resize'),panel=root.querySelector('.chat-panel');
  let size;try{size=JSON.parse(localStorage.getItem('sgs-chat-size'));}catch{}
  function resize(width,height){
-  const mobile=innerWidth<800;
   width=Math.min(Math.max(240,Number(width)||310),Math.max(240,innerWidth-28));
   height=Math.min(Math.max(150,Number(height)||270),Math.max(150,innerHeight-50));
-  size={width,height};root.style.width=mobile?'100%':width+'px';panel.style.height=height+'px';
-  document.documentElement.style.setProperty('--chat-width',width+'px');document.documentElement.style.setProperty('--chat-height',height+'px');
+  size={width,height};root.style.width=width+'px';panel.style.height=height+'px';
  }
  if(size)resize(size.width,size.height);
  let drag=null;
