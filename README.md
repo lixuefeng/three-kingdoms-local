@@ -87,3 +87,8 @@ Node's built-in test runner, mocked LLM responses, CI on Node 22. No dependency 
 ## v0.67.0
 
 Chat floats above the table without changing hand/table dimensions when resized. Use its −/+ button to minimize or restore it; the choice is remembered. Host AI controls are available in the lobby and match, with a per-model connection test showing latency, token usage and success/failure. Each test sends one small request with no live game data and does not use match request quotas or modify bot statistics. Tests require server credentials and may incur provider usage.
+
+
+## v0.68.0
+
+LLM observations now include factual action previews under `agentState.tactics.actionPreviews`. Equipment previews use the existing rules engine on a private-card-safe projection: changed range/distances, new or removed actions/targets, Attack allowance, conversions, armor calculations, replacement effects, known hand count and conditional discard count. Draw/recast, Peach, Wine and ending have compact effect summaries. Previews never choose moves, inspect the deck/opponent hand identities, or execute future actions. Unknown draws and reactions remain unresolved; large follow-up lists are explicitly bounded.

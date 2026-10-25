@@ -1,3 +1,4 @@
+import {actionPreviews} from './action-previews.mjs';
 import {atomicSkills} from './action-selections.mjs';
 import {ROLES,META} from './cards.mjs';
 const roles=['loyal','rebel','spy'];
@@ -64,7 +65,7 @@ export class BotKnowledge{
  }
 }
 
-export function tacticalFacts(game,p,q){
+export function tacticalFacts(game,p,q,{preview=true}={}){
  if(!p.general)return {legalChoicesAreAuthoritative:true};
  const ownTurn=game.current===p,limit=game.attackLimit(p),spent=ownTurn?(game.used.sha||0):0,ownCards=[...p.hand,...Object.values(p.equip)],virtuals=(q.options||[]).some(o=>o.kind==='sha')?game.virtual(p,'sha'):[];
  const handLimit=game.handLimit(p),skipDiscardAvailable=p.general.id==='lvmeng'&&!game.used.shaDuringPlay;
@@ -82,5 +83,5 @@ export function tacticalFacts(game,p,q){
    return {playerId:id,legal:game.canShaWithCost(p,t,cost),armorIgnored:ignored,blockedByArmor:virtual?.lordRequest?null:!!blocked,damageIfHitBeforeOtherSkills:virtual?.lordRequest?null:blocked?0:damage,dodgesRequired:p.general.id==='lvbu'||p.general.id==='dongzhuo'&&t.general.sex==='f'||t.general.id==='dongzhuo'&&p.general.sex==='f'?2:1,fieryBowAvailable:!!bow,optionalFireConversion:weapon?.kind==='fan'&&nature==='normal'&&cost.length===1&&cost[0].kind==='sha',possibleRedirection:t.general.id==='daqiao'||t.general.id==='xiaoqiao'};
   })};
  });
- return {legalChoicesAreAuthoritative:true,handEconomy,turnBonuses:{baredBodiedActive:ownTurn&&!!game.used.luoyi,wineBonus:p.wineBoost||0,expireAtTurnEnd:true},attackPlayRestrictionsApply:ownTurn&&q.zone==='turn',responsesDoNotConsumeAttackLimit:true,attackUsesRemaining:ownTurn&&Number.isFinite(limit)?Math.max(0,limit-spent):null,unlimitedAttacks:!Number.isFinite(limit),attackForbidden:game.attackForbidden(p),currentRange:game.range(p),distances,attackChoices:attacks,caveat:'Attack range and usage limits apply to Attack plays, not Attack responses in Duel or Barbarian Invasion. Damage figures assume a hit and exclude responses, judgments, optional prevention, damage transfer and chained spread. Reconsider after every result. Future plan steps are intentions, never pre-authorized actions.'};
+ return {legalChoicesAreAuthoritative:true,handEconomy,...(preview?{actionPreviews:actionPreviews(game,p,q,(g,a,options)=>tacticalFacts(g,a,{...q,options},{preview:false}).attackChoices)}:{}),turnBonuses:{baredBodiedActive:ownTurn&&!!game.used.luoyi,wineBonus:p.wineBoost||0,expireAtTurnEnd:true},attackPlayRestrictionsApply:ownTurn&&q.zone==='turn',responsesDoNotConsumeAttackLimit:true,attackUsesRemaining:ownTurn&&Number.isFinite(limit)?Math.max(0,limit-spent):null,unlimitedAttacks:!Number.isFinite(limit),attackForbidden:game.attackForbidden(p),currentRange:game.range(p),distances,attackChoices:attacks,caveat:'Attack range and usage limits apply to Attack plays, not Attack responses in Duel or Barbarian Invasion. Damage figures assume a hit and exclude responses, judgments, optional prevention, damage transfer and chained spread. Reconsider after every result. Future plan steps are intentions, never pre-authorized actions.'};
 }
