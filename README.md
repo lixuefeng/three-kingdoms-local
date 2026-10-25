@@ -104,3 +104,5 @@ Run `npm run llm:bench -- --dry-run` to preview the request count, then configur
 v0.71.0 adds an experimental `--variants current,tools` comparison: models can inspect and request recorded action projections before submitting. Up to four calls per tool-assisted decision; see the benchmark guide for limits. Built-in inconsistent positions from v0.70.0 have been corrected.
 
 v0.72.0 gives bots explicit named action submissions, a current-decision contract, one bounded invalid-action correction, and factual hand/HP/card-event feedback. Optional prose never supplies missing action arguments. See [AI-BENCHMARKS.md](AI-BENCHMARKS.md) for examples and updated benchmark call budgets.
+
+v0.73.0 adds `--suite logged` with seven anonymized recorded decision positions and benchmark-only `role-focus`, `consequence-focus`, and `review` alternatives. Use the same cases to compare ally targeting, resource use and contract failures before changing live-game strategy. See [AI-BENCHMARKS.md](AI-BENCHMARKS.md) for commands, scoring limits and request budgets.

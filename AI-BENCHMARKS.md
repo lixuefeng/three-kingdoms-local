@@ -80,3 +80,41 @@ Live gameplay permits one correction after invalid JSON or an invalid action, wi
 Benchmarks also permit one invalid-action correction. Normal mode uses at most two calls within one configured timeout; tool mode retains its four-call total budget. Dry-run caps now count two calls per normal case and four per tools case. These are maximum budgets, not mandatory extra thinking. Reports include `appVersion` so results from different contracts can be distinguished. Do not compare v0.72 scores with older contracts without noting this change.
 
 The bot's knowledge now includes factual feedback: the last submitted selection, observed HP/hand changes, current own hand, and recent own public card events (e.g. Discarded Peach). Submission does not prove success; observed changes can include intervening actions. The model must use these facts instead of treating its prior notes as what happened.
+
+## Recorded failure regression suite (v0.73.0)
+
+Replay the positions behind the reported mistakes, without playing another match:
+
+```sh
+npm run llm:bench -- --suite logged --list
+npm run llm:bench -- --suite logged --models kimi --variants current,role-focus,consequence-focus,review --runs 3 --dry-run
+```
+
+For the ally-targeting issue alone:
+
+```sh
+npm run llm:bench -- --suite logged --case recorded-luxun-attack-ally,recorded-luxun-steal-ally --models kimi --variants current,role-focus,consequence-focus,review --runs 3
+```
+
+That command allows at most 60 provider calls (usually fewer). Add `--dry-run` to preview. For all seven positions the upper bound is 210 calls. Test other configured models by changing `--models`; the existing per-invocation cap remains 300. No live calls run during `npm test`.
+
+The suite contains two Lu Xun ally-targeting positions, Wei Yan's actual play and discard decisions, Pang De's weapon replacement, and Liu Bei's horse/equipment and Benevolence choices. Inputs come only from the saved bot observations. Player IDs are anonymized; human chat is removed. Strategic model memory and prior plans are retained (with identifiers redacted), including their incorrect assumptions. Historical engine previews are preserved without silently upgrading them to today's previews. These are redacted historical positions, not byte-identical original requests or reconstructed matches. Rules, inputs and model behavior can differ by version.
+
+### Controlled prompt alternatives
+
+- `current`: current production prompt, same recorded observation.
+- `role-focus`: adds general guidance to evaluate moves by the bot's role objective and uncertain identity evidence, allowing friendly interactions with concrete team benefits.
+- `consequence-focus`: adds general guidance to compare costs, HP, hand limits, equipment changes, targets and follow-up opportunities.
+- `review`: obtains one candidate using `current`, then makes a fresh request to keep or replace it against the unchanged board. Nothing executes between passes. Both calls can use the existing one-correction allowance: at most four calls total. An unsuccessful final review is a failed result, not silently replaced by the initial action.
+
+These are benchmark-only strategies; no winner is automatically promoted to live-game bots. They do not prescribe a particular target or action. The model receives no fixture description, rubric, historical selected action, grade, or future outcome. Review receives only its own candidate and the original observation. No private chain-of-thought is requested. Reports retain both stages, their actual choices and total cost; `firstPass.grade` allows checking whether review improved or worsened a decision.
+
+### What the scores mean
+
+The two Lu Xun cases flag harmful actions toward the player assessed at approximately 92.4% Rebel by this Rebel bot, with no visible delayed spell to remove. That identity assessment is still uncertain. The rubric accepts other legal choices; it measures avoidance of this specific suspected mistake, not optimal play. It checks action/target pairs so using a different harmful card against the same likely ally is not counted as a fix. Wei Yan's discard rubric prefers retaining Peach. The four other positions remain manual-review cases because several strategies can be defensible. Illegal actions are scored separately.
+
+`report.md` now includes results per case as well as totals. Review raw actions and costs, use repeated runs, and validate promising changes on held-out positions before changing the production prompt. This small suite does not establish win-rate improvement or prove a general ban on friendly damage; beneficial friendly-damage cases still need separate coverage. Calls run in fixed order, so provider changes and sampling are possible confounders.
+
+The included `historicalAction` is report metadata only. It is never shown to the model. The local-only `scripts/build-log-regressions.mjs` reproduces these fixtures from the two original archive layouts using known row positions; it refuses existing output and verifies the source general. Do not point it at unrelated archives or assume automatic redaction makes arbitrary human text safe to publish. Raw archives, credentials and private reports remain excluded from git.
+
+Also corrected the contract text: optional metadata is `memory`/`plan`, not `notes`. No decoder relaxation is needed.

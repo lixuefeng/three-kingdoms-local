@@ -3,7 +3,7 @@
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 export function decisionContract(q){
  const selection=q.zone==='cards'?(/discard/i.test(q.title||'')?'discard_cards':'select_cards'):q.zone==='stargazing'?'arrange_cards':q.zone==='skill-plan'?'use_skill':q.zone==='response'?'respond':'choose_options';
- return {version:1,instruction:'Submit one explicit action. Fields not listed for that action must be omitted. notes/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.',selectionAction:selection,min:q.min,max:q.max,context:q.context||null,
+ return {version:1,instruction:'Submit one explicit action. Fields not listed for that action must be omitted. memory/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.',selectionAction:selection,min:q.min,max:q.max,context:q.context||null,
  options:q.options.map(o=>{
   const item={option_id:o.id,label:o.label,card_ids:o.cardIds||[],...(o.card?{card:o.card}:{})};
   if(q.zone==='turn')Object.assign(item,{action:o.id==='end'?'end_phase':o.actionSpec?'use_skill':'play_card',target_ids:o.targetIds||[],target_min:o.targetMin||0,target_max:o.targetMax||0,...(o.secondaryTargets?{second_targets_by_first:o.secondaryTargets}:{}),...(o.actionSpec?{skill:o.actionSpec}:{}),response_fields:o.id==='end'?['action']:o.actionSpec?['action','option_id','card_ids','target_ids','mode_id (only if skill offers modes)']:['action','option_id','target_ids']});
