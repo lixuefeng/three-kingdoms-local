@@ -36,10 +36,25 @@ test('Peach rescue closes after the last response instead of waiting for the dea
  const run=g.rescueShared(a),q=g.prompts.get(b.id);g.answer(b.id,q.id,['quick-peach']);
  const outcome=await Promise.race([run.then(()=>true),new Promise(resolve=>{const timer=setTimeout(()=>resolve(false),100);timer.unref();})]);assert.equal(outcome,true);assert.equal(a.hp,1);assert.equal(g.responseWindow,null);
 });
-test('pass-for-spell suppresses counters but asks again for a new spell in the same player turn',async()=>{
- const g=setup(),[a,b,t]=g.players;g.beginAction('Duel');a.hand=[{id:'saved-negation',kind:'negate',suit:'♠',rank:11}];b.hand=[{id:'counter',kind:'negate',suit:'♥',rank:12}];
- const first=g.negate(t,'Duel');let q=g.prompts.get(a.id);assert.equal(q.options.find(o=>o.id==='pass-turn').label,'Pass for this spell');g.answer(a.id,q.id,['pass-turn']);q=g.prompts.get(b.id);g.answer(b.id,q.id,['counter']);assert.equal(await first,true);assert.equal(g.view(a.id).negationPassed,true);
- assert.equal(await g.negate(b,'Duel'),false,'same spell skips another target');
+test('pass-for-spell reopens for a counter but still skips later original spell targets',async()=>{
+ const g=setup(),[a,b,t]=g.players;g.responseWindowMs=1000;g.beginAction('Barbarian Invasion');a.hand=[{id:'saved-negation',kind:'negate',suit:'♠',rank:11}];b.hand=[{id:'counter',kind:'negate',suit:'♥',rank:12}];
+ const first=g.negate(t,'Barbarian Invasion');let q=g.prompts.get(a.id);assert.equal(q.options.find(o=>o.id==='pass-turn').label,'Pass for this spell');g.answer(a.id,q.id,['pass-turn']);q=g.prompts.get(b.id);g.answer(b.id,q.id,['counter']);
+ await new Promise(r=>setImmediate(r));q=g.prompts.get(a.id);assert.ok(q,'a new Negation reopens the previous passer');assert.equal(q.context.negationDepth,1);assert.equal(q.context.canceled,true);assert.ok(q.options.some(o=>o.id==='saved-negation'));g.answer(a.id,q.id,['pass']);
+ assert.equal(await first,true);assert.equal(g.view(a.id).negationPassed,true);
+ assert.equal(await g.negate(b,'Barbarian Invasion'),false,'same original spell still skips repeated targets');
  const turn=g.turn;g.beginAction('Steal');assert.equal(g.turn,turn);assert.equal(g.view(a.id).negationPassed,false);
  const next=g.negate(t,'Steal');q=g.prompts.get(a.id);assert.ok(q,'new spell asks the cardholder again');g.answer(a.id,q.id,['pass']);assert.equal(await next,false);assert.equal(a.hand[0].id,'saved-negation');
+});
+test('a previous pass-all player can counter Negation and restore the original effect',async()=>{
+ const g=setup(),[a,b,t]=g.players;g.responseWindowMs=1000;g.beginAction('Barbarian Invasion');a.hand=[{id:'a-negation',kind:'negate'}];b.hand=[{id:'b-negation',kind:'negate'}];
+ const run=g.negate(t,'Barbarian Invasion');g.answer(a.id,g.prompts.get(a.id).id,['pass-turn']);g.answer(b.id,g.prompts.get(b.id).id,['b-negation']);
+ await new Promise(r=>setImmediate(r));g.answer(a.id,g.prompts.get(a.id).id,['a-negation']);
+ assert.equal(await run,false);assert.equal(a.hand.length,0);assert.equal(b.hand.length,0);assert.equal(g.discard.filter(c=>c.kind==='negate').length,2);
+});
+test('passing a counter does not suppress a later counter or set an original-spell preference',async()=>{
+ const g=setup(),[a,b,c,t]=g.players;g.responseWindowMs=1000;g.beginAction('Barbarian Invasion');a.hand=[{id:'a-negation',kind:'negate'}];b.hand=[{id:'b-negation',kind:'negate'}];c.hand=[{id:'c-negation',kind:'negate'}];
+ const run=g.negate(t,'Barbarian Invasion');g.answer(a.id,g.prompts.get(a.id).id,['pass']);g.answer(b.id,g.prompts.get(b.id).id,['b-negation']);g.answer(c.id,g.prompts.get(c.id).id,['pass']);
+ await new Promise(r=>setImmediate(r));let q=g.prompts.get(a.id);assert.equal(q.context.negationDepth,1);assert.equal(q.options.find(o=>o.id==='pass-turn').label,'Pass this counter');g.answer(a.id,q.id,['pass-turn']);g.answer(c.id,g.prompts.get(c.id).id,['c-negation']);
+ await new Promise(r=>setImmediate(r));q=g.prompts.get(a.id);assert.ok(q);assert.equal(q.context.negationDepth,2);assert.equal(g.view(a.id).negationPassed,false);g.answer(a.id,q.id,['a-negation']);
+ assert.equal(await run,true);assert.equal(g.discard.filter(c=>c.kind==='negate').length,3);
 });

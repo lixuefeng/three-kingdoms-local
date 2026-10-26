@@ -108,3 +108,5 @@ v0.72.0 gives bots explicit named action submissions, a current-decision contrac
 v0.73.0 adds `--suite logged` with seven anonymized recorded decision positions and benchmark-only `role-focus`, `consequence-focus`, and `review` alternatives. Use the same cases to compare ally targeting, resource use and contract failures before changing live-game strategy. See [AI-BENCHMARKS.md](AI-BENCHMARKS.md) for commands, scoring limits and request budgets.
 
 v0.74.0: hosts can select **Strategy → Role-focused** for each LLM bot in the lobby or **AI Controls** during a match. It uses the same role-objective guidance as the benchmark with no additional model calls. Current remains the default. Switching strategy cancels pending decisions; new decisions use the new setting. The selected strategy is recorded in AI traces and model decision events.
+
+v0.75.0 fixes Negation pass scope: **Pass for this spell** skips repeated original-effect prompts, but every played Negation opens a fresh counter opportunity. **Pass this counter** affects only that counter window. This applies to both live shared windows and adapter-driven decisions.

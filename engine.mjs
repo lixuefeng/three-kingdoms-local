@@ -227,7 +227,7 @@ export class Game {
   this.responseWindow={kind,title,startedAt,deadline};
   for(const p of people){
    const options=optionsFor(p),q={id:randomUUID(),title,options,min:1,max:1,zone:'options',context,startedAt,deadline,timer:null,resolve:answers=>{responses.set(p.id,answers[0]||'pass');if(responses.size===people.length)finishEarly();}};
-   ids.set(p.id,q.id);if(!options.some(o=>!['pass','pass-turn'].includes(o.id))){responses.set(p.id,'pass');continue;}if(kind==='negation'&&this.negationPassTurn.get(p.id)===this.turn){responses.set(p.id,'pass');continue;}this.prompts.set(p.id,q);
+   ids.set(p.id,q.id);if(!options.some(o=>!['pass','pass-turn'].includes(o.id))){responses.set(p.id,'pass');continue;}if(kind==='negation'&&!context?.negationDepth&&this.negationPassTurn.get(p.id)===this.turn){responses.set(p.id,'pass');continue;}this.prompts.set(p.id,q);
    if(p.bot)bots.push(setTimeout(async()=>{try{if(this.prompts.get(p.id)?.id===q.id){const answer=await this.decideBot(p,q,['pass']);if(this.prompts.get(p.id)?.id===q.id)this.answer(p.id,q.id,answer[0]?[answer[0]]:['pass']);}}catch{if(this.prompts.get(p.id)?.id===q.id)this.answer(p.id,q.id,['pass']);}},this.botPacing?Math.min(1400,windowMs/2):0));
   }
   await new Promise(resolve=>{const timer=setTimeout(resolve,windowMs);finishEarly=()=>{clearTimeout(timer);resolve();};this.cancelResponseWindow=finishEarly;this.changed();if(responses.size===people.length)finishEarly();});
@@ -238,15 +238,17 @@ export class Game {
   if(this.stopped||this.winner)throw new Finished();
   return people.map(p=>({p,id:responses.get(p.id)||'pass'}));
  }
+ // Pass-for-spell applies only to the original effect (depth 0). Every committed
+ // Negation opens a fresh counter window, even for players who passed earlier.
  async negateShared(target,title){let canceled=false;
-  for(let depth=0;depth<109;depth++){
+  for(let depth=0,attempt=0;attempt<109;attempt++){
    const responses=await this.sharedResponses('negation',`${title} → ${target.name}: Waiting for Negation responses`,p=>[
-    ...(this.negationPassTurn.get(p.id)===this.turn?[]:this.virtual(p,'negate',{response:true}).map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)}))),{id:'pass',label:'Pass once'},{id:'pass-turn',label:'Pass for this spell'}
-   ],{kind:'negation',targetId:target.id,spell:title,canceled});
-   for(const {p,id} of responses)if(id==='pass-turn')this.negationPassTurn.set(p.id,this.turn);
+    ...(!depth&&this.negationPassTurn.get(p.id)===this.turn?[]:this.virtual(p,'negate',{response:true}).map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)}))),{id:'pass',label:'Pass once'},{id:'pass-turn',label:depth?'Pass this counter':'Pass for this spell'}
+   ],{kind:'negation',targetId:target.id,spell:title,canceled,negationDepth:depth});
+   for(const {p,id} of responses)if(!depth&&id==='pass-turn')this.negationPassTurn.set(p.id,this.turn);
    const play=responses.find(({p,id})=>p.alive&&this.virtual(p,'negate',{response:true}).some(v=>v.id===id));
    if(!play)return canceled;
-   const v=this.virtual(play.p,'negate',{response:true}).find(v=>v.id===play.id),committed=await this.commitVirtual(play.p,v);if(!committed)continue;this.effect(play.p,target,'spell','Negation');this.log(`${play.p.name} uses Negation.`);if(play.p.general.id==='huangyueying')this.draw(play.p,1);this.finishCards(committed.cards);canceled=!canceled;
+   const v=this.virtual(play.p,'negate',{response:true}).find(v=>v.id===play.id),committed=await this.commitVirtual(play.p,v);if(!committed)continue;this.effect(play.p,target,'spell','Negation');this.log(`${play.p.name} uses Negation.`);if(play.p.general.id==='huangyueying')this.draw(play.p,1);this.finishCards(committed.cards);canceled=!canceled;depth++;
   }return canceled;
  }
  async rescueShared(target){
@@ -261,14 +263,14 @@ export class Game {
  }
  async negate(target,title){if(!this.askAdapter)return this.negateShared(target,title);let canceled=false;let start=this.current;
   // Ask every eligible player in seat order; each counterspell opens a fresh window.
-  for(let depth=0;depth<109;depth++){
+  for(let depth=0,attempt=0;attempt<109;attempt++){
    let played=false;
    for(const p of this.order(start)){
-    if(this.negationPassTurn.get(p.id)===this.turn)continue;
+    if(!depth&&this.negationPassTurn.get(p.id)===this.turn)continue;
     const cards=this.virtual(p,'negate',{response:true});if(!cards.length)continue;
-    const [id]=await this.ask(p,`${title} → ${target.name}: ${canceled?'Counter Negation to restore the effect?':'Use Negation to cancel this effect?'}`,[...cards.map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)})),{id:'pass',label:'Pass once'},{id:'pass-turn',label:'Pass for this spell'}],{fallback:['pass'],context:{kind:'negation',targetId:target.id,spell:title,canceled}});
-    if(id==='pass-turn'){this.negationPassTurn.set(p.id,this.turn);continue;}
-    const v=cards.find(v=>v.id===id);if(!v)continue;const committed=await this.commitVirtual(p,v);if(!committed)continue;this.effect(p,target,'spell','Negation');this.log(`${p.name} uses Negation.`);if(p.general.id==='huangyueying')this.draw(p,1);this.finishCards(committed.cards);canceled=!canceled;start=p;played=true;break;
+    const [id]=await this.ask(p,`${title} → ${target.name}: ${canceled?'Counter Negation to restore the effect?':'Use Negation to cancel this effect?'}`,[...cards.map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)})),{id:'pass',label:'Pass once'},{id:'pass-turn',label:depth?'Pass this counter':'Pass for this spell'}],{fallback:['pass'],context:{kind:'negation',targetId:target.id,spell:title,canceled,negationDepth:depth}});
+    if(id==='pass-turn'){if(!depth)this.negationPassTurn.set(p.id,this.turn);continue;}
+    const v=cards.find(v=>v.id===id);if(!v)continue;const committed=await this.commitVirtual(p,v);if(!committed)continue;this.effect(p,target,'spell','Negation');this.log(`${p.name} uses Negation.`);if(p.general.id==='huangyueying')this.draw(p,1);this.finishCards(committed.cards);canceled=!canceled;depth++;start=p;played=true;break;
    }
    if(!played)return canceled;
   }return canceled;
