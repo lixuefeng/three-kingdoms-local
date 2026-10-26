@@ -17,7 +17,7 @@ test('Deflection accepts the captured legal card/target split but rejects incomp
 });
 test('response contract explicitly offers armor activation; empty response never invents armor use',async()=>{
  const q={id:'dodge',zone:'response',min:1,max:1,options:[{id:'bagua'},{id:'pass'}]},view=game().view('a'),contract=botObservation(view,'a',q).prompt.responseContract;
- assert.deepEqual(contract.armorActivation,{ids:['bagua'],targets:[]});
+ assert.deepEqual(contract.armorActivation,{action:'respond',option_ids:['bagua']});
  const provider=createLLMProvider(config(),{fetchImpl:async()=>response({ids:[],targets:[],memory:'Use armor'})});
  assert.equal(await provider.decide({view,playerId:'a',prompt:q,matchId:'empty'}),null);
  assert.equal(botObservation(view,'a',{...q,options:[{id:'pass'}]}).prompt.responseContract.armorActivation,undefined);
