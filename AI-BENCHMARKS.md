@@ -118,3 +118,5 @@ The two Lu Xun cases flag harmful actions toward the player assessed at approxim
 The included `historicalAction` is report metadata only. It is never shown to the model. The local-only `scripts/build-log-regressions.mjs` reproduces these fixtures from the two original archive layouts using known row positions; it refuses existing output and verifies the source general. Do not point it at unrelated archives or assume automatic redaction makes arbitrary human text safe to publish. Raw archives, credentials and private reports remain excluded from git.
 
 Also corrected the contract text: optional metadata is `memory`/`plan`, not `notes`. No decoder relaxation is needed.
+
+v0.74.0 makes `role-focus` available as an opt-in live-game bot strategy. Its text is shared with the benchmark through `bot-strategy.mjs`, preventing prompt drift. Other experimental variants remain benchmark-only.

@@ -106,3 +106,5 @@ v0.71.0 adds an experimental `--variants current,tools` comparison: models can i
 v0.72.0 gives bots explicit named action submissions, a current-decision contract, one bounded invalid-action correction, and factual hand/HP/card-event feedback. Optional prose never supplies missing action arguments. See [AI-BENCHMARKS.md](AI-BENCHMARKS.md) for examples and updated benchmark call budgets.
 
 v0.73.0 adds `--suite logged` with seven anonymized recorded decision positions and benchmark-only `role-focus`, `consequence-focus`, and `review` alternatives. Use the same cases to compare ally targeting, resource use and contract failures before changing live-game strategy. See [AI-BENCHMARKS.md](AI-BENCHMARKS.md) for commands, scoring limits and request budgets.
+
+v0.74.0: hosts can select **Strategy → Role-focused** for each LLM bot in the lobby or **AI Controls** during a match. It uses the same role-objective guidance as the benchmark with no additional model calls. Current remains the default. Switching strategy cancels pending decisions; new decisions use the new setting. The selected strategy is recorded in AI traces and model decision events.

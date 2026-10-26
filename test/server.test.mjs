@@ -230,3 +230,21 @@ test('only the host controls spontaneous chatter, with validated levels and defa
  assert.equal(h.state.room.botChatter,'occasional');assert.equal((await req('bot-chatter',{mode:'lively'},f.token)).status,400);assert.equal((await req('bot-chatter',{mode:'invalid'},h.token)).status,400);
  for(const mode of ['off','lively','occasional']){assert.equal((await req('bot-chatter',{mode},h.token)).status,200);assert.equal((await req('state',undefined,h.token)).data.room.botChatter,mode);}
 });
+
+test('host selects per-bot role-focused strategy, validation and model switches preserve it',async t=>{
+ const {req,rooms}=await fixture(t,{llm:{enabled:true,model:'mock',base:'http://127.0.0.1:1/v1',timeoutMs:50,maxTokens:200}});
+ const {token,state}=(await req('create',{name:'Host'})).data;
+ const friend=(await req('join',{name:'Friend',code:state.room.code})).data;
+ assert.equal((await req('bot',{mode:'llm'},token)).status,200);
+ const room=rooms.get(state.room.code),bot=room.players.find(p=>p.bot);
+ assert.equal(bot.botStrategy,'current');
+ assert.equal((await req('bot-mode',{id:bot.id,strategy:'role-focus'},friend.token)).status,400);
+ assert.equal((await req('bot-mode',{id:bot.id,strategy:'invented'},token)).status,400);assert.equal(bot.botStrategy,'current');
+ assert.equal((await req('bot-mode',{id:bot.id,strategy:'role-focus'},token)).status,200);
+ assert.equal(bot.botStrategy,'role-focus');assert.equal(bot.botMode,'llm');
+ const {Game}=await import('../engine.mjs');room.game=new Game(room.players);let updated;const setMode=room.game.setBotMode.bind(room.game);room.game.setBotMode=(...args)=>{updated=args;setMode(...args);};
+ assert.equal((await req('bot-mode',{id:bot.id,strategy:'current'},token)).status,200);assert.equal(updated[3],'current');
+ assert.equal((await req('bot-mode',{id:bot.id,strategy:'role-focus'},token)).status,200);
+ assert.equal((await req('bot-mode',{id:bot.id,mode:'classic'},token)).status,200);assert.equal(bot.botStrategy,'role-focus');
+ const result=(await req('state',undefined,token)).data.room.players.find(p=>p.id===bot.id);assert.equal(result.botStrategy,'role-focus');
+});

@@ -1,6 +1,6 @@
 {
   "name": "three-kingdoms-local",
-  "version": "0.73.0",
+  "version": "0.74.0",
   "description": "English edition of a self-hosted multiplayer Three Kingdoms card game",
   "type": "module",
   "scripts": {

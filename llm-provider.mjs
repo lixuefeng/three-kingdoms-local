@@ -1,3 +1,4 @@
+import {strategyGuidance} from './bot-strategy.mjs';
 import {decisionContract,decodeAction,ACTION_INSTRUCTIONS} from './decision-actions.mjs';
 import {generalStrategyContext} from './general-strategy.mjs';
 import {COACHING,decisionBriefing} from './bot-coach.mjs';
@@ -147,8 +148,8 @@ export function createLLMProvider(config=llmConfig(),{fetchImpl=fetch,onDiagnost
   }catch(e){if(controller.signal.aborted)e=new Error(abortReason(controller.signal));trace.status=/^(http-\d+|timeout|cancelled|stale|unavailable|request-limit|truncated-response|request-timeout|decision-expired|window-closed|model-switched|match-ended)$/.test(e.message)?e.message:'invalid-response';diagnostic(key,{purpose:'chat',ok:false,status:trace.status,ms:Date.now()-start,...tokenUsage(trace)});return null;}
   finally{clearTimeout(controller.timer);controller.abort();signal?.removeEventListener('abort',abort);emitTrace(config,trace,onTrace,start);}
  },
- async decide({view,agentState=null,playerId,prompt,matchId,signal,isCurrent=()=>true,invalidReason=()=>null}){
-  const key=matchId+':'+playerId,start=Date.now(),controller=new AbortController(),trace={matchId,playerId,promptId:prompt.id,decisionType:prompt.zone,startedAt:new Date().toISOString()};const report=event=>{trace.status=event.status;diagnostic(key,event);};const abort=()=>controller.abort(new Error(abortReason(signal)));signal?.addEventListener('abort',abort,{once:true});
+ async decide({view,botStrategy='current',agentState=null,playerId,prompt,matchId,signal,isCurrent=()=>true,invalidReason=()=>null}){
+  const key=matchId+':'+playerId,start=Date.now(),controller=new AbortController(),trace={matchId,playerId,promptId:prompt.id,decisionType:prompt.zone,botStrategy,startedAt:new Date().toISOString()};const report=event=>{trace.status=event.status;diagnostic(key,event);};const abort=()=>controller.abort(new Error(abortReason(signal)));signal?.addEventListener('abort',abort,{once:true});
   try{
    if(signal?.aborted)throw new Error(abortReason(signal));if(!config.enabled)throw new Error('unavailable');if(!isCurrent())throw new Error(invalidReason()||'stale');
    const remaining=prompt.deadline?prompt.deadline-Date.now()-150:config.timeoutMs;if(remaining<=0)throw new Error('decision-expired');
@@ -160,7 +161,7 @@ export function createLLMProvider(config=llmConfig(),{fetchImpl=fetch,onDiagnost
     if(!isCurrent())throw Error(invalidReason()||'stale');
     wireCalls.set(key,(wireCalls.get(key)||0)+1);const t={};trace.attempts.push(t);
     try{
-     const result=await Promise.race([exchange(config,SYSTEM+'\n\n'+COACHING,JSON.stringify({...observation,...(feedback?{validationFeedback:feedback}:{} )}),controller.signal,t,fetchImpl),expired]);
+     const result=await Promise.race([exchange(config,gameplaySystemPrompt(botStrategy),JSON.stringify({...observation,...(feedback?{validationFeedback:feedback}:{} )}),controller.signal,t,fetchImpl),expired]);
      if(controller.signal.aborted)throw Error(abortReason(controller.signal));if(!isCurrent())throw Error(invalidReason()||'stale');
      let decoded;try{t.submission=parseExchange(result,t);decoded=decodeAction(prompt,t.submission);}catch(e){if(e.message==='invalid-response'||e.message==='truncated-response')throw e;t.validationReason=e.message;throw Error('invalid-choice');}
      d=normalizeDecision(prompt,decoded,view,t,playerId);t.validationReason=botDecisionError(prompt,d);if(t.validationReason)throw Error('invalid-choice');
@@ -249,4 +250,4 @@ export async function evaluateSavedDecision(config,{observation,system=SYSTEM+'\
  trace.usage=totalUsage;trace.modelCalls=trace.rounds.length;trace.elapsedMs=Date.now()-start;
  const text=JSON.stringify(trace);return JSON.parse(config.key?text.split(config.key).join('[REDACTED]'):text);
 }
-export const gameplaySystemPrompt=()=>SYSTEM+'\n\n'+COACHING;
+export const gameplaySystemPrompt=(strategy='current')=>SYSTEM+'\n\n'+COACHING+strategyGuidance(strategy);

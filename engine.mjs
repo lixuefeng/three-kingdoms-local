@@ -1,3 +1,4 @@
+import {BOT_STRATEGIES} from './bot-strategy.mjs';
 import {actionSelections,atomicSkills} from './action-selections.mjs';
 import {BotKnowledge,tacticalFacts} from './bot-knowledge.mjs';
 import {eventText,generalName} from './public/event-history.mjs';
@@ -50,13 +51,13 @@ export class Game {
  }
  async decideBot(p,q,defaults){
   if(p.botMode==='llm'&&this.llmProvider?.enabled){
-   const shared=this.prompts.get(p.id)?.id===q.id,modelProfile=p.botModel;
+   const shared=this.prompts.get(p.id)?.id===q.id,modelProfile=p.botModel,botStrategy=p.botStrategy||'current';
    const ownView=this.view(p.id),knowledge=this.botKnowledge.get(p.id);const agentState=knowledge?{knowledge:knowledge.snapshot(ownView),tactics:tacticalFacts(this,p,q)}:null;
    const request=new AbortController();this.botRequests.set(p.id,request);let decision;
-   const invalidReason=()=>this.stopped||this.winner?'match-ended':p.botMode!=='llm'||p.botModel!==modelProfile?'model-switched':q.deadline&&Date.now()>=q.deadline?'decision-expired':shared&&this.prompts.get(p.id)?.id!==q.id?'window-closed':!shared&&!this.decisions.has(p.id)?'decision-expired':null;
-   try{decision=await this.llmProvider.decide({view:{...ownView,publicChat:this.publicChatFor?.(p)||[]},agentState,playerId:p.id,prompt:q,matchId:this.matchId,modelProfile,signal:AbortSignal.any([this.botAbort.signal,request.signal]),isCurrent:()=>!invalidReason(),invalidReason});}finally{if(this.botRequests.get(p.id)===request)this.botRequests.delete(p.id);}
+   const invalidReason=()=>this.stopped||this.winner?'match-ended':p.botMode!=='llm'||p.botModel!==modelProfile||(p.botStrategy||'current')!==botStrategy?'model-switched':q.deadline&&Date.now()>=q.deadline?'decision-expired':shared&&this.prompts.get(p.id)?.id!==q.id?'window-closed':!shared&&!this.decisions.has(p.id)?'decision-expired':null;
+   try{decision=await this.llmProvider.decide({view:{...ownView,publicChat:this.publicChatFor?.(p)||[]},agentState,playerId:p.id,prompt:q,matchId:this.matchId,modelProfile,botStrategy,signal:AbortSignal.any([this.botAbort.signal,request.signal]),isCurrent:()=>!invalidReason(),invalidReason});}finally{if(this.botRequests.get(p.id)===request)this.botRequests.delete(p.id);}
    if(this.stopped||this.winner)throw new Finished();
-   if(decision&&p.botMode==='llm'&&p.botModel===modelProfile){this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:'model',promptId:q.id,zone:q.zone,ids:decision.ids,targets:decision.targets,costs:decision.costs||[],mode:decision.mode});knowledge?.updatePlan(decision.plan,ownView,q);knowledge?.noteChoice(q,decision);this.llmProvider.recordPlan?.(this.matchId,p.id,q.id,knowledge?.plan);if(q.zone==='turn')this.plannedPlays.set(p.id,{optionId:decision.ids[0],targetIds:decision.targets||[],costIds:decision.costs||[],mode:decision.mode,chatIntent:decision.chatIntent});return decision.ids;}
+   if(decision&&p.botMode==='llm'&&p.botModel===modelProfile&&(p.botStrategy||'current')===botStrategy){this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:'model',botStrategy,promptId:q.id,zone:q.zone,ids:decision.ids,targets:decision.targets,costs:decision.costs||[],mode:decision.mode});knowledge?.updatePlan(decision.plan,ownView,q);knowledge?.noteChoice(q,decision);this.llmProvider.recordPlan?.(this.matchId,p.id,q.id,knowledge?.plan);if(q.zone==='turn')this.plannedPlays.set(p.id,{optionId:decision.ids[0],targetIds:decision.targets||[],costIds:decision.costs||[],mode:decision.mode,chatIntent:decision.chatIntent});return decision.ids;}
   }
   const result=this.botAnswer(p,q,defaults);const plan=this.plannedPlays.get(p.id);this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:p.botMode==='llm'?'fallback':'practice',promptId:q.id,zone:q.zone,ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});this.botKnowledge.get(p.id)?.noteChoice(q,{ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});return result;
  }
@@ -73,7 +74,7 @@ export class Game {
   if(q.zone==='skill-plan'&&!validSkillPlan(q.context,ids))throw new Error('Select the required cards and targets before confirming.');
   clearTimeout(q.timer);this.prompts.delete(pid);q.resolve(ids);this.changed();
  }
- setBotMode(pid,mode,model){const p=this.players.find(p=>p.id===pid&&p.bot);if(!p)return;p.botMode=mode;p.botModel=model;this.botRequests.get(pid)?.abort(new Error('model-switched'));}
+ setBotMode(pid,mode,model,strategy){const p=this.players.find(p=>p.id===pid&&p.bot);if(!p)return;if(strategy!==undefined&&!BOT_STRATEGIES.includes(strategy))throw Error('Unknown bot strategy');p.botMode=mode;p.botModel=model;if(strategy!==undefined)p.botStrategy=strategy;this.botRequests.get(pid)?.abort(new Error('model-switched'));}
  stop(){this.stopped=true;this.botAbort.abort(new Error('match-ended'));this.botKnowledge.clear();this.llmProvider?.forget(this.matchId);this.cancelResponseWindow?.();for(const q of this.prompts.values()){clearTimeout(q.timer);q.resolve([]);}this.prompts.clear();this.decisions.clear();this.plannedPlays.clear();this.decision=null;}
  targetSpec(p,kind,v){
   if(kind==='chain')return {targetIds:this.alive().map(t=>t.id),targetMin:1,targetMax:Math.min(2,this.alive().length)};

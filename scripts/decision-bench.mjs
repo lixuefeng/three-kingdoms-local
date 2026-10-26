@@ -1,7 +1,7 @@
+import {ROLE_FOCUS} from '../bot-strategy.mjs';
 import {decisionTool,TOOL_INSTRUCTIONS} from './decision-tools.mjs';
 import {evaluateSavedDecision,gameplaySystemPrompt} from '../llm-provider.mjs';
 export const VARIANT_BUDGETS={current:2,focused:2,tools:4,'role-focus':2,'consequence-focus':2,review:4};
-const ROLE_FOCUS='Evaluate actions by progress toward your own role win condition. Card use, damage and reducing discards are means, not objectives. Use public role evidence and uncertain role beliefs when comparing recipients and targets. Friendly damage or transfers can be useful when a concrete observable team benefit outweighs their cost; do not assume every friendly interaction is good or every attack on an ally is wrong. Do not treat heuristic probabilities as revealed roles.';
 const CONSEQUENCE_FOCUS='Before submitting, compare the consequences of the actual legal alternatives: HP, hand size, hand limit, equipment replacement, range, attack allowance, resource transfer, follow-up availability and ending. Supplied engine projections are conditional facts, not recommendations. Consider both the intended target and alternative targets. A future unknown draw or successful hit is not guaranteed.';
 export function prepareCase(testCase,variant='current'){
  const observation=structuredClone(testCase.observation);
