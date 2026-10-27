@@ -17,6 +17,18 @@ test('explicit actions have deterministic fields; metadata cannot supply missing
  assert.deepEqual(decodeAction({...q,zone:'response'},{action:'respond',option_ids:['bagua']}),{ids:['bagua'],targets:[]});
  assert.deepEqual(decodeAction({...q,zone:'stargazing'},{action:'arrange_cards',option_ids:['peach','bottom','attack']}),{ids:['peach','bottom','attack'],targets:[]});
 });
+test('copied response_fields annotation does not change the chosen option',async()=>{
+ const q={id:'choice',zone:'options',min:1,max:1,options:[{id:'pass'},{id:'accept'}]};
+ const copied={action:'choose_options',option_ids:['pass'],response_fields:['action','option_ids']};
+ assert.deepEqual(decodeAction(q,copied),{ids:['pass'],targets:[]});
+ assert.throws(()=>decodeAction(q,{...copied,response_fields:'pass'}));
+ assert.throws(()=>decodeAction(q,{...copied,target_ids:['ally']}));
+ for(const [option,valid] of [['pass',true],['not-offered',false]]){
+  const p=createLLMProvider(config,{fetchImpl:async()=>response({...copied,option_ids:[option]})});
+  const result=await p.decide({view,playerId:'me',matchId:'m',prompt:q});
+  assert.equal(!!result,valid);
+ }
+});
 test('invalid submission receives factual correction; only final valid action returns; costs count both requests',async()=>{
  const bodies=[],traces=[];const provider=createLLMProvider(config,{onTrace:t=>traces.push(t),fetchImpl:async(u,r)=>{
   const body=JSON.parse(r.body);bodies.push(JSON.parse(body.messages[1].content));

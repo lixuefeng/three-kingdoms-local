@@ -16,7 +16,10 @@ export function decodeAction(q,wire){
  // Compatibility for previously recorded benchmark output and third-party adapters.
  if(!own(wire,'action'))return wire;
  const contract=decisionContract(q),metadata={...(typeof wire.memory==='string'?{memory:wire.memory}:{}),...(wire.plan?{plan:wire.plan}:{}),...(wire.chatIntent?{chatIntent:wire.chatIntent}:{})};
- let allowed=['action','memory','plan','chatIntent'],d;
+ // This is a copied schema annotation, not an action argument. Ignore it only
+ // when it has the advertised shape; all actual action fields stay strict.
+ if(own(wire,'response_fields')&&(!Array.isArray(wire.response_fields)||wire.response_fields.some(x=>typeof x!=='string')))throw Error('response_fields must be an array of strings');
+ let allowed=['action','memory','plan','chatIntent','response_fields'],d;
  const array=(name)=>{if(!Array.isArray(wire[name])||wire[name].some(x=>typeof x!=='string'))throw Error('Required '+name+' must be an array of exact IDs');return wire[name];};
  if(q.zone==='turn'){
   if(wire.action==='end_phase'){d={ids:['end'],targets:[]};}

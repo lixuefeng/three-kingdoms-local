@@ -89,6 +89,15 @@ test('JSON failures and invalid actions retain provider token usage and detailed
   assert.equal(p.status().seats['x:a'].lastStatus,status);assert.equal(p.status().seats['x:a'].outputTokens,164);assert.ok(traces[0].validationReason.includes(reason));
  }
 });
+test('Bedrock invoke envelope accepts a single complete action while rejecting ambiguous text',async()=>{
+ const q={id:'axe',zone:'turn',min:1,max:1,options:[{id:'play:axe:c96',targetIds:[],targetMin:0,targetMax:0},{id:'end'}]};
+ const action='{"action":"play_card","option_id":"play:axe:c96","target_ids":[]}';
+ for(const [content,expected] of [[`<invoke_block>\n${action}\n</invoke_block>\n�`,true],[`prose <invoke_block>${action}</invoke_block>`,false],[`<invoke_block>${action}${action}</invoke_block>`,false],[`<invoke_block>{"action":"play_card","option_id":"not-offered","target_ids":[]}</invoke_block>`,false]]){
+  const traces=[],p=createLLMProvider({...config(),transport:'bedrock-converse',debug:true},{onTrace:t=>traces.push(t),fetchImpl:async()=>new Response(JSON.stringify({output:{message:{content:[{reasoningContent:{}},{text:content}]}},stopReason:'end_turn',usage:{inputTokens:20,outputTokens:10}}))});
+  const result=await p.decide({view:game().view('a'),playerId:'a',prompt:q,matchId:'m'});
+  assert.equal(!!result,expected);if(expected){assert.deepEqual(result.ids,['play:axe:c96']);assert.match(traces[0].normalization,/invoke_block/);}
+ }
+});
 test('chat parse failures also retain usage and truncation status',async()=>{
  for(const finish_reason of ['stop','length']){
   const p=createLLMProvider(config(),{fetchImpl:async()=>new Response(JSON.stringify({choices:[{message:{content:'{"reply":'},finish_reason}],usage:{prompt_tokens:50,completion_tokens:12}}))});
