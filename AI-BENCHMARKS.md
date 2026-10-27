@@ -120,3 +120,18 @@ The included `historicalAction` is report metadata only. It is never shown to th
 Also corrected the contract text: optional metadata is `memory`/`plan`, not `notes`. No decoder relaxation is needed.
 
 v0.74.0 makes `role-focus` available as an opt-in live-game bot strategy. Its text is shared with the benchmark through `bot-strategy.mjs`, preventing prompt drift. Other experimental variants remain benchmark-only.
+
+## Investigate a recorded rescue decision
+
+`llm:investigate-rescue` tests the Huang Zhong / Sun Jian rescue without publishing the archive or its private player information. It reads **only the acting bot's original debug observation**, not archive state, other players' hidden hands, future events, or the dying player's true identity. The original match must contain AI debug traces; the archived prompt ID identifies the decision.
+
+```sh
+npm run llm:investigate-rescue -- --archive /path/to/match-19587f43-07ec-4459-b7d3-c2cfc98b6ede.jsonl --prompt-id a1405b3f-9a54-4f57-aa64-cf51b51c622b --model claude --runs 3 --dry-run
+npm run llm:investigate-rescue -- --archive /path/to/match-19587f43-07ec-4459-b7d3-c2cfc98b6ede.jsonl --prompt-id a1405b3f-9a54-4f57-aa64-cf51b51c622b --model claude --runs 3
+```
+
+Each run uses four independent requests: (1) rule-knowledge questions, without the match observation, (2) comprehension questions about the original observation, (3) a gameplay decision using that observation, and (4) the same decision with a factual rescue summary added. The model never receives the answers to earlier probes. The order of the two decision variants alternates by run. Gameplay decisions use the current prompt and validator, not an exact historical API replay; each can make one correction request, so each run uses up to six model calls. Claude uses the configured effort, output budget, and timeout; a saved game deadline is removed, so latency is not equivalent to a live rescue window.
+
+The focused summary includes recent public events, the offered Peach/Pass effects, and the target's existing uncertain role assessment. It does not prescribe a move. It must not be interpreted as a full simulator: simultaneous responses and future cards are unknown. Rule and comprehension responses are open-ended and require manual review; neither a particular action nor a role belief is treated as ground truth. Compare choice frequencies, legality, token usage and latency across runs, but small sample counts do not establish causality.
+
+Results, including the bot's private observation, are written under `data/ai-investigations/` by default with restrictive permissions. They are not game moves and do not alter the live bot. Use `--out` to select another private output folder. Never publish the archive or the resulting report.

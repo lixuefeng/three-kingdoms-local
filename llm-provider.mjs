@@ -253,3 +253,18 @@ export async function evaluateSavedDecision(config,{observation,system=SYSTEM+'\
  const text=JSON.stringify(trace);return JSON.parse(config.key?text.split(config.key).join('[REDACTED]'):text);
 }
 export const gameplaySystemPrompt=(strategy='current')=>SYSTEM+'\n\n'+COACHING+strategyGuidance(strategy);
+
+// Read-only diagnostic probe for offline investigations; never submits a game action.
+export async function evaluateDiagnosticPrompt(config,{system,observation,signal,fetchImpl=fetch}={}){
+ const controller=new AbortController(),trace={},start=Date.now(),abort=()=>controller.abort(new Error('cancelled'));
+ signal?.addEventListener('abort',abort,{once:true});
+ try{
+  if(signal?.aborted)throw Error('cancelled');if(!config.enabled)throw Error('unavailable');
+  const limit=requestLimit(controller,config.timeoutMs||10000,'request-timeout');
+  const raw=await Promise.race([exchange({...config,debug:true},system,JSON.stringify(observation),controller.signal,trace,fetchImpl),limit]);
+  const answer=parseExchange(raw,trace);
+  if(!answer||typeof answer!=='object'||Array.isArray(answer))throw Error('invalid-response');
+  return {status:'model',answer,usage:tokenUsage(trace),elapsedMs:Date.now()-start};
+ }catch(e){return {status:controller.signal.aborted?abortReason(controller.signal):e.message,usage:tokenUsage(trace),elapsedMs:Date.now()-start};}
+ finally{clearTimeout(controller.timer);controller.abort();signal?.removeEventListener('abort',abort);}
+}
