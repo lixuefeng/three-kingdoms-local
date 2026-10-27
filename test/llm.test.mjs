@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import {Game} from '../engine.mjs';
 import {ALL_GENERALS,makeDeck} from '../cards.mjs';
-import {llmConfig,botObservation,validBotDecision,createLLMProvider} from '../llm-provider.mjs';
+import {llmConfig,botObservation,validBotDecision,createLLMProvider,evaluateSavedDecision} from '../llm-provider.mjs';
 const config=()=>({...llmConfig({LLM_BASE_URL:'http://127.0.0.1:1234/v1',LLM_MODEL:'test'}),timeoutMs:1000});
 const prompt={id:'q',zone:'turn',title:'Play',min:1,max:1,options:[{id:'hit',targetIds:['b'],targetMin:1,targetMax:1},{id:'end',targetIds:[],targetMin:0,targetMax:0}]};
 function game(){const g=new Game(['a','b','c','d'].map(id=>({id,name:id,bot:true,botMode:id==='a'?'llm':'classic'})),{seedDeck:makeDeck()});g.players.forEach((p,i)=>{p.general=ALL_GENERALS.find(x=>x.id==='zhangfei');p.role=['rebel','lord','loyal','spy'][i];});g.current=g.players[0];g.phase='Play';return g;}
@@ -17,10 +17,16 @@ test('Deflection accepts the captured legal card/target split but rejects incomp
 });
 test('response contract explicitly offers armor activation; empty response never invents armor use',async()=>{
  const q={id:'dodge',zone:'response',min:1,max:1,options:[{id:'bagua'},{id:'pass'}]},view=game().view('a'),contract=botObservation(view,'a',q).prompt.responseContract;
- assert.deepEqual(contract.armorActivation,{action:'respond',option_ids:['bagua']});
+ assert.deepEqual(contract.armorActivation,{action:'choose_options',option_ids:['bagua']});
  const provider=createLLMProvider(config(),{fetchImpl:async()=>response({ids:[],targets:[],memory:'Use armor'})});
  assert.equal(await provider.decide({view,playerId:'a',prompt:q,matchId:'empty'}),null);
  assert.equal(botObservation(view,'a',{...q,options:[{id:'pass'}]}).prompt.responseContract.armorActivation,undefined);
+});
+test('replaying older response observations refreshes the response contract',async()=>{
+ const q={id:'dodge',zone:'response',min:1,max:1,options:[{id:'bagua'},{id:'pass'}]},o=botObservation(game().view('a'),'a',q);
+ o.prompt.responseContract.armorActivation={action:'respond',option_ids:['bagua']};let sent;
+ const result=await evaluateSavedDecision(config(),{observation:o,fetchImpl:async(u,r)=>{sent=JSON.parse(JSON.parse(r.body).messages[1].content);return response({action:'choose_options',option_ids:['bagua']});}});
+ assert.equal(result.status,'model');assert.equal(sent.actionContract.selectionAction,'choose_options');assert.equal(sent.prompt.responseContract.armorActivation.action,'choose_options');
 });
 test('config is opt-in, validates endpoints and clamps limits',()=>{assert.equal(llmConfig({}).enabled,false);assert.throws(()=>llmConfig({LLM_BASE_URL:'file:///secret'}));assert.throws(()=>llmConfig({LLM_BASE_URL:'http://user:pass@localhost'}));assert.equal(llmConfig({LLM_TIMEOUT_MS:'999999'}).timeoutMs,60000);});
 test('observation excludes opponent secrets, deck, private prompts, catalog and memories',()=>{const g=game();g.players[0].hand=[{id:'own-card',kind:'sha'}];g.players[2].hand=[{id:'secret-card',kind:'tao'}];const view=g.view('a');view.players[2].hand=g.players[2].hand;view.players[2].role='loyal';view.deck=[{id:'secret-deck'}];view.testingCards=['secret-test'];view.privateChat='secret-chat';view.otherMemory='secret-memory';const o=botObservation(view,'a',prompt,'own-plan'),s=JSON.stringify(o);for(const secret of ['secret-card','secret-deck','secret-test','secret-chat','secret-memory'])assert.ok(!s.includes(secret));assert.ok(s.includes('own-card'));assert.equal(o.players[2].role,null);assert.equal(o.players[1].role,'lord');assert.equal(o.memory,'own-plan');});
@@ -89,13 +95,13 @@ test('JSON failures and invalid actions retain provider token usage and detailed
   assert.equal(p.status().seats['x:a'].lastStatus,status);assert.equal(p.status().seats['x:a'].outputTokens,164);assert.ok(traces[0].validationReason.includes(reason));
  }
 });
-test('Bedrock invoke envelope accepts a single complete action while rejecting ambiguous text',async()=>{
+test('Claude malformed invoke tags trigger explicit correction rather than executing guessed JSON',async()=>{
  const q={id:'axe',zone:'turn',min:1,max:1,options:[{id:'play:axe:c96',targetIds:[],targetMin:0,targetMax:0},{id:'end'}]};
  const action='{"action":"play_card","option_id":"play:axe:c96","target_ids":[]}';
- for(const [content,expected] of [[`<invoke_block>\n${action}\n</invoke_block>\n�`,true],[`prose <invoke_block>${action}</invoke_block>`,false],[`<invoke_block>${action}${action}</invoke_block>`,false],[`<invoke_block>{"action":"play_card","option_id":"not-offered","target_ids":[]}</invoke_block>`,false]]){
-  const traces=[],p=createLLMProvider({...config(),transport:'bedrock-converse',debug:true},{onTrace:t=>traces.push(t),fetchImpl:async()=>new Response(JSON.stringify({output:{message:{content:[{reasoningContent:{}},{text:content}]}},stopReason:'end_turn',usage:{inputTokens:20,outputTokens:10}}))});
+ for(const content of [`<invoke_options>\n${action}\n</invoke_options>`,`<invoke_block>\n${action}\n</invoke_block>\n�`,`<invoke_json\n${action}\n</invoke_json>`,`<types>\n${action}\n</types>`]){
+  let calls=0,feedback;const p=createLLMProvider({...config(),transport:'bedrock-converse',debug:true},{fetchImpl:async(u,r)=>{calls++;if(calls===2)feedback=JSON.parse(JSON.parse(r.body).messages[0].content[0].text).validationFeedback;return new Response(JSON.stringify({output:{message:{content:[{text:calls===1?content:action}]}},stopReason:'end_turn',usage:{inputTokens:20,outputTokens:10}}));}});
   const result=await p.decide({view:game().view('a'),playerId:'a',prompt:q,matchId:'m'});
-  assert.equal(!!result,expected);if(expected){assert.deepEqual(result.ids,['play:axe:c96']);assert.match(traces[0].normalization,/invoke_block/);}
+  assert.equal(calls,2);assert.deepEqual(result.ids,['play:axe:c96']);assert.equal(feedback.executed,false);assert.match(feedback.error,/without XML tags/);
  }
 });
 test('chat parse failures also retain usage and truncation status',async()=>{

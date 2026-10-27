@@ -12,22 +12,20 @@ test('explicit actions have deterministic fields; metadata cannot supply missing
  assert.deepEqual(decodeAction(prompt,{action:'use_skill',option_id:'skill:rende',card_ids:['peach'],target_ids:['ally']}),{ids:['skill:rende'],costs:['peach'],targets:['ally']});
  for(const wire of [{action:'use_skill',option_id:'skill:rende',card_ids:['peach'],plan:{target_ids:['ally']}},{action:'use_skill',option_id:'skill:rende',card_ids:['peach'],target_ids:['ally'],mode_id:null},{action:'end_phase',ids:['skill:rende']}])assert.throws(()=>decodeAction(prompt,wire));
  const q={id:'discard',zone:'cards',title:'Discard one',min:1,max:1,options:[{id:'peach',label:'Peach'},{id:'attack',label:'Attack'}]};
- assert.equal(decisionContract(q).selectionAction,'discard_cards');assert.deepEqual(decodeAction(q,{action:'discard_cards',card_ids:['peach']}),{ids:['peach'],targets:[]});
+ assert.equal(decisionContract(q).selectionAction,'select_cards');assert.deepEqual(decodeAction(q,{action:'select_cards',card_ids:['peach']}),{ids:['peach'],targets:[]});
  assert.deepEqual(decodeAction({...q,zone:'skill-plan',context:spec},{action:'use_skill',card_ids:['peach'],target_ids:['ally']}),{ids:['peach','ally'],targets:[]});
- assert.deepEqual(decodeAction({...q,zone:'response'},{action:'respond',option_ids:['bagua']}),{ids:['bagua'],targets:[]});
+ assert.deepEqual(decodeAction({...q,zone:'response'},{action:'choose_options',option_ids:['bagua']}),{ids:['bagua'],targets:[]});
  assert.deepEqual(decodeAction({...q,zone:'stargazing'},{action:'arrange_cards',option_ids:['peach','bottom','attack']}),{ids:['peach','bottom','attack'],targets:[]});
 });
-test('copied response_fields annotation does not change the chosen option',async()=>{
- const q={id:'choice',zone:'options',min:1,max:1,options:[{id:'pass'},{id:'accept'}]};
- const copied={action:'choose_options',option_ids:['pass'],response_fields:['action','option_ids']};
- assert.deepEqual(decodeAction(q,copied),{ids:['pass'],targets:[]});
- assert.throws(()=>decodeAction(q,{...copied,response_fields:'pass'}));
- assert.throws(()=>decodeAction(q,{...copied,target_ids:['ally']}));
- for(const [option,valid] of [['pass',true],['not-offered',false]]){
-  const p=createLLMProvider(config,{fetchImpl:async()=>response({...copied,option_ids:[option]})});
-  const result=await p.decide({view,playerId:'me',matchId:'m',prompt:q});
-  assert.equal(!!result,valid);
+test('response choices share one contract and copied metadata is rejected',async()=>{
+ for(const zone of ['response','options']){
+  const q={id:'choice',zone,min:1,max:1,options:[{id:'pass'},{id:'accept'}]};
+  assert.equal(decisionContract(q).selectionAction,'choose_options');
+  assert.deepEqual(decodeAction(q,{action:'choose_options',option_ids:['pass']}),{ids:['pass'],targets:[]});
+  assert.throws(()=>decodeAction(q,{action:'choose_options',option_ids:['pass'],response_fields:['action','option_ids']}),/Unexpected/);
  }
+ const q={id:'discard',zone:'cards',title:'Discard a card',min:1,max:1,options:[{id:'peach'}]};
+ assert.equal(decisionContract(q).selectionAction,decisionContract({...q,title:'Choose a card to lose'}).selectionAction);
 });
 test('invalid submission receives factual correction; only final valid action returns; costs count both requests',async()=>{
  const bodies=[],traces=[];const provider=createLLMProvider(config,{onTrace:t=>traces.push(t),fetchImpl:async(u,r)=>{
@@ -39,7 +37,7 @@ test('invalid submission receives factual correction; only final valid action re
 });
 test('legal poor choices execute unchanged; retries stop on budget or stale window',async()=>{
  const q={id:'discard',zone:'cards',title:'Discard',min:1,max:1,options:[{id:'peach'},{id:'attack'}]};let calls=0;
- const provider=createLLMProvider(config,{fetchImpl:async()=>{calls++;return response({action:'discard_cards',card_ids:['peach'],memory:'Keep Peach'});}});
+ const provider=createLLMProvider(config,{fetchImpl:async()=>{calls++;return response({action:'select_cards',card_ids:['peach'],memory:'Keep Peach'});}});
  assert.deepEqual((await provider.decide({view,playerId:'me',matchId:'m',prompt:q})).ids,['peach']);assert.equal(calls,1);
  let current=true;calls=0;const p=createLLMProvider(config,{fetchImpl:async()=>{calls++;current=false;return response({action:'use_skill'});}});
  assert.equal(await p.decide({view,playerId:'me',matchId:'m',prompt,isCurrent:()=>current}),null);assert.equal(calls,1);

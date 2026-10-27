@@ -2,7 +2,7 @@
 // No plan, memory, prose or guessed target participates in decoding.
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 export function decisionContract(q){
- const selection=q.zone==='cards'?(/discard/i.test(q.title||'')?'discard_cards':'select_cards'):q.zone==='stargazing'?'arrange_cards':q.zone==='skill-plan'?'use_skill':q.zone==='response'?'respond':'choose_options';
+ const selection=q.zone==='cards'?'select_cards':q.zone==='stargazing'?'arrange_cards':q.zone==='skill-plan'?'use_skill':'choose_options';
  return {version:1,instruction:'Submit one explicit action. Fields not listed for that action must be omitted. memory/plan are optional metadata only. Card and player IDs are exact strings. Selected discard cards are LOST, not kept.',selectionAction:selection,min:q.min,max:q.max,context:q.context||null,
  options:q.options.map(o=>{
   const item={option_id:o.id,label:o.label,card_ids:o.cardIds||[],...(o.card?{card:o.card}:{})};
@@ -16,10 +16,7 @@ export function decodeAction(q,wire){
  // Compatibility for previously recorded benchmark output and third-party adapters.
  if(!own(wire,'action'))return wire;
  const contract=decisionContract(q),metadata={...(typeof wire.memory==='string'?{memory:wire.memory}:{}),...(wire.plan?{plan:wire.plan}:{}),...(wire.chatIntent?{chatIntent:wire.chatIntent}:{})};
- // This is a copied schema annotation, not an action argument. Ignore it only
- // when it has the advertised shape; all actual action fields stay strict.
- if(own(wire,'response_fields')&&(!Array.isArray(wire.response_fields)||wire.response_fields.some(x=>typeof x!=='string')))throw Error('response_fields must be an array of strings');
- let allowed=['action','memory','plan','chatIntent','response_fields'],d;
+ let allowed=['action','memory','plan','chatIntent'],d;
  const array=(name)=>{if(!Array.isArray(wire[name])||wire[name].some(x=>typeof x!=='string'))throw Error('Required '+name+' must be an array of exact IDs');return wire[name];};
  if(q.zone==='turn'){
   if(wire.action==='end_phase'){d={ids:['end'],targets:[]};}
@@ -50,4 +47,4 @@ export function decodeAction(q,wire){
  const extra=Object.keys(wire).filter(k=>!allowed.includes(k));if(extra.length)throw Error('Unexpected action fields: '+extra.join(', '));
  return {...d,...metadata};
 }
-export const ACTION_INSTRUCTIONS=`Submit one explicit JSON action using actionContract. For a card: {"action":"play_card","option_id":"offered option","target_ids":[]}. For a skill: {"action":"use_skill","option_id":"offered skill","card_ids":["cost card"],"target_ids":["recipient"]}. mode_id is omitted unless an actual mode is offered; never null and never a skill kind. End: {"action":"end_phase"}. For discard: {"action":"discard_cards","card_ids":["card to LOSE"]}. Other card selection: {"action":"select_cards","card_ids":["chosen card"]}. For responses: {"action":"respond","option_ids":["offered response"]}. Other options: {"action":"choose_options","option_ids":["offered ID"]}. For reactive skill-plan: {"action":"use_skill","card_ids":["cost card"],"target_ids":["ordered target"]}, without option_id. For arrange_cards use option_ids in desired order, including bottom marker. Obey the supplied counts and restrictions. Required arrays must be present even when empty. Current action fields alone authorize a move; optional memory and plan cannot fill them. Do not submit ids/targets/costs legacy fields. Never invent IDs. If validationFeedback is provided, nothing executed: correct the action or select a different legal action. Do not output reasoning.`;
+export const ACTION_INSTRUCTIONS=`Return exactly one plain JSON object using actionContract. No XML tags, invoke blocks, Markdown fences, prose, or extra characters. Do not copy response_fields or other contract metadata into the answer. For a card: {"action":"play_card","option_id":"offered option","target_ids":[]}. For a skill: {"action":"use_skill","option_id":"offered skill","card_ids":["cost card"],"target_ids":["recipient"]}. mode_id is omitted unless an actual mode is offered; never null and never a skill kind. End: {"action":"end_phase"}. For ALL card selections, including discards: {"action":"select_cards","card_ids":["chosen card"]}. Cards selected for discard are lost. For ALL option selections, including responses and Negation: {"action":"choose_options","option_ids":["offered ID"]}. For reactive skill-plan: {"action":"use_skill","card_ids":["cost card"],"target_ids":["ordered target"]}, without option_id. For arrange_cards use option_ids in desired order, including bottom marker. Obey the supplied counts and restrictions. Required arrays must be present even when empty. Current action fields alone authorize a move; optional memory and plan cannot fill them. Do not submit ids/targets/costs legacy fields. Never invent IDs. If validationFeedback is provided, nothing executed: correct the action or select a different legal action. Do not output reasoning.`;
