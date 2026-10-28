@@ -262,9 +262,12 @@ export async function evaluateDiagnosticPrompt(config,{system,observation,signal
   if(signal?.aborted)throw Error('cancelled');if(!config.enabled)throw Error('unavailable');
   const limit=requestLimit(controller,config.timeoutMs||10000,'request-timeout');
   const raw=await Promise.race([exchange({...config,debug:true},system,JSON.stringify(observation),controller.signal,trace,fetchImpl),limit]);
+  trace.textResponse=raw.content;
   const answer=parseExchange(raw,trace);
-  if(!answer||typeof answer!=='object'||Array.isArray(answer))throw Error('invalid-response');
-  return {status:'model',answer,usage:tokenUsage(trace),elapsedMs:Date.now()-start};
- }catch(e){return {status:controller.signal.aborted?abortReason(controller.signal):e.message,usage:tokenUsage(trace),elapsedMs:Date.now()-start};}
+  if(!answer||typeof answer!=='object'||Array.isArray(answer)){trace.validationReason='Expected one JSON object, not an array or primitive';throw Error('invalid-response');}
+  trace.status='model';trace.answer=answer;
+ }catch(e){trace.status=controller.signal.aborted?abortReason(controller.signal):e.message;trace.validationReason??=e.message;}
  finally{clearTimeout(controller.timer);controller.abort();signal?.removeEventListener('abort',abort);}
+ const result={...trace,providerUsage:trace.usage,usage:tokenUsage(trace),elapsedMs:Date.now()-start};
+ const json=JSON.stringify(result);return JSON.parse(config.key?json.split(config.key).join('[REDACTED]'):json);
 }

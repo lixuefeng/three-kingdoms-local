@@ -2,8 +2,9 @@ import {createReadStream} from 'node:fs';
 import {createInterface} from 'node:readline';
 import {evaluateSavedDecision,evaluateDiagnosticPrompt,gameplaySystemPrompt} from '../llm-provider.mjs';
 
-export const KNOWLEDGE_SYSTEM='Answer the Three Kingdoms identity-mode rules questions from your own knowledge. Return one JSON object with string fields lordWin, peach, pass. Explain uncertainty. Do not assume any hidden roles.';
-export const COMPREHENSION_SYSTEM='Read the supplied historical player observation. Return one JSON object with string fields recentSequence, targetIdentityEvidence, availableChoices, uncertainty. Use only visible facts; do not infer hidden roles as known. Do not make a game move.';
+const PROBE_FORMAT=' Return exactly one plain JSON object. No XML tags, invoke blocks, Markdown fences, prose outside the object, or extra characters. Do not return a game action. Put brief factual answers in the requested string fields; do not output private reasoning.';
+export const KNOWLEDGE_SYSTEM='Answer the Three Kingdoms identity-mode rules questions from your own knowledge. Return one JSON object with string fields lordWin, peach, pass. Explain uncertainty. Do not assume any hidden roles.'+PROBE_FORMAT;
+export const COMPREHENSION_SYSTEM='Read the supplied historical player observation. Return one JSON object with string fields recentSequence, targetIdentityEvidence, availableChoices, uncertainty. Use only visible facts; do not infer hidden roles as known. Do not make a game move.'+PROBE_FORMAT;
 export async function readRescueObservation(path,promptId){
  for await(const line of createInterface({input:createReadStream(path),crlfDelay:Infinity})){
   let row;try{row=JSON.parse(line);}catch{throw Error('Archive contains invalid JSON');}
