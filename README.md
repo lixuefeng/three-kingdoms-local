@@ -132,3 +132,7 @@ Completed, non-testing games with at least **4 seated players** count on the lea
 Players and spectators can use Table → Match logs to review or download completed matches from their current room, including private hands and AI traces. Live-match archives, recovery access, and new paid AI assessments remain host-only. Shared room access lasts until the room expires or the server restarts; the host retains persistent archive access.
 
 Custom role composition allows multiple Spies. Each Spy competes independently and must be the sole survivor, with the Lord eliminated last. Only the surviving Spy receives a Spy win. Standard role counts are unchanged.
+
+### Chat speech bubbles
+
+New human and bot messages appear briefly above the sender’s general, even with chat minimized. Spectators and lobby messages appear at the upper left. Bubbles last 6–12 seconds; long messages are shortened in the bubble and remain complete in chat. The latest message replaces that sender’s bubble. Existing messages are not replayed on joining or refreshing.
