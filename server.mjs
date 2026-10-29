@@ -87,9 +87,10 @@ export function createApp({dataDirectory=process.env.SGS_DATA_DIR||fileURLToPath
      const token=randomBytes(32).toString('hex');const p={id:randomBytes(8).toString('hex'),name,profileId:profile?.id||null,ready:false,spectator:watching,streams:new Set()};if(watching)(room.spectators??=[]).push(p);else{room.players.push(p);room.roleCounts=null;room.host||=p.id;}rooms.set(room.code,room);sessions.set(token,{code:room.code,id:p.id});broadcast(room);json(200,{token,state:state(room,p)});return;
     }
     const {room,p,token}=auth(req);
-    const archiveContext={...room,...archiveAccess(req.headers['x-sgs-archive-key'])};
+    const isHost=room.host===p.id;
+    const archiveContext=isHost?{...room,...archiveAccess(req.headers['x-sgs-archive-key'])}:{sharedMatchIds:room.sharedMatchIds||[]};
     if(url.pathname==='/api/chat'){const bot=addressedBot(room,p,body.text,body.targetId),message=postChat(room,p,body.text);if(bot){message.targetId=bot.id;message.targetName=chatBots(room,p).find(b=>b.id===bot.id)?.name;}rememberTableTalk(room,p,message);const notice=scheduleAIChat(room,p,message,bot);broadcast(room);json(200,{ok:true,...(notice?{notice}:{})});return;}
-    if(p.spectator&&url.pathname!=='/api/leave')throw new Error('Spectators can watch but cannot perform game actions.');
+    if(p.spectator&&!['/api/leave','/api/match-logs','/api/match-log','/api/match-analysis','/api/match-decision'].includes(url.pathname))throw new Error('Spectators can watch but cannot perform game actions.');
     switch(url.pathname){
      case '/api/role-counts':{host(room,p);lobby(room);room.roleCounts=body.counts===null?null:validateRoleCounts(body.counts,room.players.length);for(const x of room.players)if(!x.bot&&x!==p)x.ready=false;break;}
      case '/api/takeover':{
@@ -136,8 +137,8 @@ export function createApp({dataDirectory=process.env.SGS_DATA_DIR||fileURLToPath
       room.chatJobs?.get(target.id)?.controller.abort();target.name=name;const player=room.game?.players.find(x=>x.id===target.id);if(player){player.name=name;room.game.remember({type:'rename',playerId:target.id,name});room.game.changed();}break;
      }
      case '/api/bot-mode':{host(room,p);const t=room.players.find(x=>x.id===body.id&&x.bot);if(!t)throw new Error('Choose a bot seat.');const model=body.model||(body.mode==='llm'?llmProvider.defaultProfile:body.mode==='classic'?'classic':body.strategy!==undefined?t.botModel||'classic':null);const strategy=body.strategy??t.botStrategy??'current';if(!BOT_STRATEGIES.includes(strategy))throw Error('Unknown bot strategy');if(!model||model!=='classic'&&!llmProvider.supports(model))throw new Error('That model is not configured on the server.');room.chatJobs?.get(t.id)?.controller.abort();t.botMode=model==='classic'?'classic':'llm';t.botModel=model;t.botStrategy=strategy;room.game?.setBotMode(t.id,t.botMode,model,strategy);break;}
-     case '/api/match-analysis':{host(room,p);json(200,{analysis:inspectMatch(await matchLogs.records(body.matchId,archiveContext)),models:llmProvider.models});return;}
-     case '/api/match-decision':{host(room,p);json(200,decisionDetail(await matchLogs.records(body.matchId,archiveContext),body.decisionId));return;}
+     case '/api/match-analysis':{json(200,{analysis:inspectMatch(await matchLogs.records(body.matchId,archiveContext)),models:isHost?llmProvider.models:[]});return;}
+     case '/api/match-decision':{json(200,decisionDetail(await matchLogs.records(body.matchId,archiveContext),body.decisionId));return;}
      case '/api/analyze-decision':{
       host(room,p);if(room.analysisJob)throw Error('An analysis is already running for this room.');
       const controller=new AbortController();room.analysisJob=controller;res.on('close',()=>{if(!res.writableEnded)controller.abort(new Error('cancelled'));});
@@ -146,8 +147,8 @@ export function createApp({dataDirectory=process.env.SGS_DATA_DIR||fileURLToPath
        const evaluation={decisionId:body.decisionId,model:llmProvider.models.find(m=>m.id===(body.model||llmProvider.defaultProfile))?.label||'AI',result:answer.result,usage:answer.usage};matchLogs.append(body.matchId,'decision-analysis',evaluation);json(200,evaluation);
       }finally{if(room.analysisJob===controller)room.analysisJob=null;}return;
      }
-     case '/api/match-logs':{host(room,p);json(200,{logs:matchLogs.list(archiveContext),recovery:archiveContext.archiveRecovery});return;}
-     case '/api/match-log':{host(room,p);matchLogs.download(body.matchId,archiveContext,res);return;}
+     case '/api/match-logs':{json(200,{logs:matchLogs.list(archiveContext),recovery:archiveContext.archiveRecovery});return;}
+     case '/api/match-log':{matchLogs.download(body.matchId,archiveContext,res);return;}
      case '/api/llm-check':{host(room,p);if(room.aiCheckPending||Date.now()-(room.aiCheckAt||0)<3000)throw Error('A connection test is running or just finished. Try again shortly.');room.aiCheckPending=true;try{json(200,await llmProvider.check(text(body.model,80)));}finally{room.aiCheckPending=false;room.aiCheckAt=Date.now();}return;}
      case '/api/llm-status':{host(room,p);const status=llmProvider.status(),prefix=room.game?.matchId+':';json(200,{enabled:status.enabled,model:status.model,models:llmProvider.models,debug:!!llm.debug,traces:llm.debug?llmProvider.traces(room.game?.matchId):[],seats:Object.fromEntries(Object.entries(status.seats).filter(([id])=>id.startsWith(prefix)))});return;}
      case '/api/kick':{
@@ -159,7 +160,7 @@ export function createApp({dataDirectory=process.env.SGS_DATA_DIR||fileURLToPath
       cancelAIChat(room);room.status='playing';room.error=null;room.review=null;room.game=new Game(room.players.map(({id,name,bot,botMode,botModel,botStrategy,testGeneral,profileId})=>({id,name,bot,botMode,botModel,botStrategy,testGeneral,profileId})),{roleCounts:room.roleCounts,publicChatFor:bot=>chatView(room,bot).messages.slice(-20),llmProvider,seconds:room.seconds,maneuver:room.maneuver,expandedGenerals:room.expandedGenerals,bannedGenerals:combinedBans(room),testing:room.testing,onEvent:e=>{if(room.game)matchLogs.append(room.game.matchId,'game-event',{event:e});if(e.type==='action-complete')considerBotChat(room,e);},onChange:()=>broadcast(room)});
       matchLogs.begin(room.game,room,APP_VERSION);matchLogs.snapshot(room.game);
       for(const bot of room.players.filter(p=>p.bot))for(const message of chatView(room,bot).messages)room.game.rememberChat(message,[bot.id]);
-      const running=room.game;running.start().then(()=>{if(room.game!==running)return;if(running.winner){room.status='finished';matchLogs.finish(running,'finished');try{room.review=results.record(running,{testing:room.testing});}catch(e){console.error('Results save failed:',e.message);room.error='Match finished, but results could not be saved. Keep this room open and check server storage.';}}broadcast(room);}).catch(e=>{if(room.game!==running)return;console.error('Game error:',e);room.status='error';room.error='The match encountered an error. The host can return to the lobby.';matchLogs.finish(running,'error');running.stop();broadcast(room);});break;
+      const running=room.game;running.start().then(()=>{if(room.game!==running)return;if(running.winner){room.status='finished';(room.sharedMatchIds??=[]).push(running.matchId);matchLogs.finish(running,'finished');try{room.review=results.record(running,{testing:room.testing});}catch(e){console.error('Results save failed:',e.message);room.error='Match finished, but results could not be saved. Keep this room open and check server storage.';}}broadcast(room);}).catch(e=>{if(room.game!==running)return;console.error('Game error:',e);room.status='error';room.error='The match encountered an error. The host can return to the lobby.';matchLogs.finish(running,'error');running.stop();broadcast(room);});break;
      }
      case '/api/use':{
       if(room.status!=='playing'||!room.game)throw new Error('There is no active match.');if(room.game.players.find(x=>x.id===p.id)?.takeover)throw Error('Take back control before playing.');room.game.answerPlay(p.id,body.promptId,body.optionId,body.targetIds,body.costIds||[],body.mode);break;

@@ -126,3 +126,9 @@ Table chat is shared by living players, eliminated players and spectators. Spect
 The host can rename each bot in the lobby or under **AI controls** during a match. Bot seat IDs, models and game state stay intact; names must be unique at the table and contain 1–24 characters.
 
 Completed, non-testing games with at least **4 seated players** count on the leaderboard for registered human profiles. Bots and guests may occupy other seats; they do not receive human profile statistics. AFK takeover does not turn a human profile into a bot profile. Games without any human profiles, testing games and unfinished matches do not count. This policy applies to newly recorded results; previously saved unranked results are not rewritten.
+
+### v0.83: shared match review and multiple Spies
+
+Players and spectators can use Table → Match logs to review or download completed matches from their current room, including private hands and AI traces. Live-match archives, recovery access, and new paid AI assessments remain host-only. Shared room access lasts until the room expires or the server restarts; the host retains persistent archive access.
+
+Custom role composition allows multiple Spies. Each Spy competes independently and must be the sole survivor, with the Lord eliminated last. Only the surviving Spy receives a Spy win. Standard role counts are unchanged.

@@ -47,3 +47,10 @@ test('AI takeover retains earlier public history while receiving only its own ha
  g.log('Earlier public move.');const pending=g.ask(p,'Choose',[{id:'pass'},{id:'yes'}]);g.setTakeover(p.id,true,'claude');await pending;
  assert.ok(received.agentState.knowledge.eventsObservedSinceStart>0);assert.ok(JSON.stringify(received.view).includes('own-peach'));assert.ok(!JSON.stringify(received.view).includes('hidden-enemy-card'));assert.equal(received.view.players[1].role,null);assert.ok(received.view.logs.some(l=>l.message==='Earlier public move.'));g.stop();
 });
+test('multiple Spies are valid and compete for a sole-survivor win',async()=>{
+ const counts={lord:1,loyal:0,rebel:1,spy:2};assert.deepEqual(validateRoleCounts(counts,4),counts);
+ const g=game({roleCounts:counts});g.players.forEach((p,i)=>{p.role=['lord','rebel','spy','spy'][i];p.alive=i!==1;});
+ g.checkWin();assert.equal(g.winner,null);
+ g.players[2].alive=false;g.checkWin();assert.equal(g.winner,null);
+ g.players[0].alive=false;assert.throws(()=>g.checkWin(),Finished);assert.equal(g.winner,'spy');
+});

@@ -33,3 +33,7 @@ test('winning elimination and final damage are counted before victory stops reso
  const g=new Game([{id:'a'},{id:'b'},{id:'c'},{id:'d'}],{ask:(p,q,f)=>f});g.players.forEach((p,i)=>{p.general=GENERALS.find(x=>x.id==='zhangfei');p.name='P'+i;p.role=['lord','loyal','rebel','spy'][i];p.hp=p.maxHp=4;});g.current=g.players[0];g.players[2].alive=false;g.players[3].hp=1;
  await assert.rejects(g.damage(g.players[0],g.players[3],1),Finished);assert.equal(g.winner,'lord');assert.deepEqual(g.stats.a,{kills:1,damage:1,damageTaken:0});assert.equal(g.eliminations[0].victimId,'d');assert.equal(g.stats.d.damageTaken,1);
 });
+test('only the surviving Spy wins in a multiple-Spy match',()=>{
+ const g=fixture();g.winner='spy';g.players[2].role='spy';g.players.forEach(p=>p.alive=p.id==='p3');
+ const review=matchReview(g);assert.deepEqual(review.players.filter(p=>p.won).map(p=>p.id),['p3']);
+});

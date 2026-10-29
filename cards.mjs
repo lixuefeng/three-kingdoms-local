@@ -534,7 +534,7 @@ export function defaultRoleCounts(seats){return Object.fromEntries(['lord','loya
 export function validateRoleCounts(value,seats){
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['lord','loyal','rebel','spy'].includes(k)))throw Error('Choose valid role counts.');
  const counts=Object.fromEntries(['lord','loyal','rebel','spy'].map(r=>[r,value[r]]));
- if(Object.values(counts).some(n=>!Number.isInteger(n)||n<0)||counts.lord!==1||counts.spy>1||counts.rebel<1||Object.values(counts).reduce((a,b)=>a+b,0)!==seats)throw Error('Roles must total the seated players, with exactly 1 Lord, 0–1 Spy, and at least 1 Rebel.');
+ if(Object.values(counts).some(n=>!Number.isInteger(n)||n<0)||counts.lord!==1||counts.rebel<1||Object.values(counts).reduce((a,b)=>a+b,0)!==seats)throw Error('Roles must total the seated players, with exactly 1 Lord and at least 1 Rebel.');
  return counts;
 }
 export const ROLE_NAMES={lord:'Lord',loyal:'Loyalist',rebel:'Rebel',spy:'Spy'};

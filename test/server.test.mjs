@@ -182,7 +182,7 @@ test('host can download complete match archives after abort/reset, others cannot
  const {req,rooms,base}=await fixture(t),host=(await req('create',{name:'Host'})).data,code=host.state.room.code;
  const guest=(await req('join',{name:'Guest',code})).data;await req('ready',{ready:true},guest.token);await req('bot',{},host.token);await req('bot',{},host.token);
  await req('start',{},host.token);const room=rooms.get(code),id=room.game.matchId;room.game.log('Saved before returning to lobby');
- assert.equal((await req('match-logs',{},guest.token)).status,400);
+ assert.deepEqual((await req('match-logs',{},guest.token)).data.logs,[]);
  await req('abort',{},host.token);const listed=await req('match-logs',{},host.token);assert.equal(listed.data.logs[0].id,id);
  const res=await fetch(base+'/api/match-log',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+host.token},body:JSON.stringify({matchId:id})});assert.equal(res.status,200);assert.match(res.headers.get('content-type'),/ndjson/);const text=await res.text();assert.ok(text.includes('Saved before returning to lobby'));assert.ok(text.includes('aborted'));
  assert.equal((await req('match-log',{matchId:id},guest.token)).status,400);
@@ -298,4 +298,25 @@ test('leaderboard records a profile in four-seat games containing bots and a gue
  assert.equal((await req('save-results',{},host.token)).status,200);assert.equal((await req('state',undefined,host.token)).data.review.ranked,true);
  const rows=(await req('leaderboard')).data.players;assert.equal(rows.length,1);assert.equal(rows[0].name,'Ranked host');assert.equal(rows[0].matches,1);assert.equal(rows[0].wins,1);
  await req('save-results',{},host.token);assert.equal((await req('leaderboard')).data.players[0].matches,1);g.stop();
+});
+test('finished-room archives are shared with players and spectators, never live or unrelated logs',async t=>{
+ const {req,rooms,matchLogs}=await fixture(t);
+ const a=(await req('create',{name:'Host'})).data,code=a.state.room.code;
+ const b=(await req('join',{name:'Guest',code})).data;
+ const c=(await req('spectate',{name:'Watcher',code})).data;
+ const room=rooms.get(code),g={matchId:'shared-finished',players:[],turn:1,phase:'Play'};
+ matchLogs.begin(g,room,'test');
+ for(const token of [b.token,c.token]){
+  assert.ok(token);assert.deepEqual((await req('match-logs',{},token)).data.logs,[]);
+  assert.equal((await req('match-analysis',{matchId:g.matchId},token)).status,400);
+ }
+ room.sharedMatchIds=[g.matchId];
+ for(const token of [b.token,c.token]){
+  assert.equal((await req('match-logs',{},token)).data.logs[0].id,g.matchId);
+  const review=await req('match-analysis',{matchId:g.matchId},token);
+  assert.equal(review.status,200);assert.deepEqual(review.data.models,[]);
+  assert.equal((await req('analyze-decision',{matchId:g.matchId},token)).status,400);
+ }
+ const other=(await req('create',{name:'Other'})).data;
+ assert.equal((await req('match-analysis',{matchId:g.matchId},other.token)).status,400);
 });
