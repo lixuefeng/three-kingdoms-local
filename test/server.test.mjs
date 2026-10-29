@@ -98,7 +98,7 @@ test('repeated Negation passes across eight players and multiple windows return 
  }
  assert.ok(g.players.every(p=>p.hand.length===1));
 });
-test('authenticated room chat works for players and spectators with server enforced channel isolation',async t=>{
+test('authenticated room chat is shared between players and spectators',async t=>{
  const {req,rooms,base}=await fixture(t),host=(await req('create',{name:'Host'})).data,code=host.state.room.code;
  const watch=(await req('spectate',{name:'Observer',code})).data;
  assert.equal((await req('chat',{text:'unauthenticated'})).status,400);
@@ -107,8 +107,8 @@ test('authenticated room chat works for players and spectators with server enfor
  assert.equal((await req('chat',{text:'too soon'},host.token)).status,400);
  const room=rooms.get(code);room.status='playing';room.game={players:[{id:host.state.room.me,alive:true}],view:()=>({}),stop:()=>{}};
  assert.equal((await req('chat',{text:'gallery secret'},watch.token)).status,200);
- assert.equal((await req('state',undefined,host.token)).data.chat.messages.some(m=>m.text==='gallery secret'),false);
- assert.equal((await req('state',undefined,watch.token)).data.chat.messages[0].text,'gallery secret');
+ assert.equal((await req('state',undefined,host.token)).data.chat.messages.some(m=>m.text==='gallery secret'),true);
+ assert.equal((await req('state',undefined,watch.token)).data.chat.messages.at(-1).text,'gallery secret');
  assert.equal((await fetch(base+'/chat.mjs')).status,200);
 });
 test('profile joining authenticates PIN and public profile/leaderboard endpoints never expose credentials',async t=>{
@@ -247,4 +247,36 @@ test('host selects per-bot role-focused strategy, validation and model switches 
  assert.equal((await req('bot-mode',{id:bot.id,strategy:'role-focus'},token)).status,200);
  assert.equal((await req('bot-mode',{id:bot.id,mode:'classic'},token)).status,200);assert.equal(bot.botStrategy,'role-focus');
  const result=(await req('state',undefined,token)).data.room.players.find(p=>p.id===bot.id);assert.equal(result.botStrategy,'role-focus');
+});
+test('host role counts are lobby-only and adding a seat restores the standard preset',async t=>{
+ const {req,rooms}=await fixture(t),host=(await req('create',{name:'Host'})).data,friend=(await req('join',{name:'Friend',code:host.state.room.code})).data;
+ await req('bot',{},host.token);await req('bot',{},host.token);const counts={lord:1,loyal:0,rebel:3,spy:0};
+ assert.equal((await req('role-counts',{counts},friend.token)).status,400);assert.equal((await req('role-counts',{counts:{...counts,spy:1}},host.token)).status,400);
+ await req('ready',{ready:true},friend.token);assert.equal((await req('role-counts',{counts},host.token)).status,200);
+ const view=(await req('state',undefined,friend.token)).data;assert.deepEqual(view.room.roleCounts,counts);assert.equal(view.room.customRoles,true);assert.equal(view.room.players.find(p=>p.id===friend.state.room.me).ready,false);
+ await req('bot',{},host.token);const next=(await req('state',undefined,host.token)).data;assert.equal(next.room.customRoles,false);assert.deepEqual(next.room.roleCounts,{lord:1,loyal:1,rebel:2,spy:1});
+ const room=rooms.get(host.state.room.code);room.status='playing';assert.equal((await req('role-counts',{counts:null},host.token)).status,400);
+});
+test('humans reclaim their own AFK seat; only host can change another seat, spectators cannot',async t=>{
+ const {req,rooms}=await fixture(t),host=(await req('create',{name:'Host'})).data,friend=(await req('join',{name:'Friend',code:host.state.room.code})).data,watcher=(await req('spectate',{name:'Watch',code:host.state.room.code})).data;
+ const room=rooms.get(host.state.room.code),{Game}=await import('../engine.mjs'),{GENERALS}=await import('../cards.mjs');room.status='playing';room.game=new Game(room.players,{seconds:0,botPacing:true});const g=room.game;g.players.forEach((p,i)=>{p.general=GENERALS[i];p.role=i?'rebel':'lord';});g.current=g.players[0];g.phase='Play';
+ const pending=g.ask(g.players[1],'Choice',[{id:'yes'},{id:'no'}]);const id=friend.state.room.me;
+ assert.equal((await req('takeover',{playerId:host.state.room.me,enabled:true},friend.token)).status,400);
+ assert.equal((await req('takeover',{enabled:true},watcher.token)).status,400);
+ assert.equal((await req('takeover',{enabled:true,model:'not-configured'},friend.token)).status,400);
+ assert.equal((await req('takeover',{playerId:id,enabled:true},host.token)).status,200);const q=g.prompts.get(id);
+ assert.equal((await req('answer',{promptId:q.id,ids:['yes']},friend.token)).status,400);
+ assert.equal((await req('state',undefined,friend.token)).data.game.prompt,null);
+ assert.equal((await req('takeover',{enabled:false},friend.token)).status,200);
+ assert.ok((await req('state',undefined,friend.token)).data.game.prompt);
+ assert.equal((await req('answer',{promptId:q.id,ids:['yes']},friend.token)).status,200);assert.deepEqual(await pending,['yes']);g.stop();
+});
+test('brief stream reconnect preserves human control; sustained disconnect enables takeover',async t=>{
+ const {req,rooms,base}=await fixture(t,{disconnectGraceMs:100}),host=(await req('create',{name:'Host'})).data,room=rooms.get(host.state.room.code),{Game}=await import('../engine.mjs'),{GENERALS}=await import('../cards.mjs');
+ room.status='playing';const g=room.game=new Game(room.players,{seconds:0});g.players[0].general=GENERALS[0];g.players[0].role='lord';g.current=g.players[0];
+ const connect=async()=>{const controller=new AbortController(),res=await fetch(base+'/api/events',{headers:{Authorization:'Bearer '+host.token},signal:controller.signal});const reader=res.body.getReader();await reader.read();return {controller,reader};};
+ const a=await connect();a.controller.abort();await a.reader.cancel().catch(()=>{});for(let i=0;i<20&&room.players[0].streams.size;i++)await new Promise(r=>setTimeout(r,2));
+ const b=await connect();await new Promise(r=>setTimeout(r,130));assert.equal(!!g.players[0].takeover,false);
+ b.controller.abort();await b.reader.cancel().catch(()=>{});for(let i=0;i<60&&!g.players[0].takeover;i++)await new Promise(r=>setTimeout(r,5));assert.equal(g.players[0].takeover,true);assert.equal((await req('state',undefined,host.token)).data.game.control.takeover,true);
+ assert.equal((await req('takeover',{enabled:false},host.token)).status,200);g.stop();
 });

@@ -9,14 +9,15 @@ import {validSkillPlan,skillPlanParts,actionSelectionIds} from './public/skill-p
 import {maneuverSkills} from './maneuver-skills.mjs';
 import {classicSkills} from './classic-skills.mjs';
 import {randomUUID} from 'node:crypto';
-import {META,GENERALS,ALL_GENERALS,ROLES,ROLE_NAMES,makeDeck,shuffle,red,info,isAttack,attackNature} from './cards.mjs';
+import {META,GENERALS,ALL_GENERALS,ROLES,ROLE_NAMES,LORD_GENERALS,defaultRoleCounts,validateRoleCounts,makeDeck,shuffle,red,info,isAttack,attackNature} from './cards.mjs';
 export class Finished extends Error {}
 export class Game {
- constructor(players,{ask,onChange=()=>{},onEvent=()=>{},seconds=60,seedDeck,maneuver=false,expandedGenerals=false,bannedGenerals=[],testing=false,pause,responseWindowMs=null,llmProvider=null,botPacing=true,publicChatFor=null}={}){
+ constructor(players,{ask,onChange=()=>{},onEvent=()=>{},seconds=60,seedDeck,maneuver=false,expandedGenerals=false,bannedGenerals=[],testing=false,pause,responseWindowMs=null,llmProvider=null,botPacing=true,publicChatFor=null,roleCounts=null}={}){
+  this.roleCounts=roleCounts?validateRoleCounts(roleCounts,players.length):defaultRoleCounts(players.length);
   this.onEvent=onEvent;this.publicChatFor=publicChatFor;this.llmProvider=llmProvider;this.botPacing=botPacing;this.botAbort=new AbortController();this.botRequests=new Map();
   this.delayedPlacements=new Map();
   this.players=players.map(p=>({...p,hand:[],equip:{},judge:[],alive:true,hp:4,maxHp:4,wounds:[],nirvanaUsed:false,chained:false,wineBoost:0}));
-  this.botKnowledge=new Map(this.players.filter(p=>p.bot).map(p=>[p.id,new BotKnowledge(p.id)]));
+  this.botKnowledge=new Map(this.players.map(p=>[p.id,new BotKnowledge(p.id)]));
   this.stats=Object.fromEntries(players.map(p=>[p.id,{kills:0,damage:0,damageTaken:0}]));this.eliminations=[];this.matchId=randomUUID();this.responseWindowMs=responseWindowMs??5000;this.autoResponseWindow=responseWindowMs==null;this.responseWindow=null;this.cancelResponseWindow=null;this.pause=pause||(ask?async()=>{}:ms=>new Promise(resolve=>setTimeout(resolve,ms)));this.discardReview=null;this.testing=!!testing;this.expandedGenerals=!!expandedGenerals;this.bannedGenerals=new Set(bannedGenerals);this.generalPool=(this.expandedGenerals?ALL_GENERALS:GENERALS).filter(g=>!this.bannedGenerals.has(g.id));this.pindianState=null;this.bluffState=null;this.negationPassTurn=new Map();this.askAdapter=ask;this.onChange=onChange;this.seconds=seconds;this.maneuver=!!maneuver;this.deck=seedDeck||shuffle(makeDeck({maneuver:this.maneuver}));this.totalCards=this.deck.length;this.discard=[];this.table=[];this.reserved=[];this.logs=[];this.effects=[];this.judgments=[];this.recentCards=[];this.actionHistory=[];this.actionGroup=null;this.movements=[];this.current=null;this.phase='General Selection';this.winner=null;this.turn=0;this.used={};this.prompts=new Map();this.plannedPlays=new Map();this.decision=null;this.decisions=new Map();this.stopped=false;
  }
  effect(source,target,kind,label,amount,nature,detail){this.effects.push({id:randomUUID(),sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,groupId:this.actionGroup?.id,...(detail?{detail}: {})});this.effects=this.effects.slice(-32);this.remember({type:'effect',sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,...(detail?{detail}:{})});this.changed();}
@@ -44,19 +45,41 @@ export class Game {
    if(this.askAdapter){this.changed();return await this.askAdapter(p,q,defaults);}
    if(p.bot){this.changed();if(this.botPacing)await new Promise(r=>setTimeout(r,q.zone==='turn'?2200:q.zone==='general'?1800:1400));if(this.stopped||this.winner)throw new Finished();return await this.decideBot(p,q,defaults);}
    return await new Promise(resolve=>{
-    const timer=timeout?setTimeout(()=>this.answer(p.id,q.id,defaults),timeout*1000):null;
-    this.prompts.set(p.id,{...q,resolve,timer});this.changed();
+    const timer=timeout?setTimeout(()=>{if(this.prompts.get(p.id)?.id===q.id)this.expireHuman(p,q,defaults);},timeout*1000):null;
+    const pending={...q,resolve,timer,defaults};this.prompts.set(p.id,pending);this.changed();
+    if(p.takeover)this.scheduleTakeover(p,pending);
    });
   }finally{this.decisions.delete(p.id);this.decision=this.decisions.values().next().value||null;this.changed();}
  }
+ expireHuman(p,q,defaults){if(this.prompts.get(p.id)?.id!==q.id)return;this.answer(p.id,q.id,defaults);this.setTakeover(p.id,true,p.botModel||'classic','decision timeout');}
+ setTakeover(pid,enabled,model='classic',reason='manual'){
+  const p=this.players.find(x=>x.id===pid&&!x.bot);if(!p||!p.alive||this.stopped||this.winner)throw Error('Choose an active human seat.');
+  p.controlEpoch=(p.controlEpoch||0)+1;p.takeover=!!enabled;
+  this.botRequests.get(pid)?.abort(new Error('model-switched'));
+  const q=this.prompts.get(pid);if(q){clearTimeout(q.botTimer);this.plannedPlays.delete(pid);}
+  if(enabled){p.botModel=model;p.botMode=model==='classic'?'classic':'llm';if(!this.botKnowledge.has(pid)){const k=new BotKnowledge(pid);for(const event of this.logs)k.consume({type:'log',...event});this.botKnowledge.set(pid,k);}if(q)this.scheduleTakeover(p,q);}
+  else if(q&&!this.responseWindow){clearTimeout(q.timer);q.startedAt=Date.now();q.deadline=this.seconds?q.startedAt+this.seconds*1000:null;this.decisions.set(pid,{...this.decisions.get(pid),playerId:pid,startedAt:q.startedAt,deadline:q.deadline});q.timer=q.deadline?setTimeout(()=>{if(this.prompts.get(pid)===q)this.expireHuman(p,q,q.defaults||[]);},this.seconds*1000):null;}
+  this.decision=this.decisions.values().next().value||null;this.remember({type:'control',playerId:pid,takeover:p.takeover,model:p.botModel,reason});this.changed();
+ }
+ scheduleTakeover(p,q){
+  clearTimeout(q.timer);clearTimeout(q.botTimer);const epoch=p.controlEpoch;
+  if(!this.responseWindow&&q.deadline&&q.deadline<=Date.now()){q.startedAt=Date.now();q.deadline=this.seconds?q.startedAt+this.seconds*1000:null;this.decisions.set(p.id,{...this.decisions.get(p.id),playerId:p.id,startedAt:q.startedAt,deadline:q.deadline});}
+  q.botTimer=setTimeout(async()=>{const current=()=>!this.stopped&&!this.winner&&p.takeover&&p.controlEpoch===epoch&&this.prompts.get(p.id)===q;
+   if(!current())return;
+   try{const ids=await this.decideBot(p,q,q.defaults||['pass']);if(current())this.answer(p.id,q.id,ids);}
+   catch{if(current())try{this.answer(p.id,q.id,q.defaults||['pass']);}catch{}}
+  },this.botPacing?1400:0);
+ }
  async decideBot(p,q,defaults){
+  const controlEpoch=p.controlEpoch;
   if(p.botMode==='llm'&&this.llmProvider?.enabled){
    const shared=this.prompts.get(p.id)?.id===q.id,modelProfile=p.botModel,botStrategy=p.botStrategy||'current';
    const ownView=this.view(p.id),knowledge=this.botKnowledge.get(p.id);const agentState=knowledge?{knowledge:knowledge.snapshot(ownView),tactics:tacticalFacts(this,p,q)}:null;
    const request=new AbortController();this.botRequests.set(p.id,request);let decision;
-   const invalidReason=()=>this.stopped||this.winner?'match-ended':p.botMode!=='llm'||p.botModel!==modelProfile||(p.botStrategy||'current')!==botStrategy?'model-switched':q.deadline&&Date.now()>=q.deadline?'decision-expired':shared&&this.prompts.get(p.id)?.id!==q.id?'window-closed':!shared&&!this.decisions.has(p.id)?'decision-expired':null;
+   const invalidReason=()=>this.stopped||this.winner?'match-ended':!p.bot&&(!p.takeover||p.controlEpoch!==controlEpoch)||p.botMode!=='llm'||p.botModel!==modelProfile||(p.botStrategy||'current')!==botStrategy?'model-switched':q.deadline&&Date.now()>=q.deadline?'decision-expired':shared&&this.prompts.get(p.id)?.id!==q.id?'window-closed':!shared&&!this.decisions.has(p.id)?'decision-expired':null;
    try{decision=await this.llmProvider.decide({view:{...ownView,publicChat:this.publicChatFor?.(p)||[]},agentState,playerId:p.id,prompt:q,matchId:this.matchId,modelProfile,botStrategy,signal:AbortSignal.any([this.botAbort.signal,request.signal]),isCurrent:()=>!invalidReason(),invalidReason});}finally{if(this.botRequests.get(p.id)===request)this.botRequests.delete(p.id);}
    if(this.stopped||this.winner)throw new Finished();
+   if(!p.bot&&(!p.takeover||p.controlEpoch!==controlEpoch))return defaults;
    if(decision&&p.botMode==='llm'&&p.botModel===modelProfile&&(p.botStrategy||'current')===botStrategy){this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:'model',botStrategy,promptId:q.id,zone:q.zone,ids:decision.ids,targets:decision.targets,costs:decision.costs||[],mode:decision.mode});knowledge?.updatePlan(decision.plan,ownView,q);knowledge?.noteChoice(q,decision);this.llmProvider.recordPlan?.(this.matchId,p.id,q.id,knowledge?.plan);if(q.zone==='turn')this.plannedPlays.set(p.id,{optionId:decision.ids[0],targetIds:decision.targets||[],costIds:decision.costs||[],mode:decision.mode,chatIntent:decision.chatIntent});return decision.ids;}
   }
   const result=this.botAnswer(p,q,defaults);const plan=this.plannedPlays.get(p.id);this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:p.botMode==='llm'?'fallback':'practice',promptId:q.id,zone:q.zone,ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});this.botKnowledge.get(p.id)?.noteChoice(q,{ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});return result;
@@ -72,10 +95,10 @@ export class Game {
   if(!Array.isArray(ids)||ids.length<q.min||ids.length>q.max||new Set(ids).size!==ids.length||ids.some(id=>!q.options.some(o=>o.id===id)))throw new Error('Invalid selection.');
   if(q.context?.kind==='optional-cost'&&ids.length&&ids.length!==q.context.cardCount)throw new Error('Select the required number of cards or Cancel.');
   if(q.zone==='skill-plan'&&!validSkillPlan(q.context,ids))throw new Error('Select the required cards and targets before confirming.');
-  clearTimeout(q.timer);this.prompts.delete(pid);q.resolve(ids);this.changed();
+  clearTimeout(q.timer);clearTimeout(q.botTimer);this.prompts.delete(pid);q.resolve(ids);this.changed();
  }
  setBotMode(pid,mode,model,strategy){const p=this.players.find(p=>p.id===pid&&p.bot);if(!p)return;if(strategy!==undefined&&!BOT_STRATEGIES.includes(strategy))throw Error('Unknown bot strategy');p.botMode=mode;p.botModel=model;if(strategy!==undefined)p.botStrategy=strategy;this.botRequests.get(pid)?.abort(new Error('model-switched'));}
- stop(){this.stopped=true;this.botAbort.abort(new Error('match-ended'));this.botKnowledge.clear();this.llmProvider?.forget(this.matchId);this.cancelResponseWindow?.();for(const q of this.prompts.values()){clearTimeout(q.timer);q.resolve([]);}this.prompts.clear();this.decisions.clear();this.plannedPlays.clear();this.decision=null;}
+ stop(){this.stopped=true;this.botAbort.abort(new Error('match-ended'));this.botKnowledge.clear();this.llmProvider?.forget(this.matchId);this.cancelResponseWindow?.();for(const q of this.prompts.values()){clearTimeout(q.timer);clearTimeout(q.botTimer);q.resolve([]);}this.prompts.clear();this.decisions.clear();this.plannedPlays.clear();this.decision=null;}
  targetSpec(p,kind,v){
   if(kind==='chain')return {targetIds:this.alive().map(t=>t.id),targetMin:1,targetMax:Math.min(2,this.alive().length)};
   if(!['sha','duel','dismantle','steal','indulgence','borrow','fireAttack','supply'].includes(kind))return {targetIds:[],targetMin:0,targetMax:0};
@@ -100,7 +123,7 @@ export class Game {
   if(this.phase!=='Play'||!p?.alive||q?.zone!=='turn')throw new Error('Wait for a human player’s Play Phase before drawing a test card.');
   const index=this.deck.findIndex(c=>cardId?c.id===cardId: c.kind===kind);if(index<0)throw new Error('That card is no longer in the draw pile.');
   const [card]=this.deck.splice(index,1);p.hand.push(card);clearTimeout(q.timer);q.id=randomUUID();q.options=this.playOptions(p);
-  q.timer=q.deadline?setTimeout(()=>{if(this.prompts.get(p.id)===q)this.answer(p.id,q.id,['end']);},Math.max(1,q.deadline-Date.now())):null;
+  q.timer=q.deadline?setTimeout(()=>{if(this.prompts.get(p.id)===q)this.expireHuman(p,q,['end']);},Math.max(1,q.deadline-Date.now())):null;
   this.log(`Testing: ${p.name} draws ${this.label(card)}.`);this.changed();return card;
  }
  async skillPlan(p,title,cards,targets,{kind,cardMin=1,cardMax=1,targetCount=1,firstTargetIds,skillName}={}){
@@ -122,7 +145,9 @@ export class Game {
    return candidates.find(g=>g.id===id)||candidates[0];
   };
   const assign=(p,g)=>{p.general=g;p.maxHp=g.hp+(p.role==='lord'?1:0);p.hp=p.maxHp;};
-  const lordCandidates=preset(lord)?[preset(lord)]:pool.splice(0,3),chosen=await choose(lord,lordCandidates);
+  const guaranteed=pool.filter(g=>LORD_GENERALS.includes(g.id));for(const g of guaranteed)pool.splice(pool.indexOf(g),1);
+  const lordCandidates=preset(lord)?[preset(lord)]:[...guaranteed,...pool.splice(0,3)],chosen=await choose(lord,lordCandidates);
+  if(preset(lord))pool.push(...guaranteed);
   assign(lord,chosen);pool.push(...lordCandidates.filter(g=>g!==chosen));this.changed();
   // Reserve disjoint candidate sets before opening concurrent private prompts.
   const offers=this.players.filter(p=>p!==lord).map(p=>({p,candidates:preset(p)?[preset(p)]:pool.splice(0,3)}));
@@ -134,7 +159,7 @@ export class Game {
  }
  async start(){
   try{
-   const roles=shuffle([...ROLES[this.players.length]]);this.players.forEach((p,i)=>p.role=roles[i]);
+   const counts=validateRoleCounts(this.roleCounts,this.players.length),roles=shuffle(Object.entries(counts).flatMap(([r,n])=>Array(n).fill(r)));this.players.forEach((p,i)=>p.role=roles[i]);
    await this.selectGenerals();if(this.stopped)return;
    for(const p of this.players)this.draw(p,4);
    this.current=this.players.find(p=>p.role==='lord');this.log('Roles assigned. The Lord takes the first turn.');
@@ -192,7 +217,7 @@ export class Game {
   if(p.general.id==='zhenji'&&kind==='shan')for(const c of p.hand)if(!this.isRed(p,c)&&c.kind!=='shan')out.push({id:`qingguo:${c.id}`,cards:[c],kind,label:`Empress Dowager · ${this.label(this.effectiveCard(p,c))}`,suit:this.effectiveCard(p,c).suit});
   if(p.general.id==='daqiao'&&kind==='indulgence')for(const c of [...p.hand,...Object.values(p.equip)])if(c.suit==='♦'&&c.kind!=='indulgence')out.push({id:`guose:${c.id}`,cards:[c],kind,label:`Captivating · ${this.label(this.effectiveCard(p,c))}`,suit:this.effectiveCard(p,c).suit});
   if(p.general.id==='huatuo'&&kind==='tao'&&p!==this.current)for(const c of [...p.hand,...Object.values(p.equip)])if(this.isRed(p,c)&&c.kind!=='tao')out.push({id:`jijiu:${c.id}`,cards:[c],kind,label:`First Aid · ${this.label(this.effectiveCard(p,c))}`,suit:this.effectiveCard(p,c).suit});
-  if(!(p.bot&&!response&&p===this.current&&kind==='sha'&&this.used.jijiangFailed)&&p.role==='lord'&&((kind==='sha'&&p.general.id==='liubei')||(kind==='shan'&&p.general.id==='caocao'))){const kingdom=kind==='sha'?'Shu':'Wei';if(this.alive().some(t=>t!==p&&t.general.kingdom===kingdom))out.push({id:kind==='sha'?'jijiang':'hujia',cards:[],kind,suit:null,lordRequest:true,label:kind==='sha'?'Influencing · Ask Shu allies for Attack':'Entourage · Ask Wei allies for Dodge'});}
+  if(!((p.bot||p.takeover)&&!response&&p===this.current&&kind==='sha'&&this.used.jijiangFailed)&&p.role==='lord'&&((kind==='sha'&&p.general.id==='liubei')||(kind==='shan'&&p.general.id==='caocao'))){const kingdom=kind==='sha'?'Shu':'Wei';if(this.alive().some(t=>t!==p&&t.general.kingdom===kingdom))out.push({id:kind==='sha'?'jijiang':'hujia',cards:[],kind,suit:null,lordRequest:true,label:kind==='sha'?'Influencing · Ask Shu allies for Attack':'Entourage · Ask Wei allies for Dodge'});}
   out.push(...this.expansionVirtual(p,kind),...this.extraVirtual(p,kind,{response}));return out;
  }
  async judgment(p,why,{keepBlack=false,keep=false}={}){
@@ -221,7 +246,7 @@ export class Game {
  }
  async sharedResponses(kind,title,optionsFor,context){
   if(this.stopped||this.winner)throw new Finished();
-  const windowMs=this.autoResponseWindow&&this.llmProvider?.enabled&&this.alive().some(p=>p.bot&&p.botMode==='llm')?Math.max(15000,this.responseWindowMs):this.responseWindowMs;
+  const windowMs=this.autoResponseWindow&&this.llmProvider?.enabled&&this.alive().some(p=>(p.bot||p.takeover)&&p.botMode==='llm')?Math.max(15000,this.responseWindowMs):this.responseWindowMs;
   const people=this.order(),startedAt=Date.now(),deadline=startedAt+windowMs,responses=new Map(),ids=new Map(),bots=[];
   let finishEarly=()=>{};
   this.responseWindow={kind,title,startedAt,deadline};
@@ -229,10 +254,11 @@ export class Game {
    const options=optionsFor(p),q={id:randomUUID(),title,options,min:1,max:1,zone:'options',context,startedAt,deadline,timer:null,resolve:answers=>{responses.set(p.id,answers[0]||'pass');if(responses.size===people.length)finishEarly();}};
    ids.set(p.id,q.id);if(!options.some(o=>!['pass','pass-turn'].includes(o.id))){responses.set(p.id,'pass');continue;}if(kind==='negation'&&!context?.negationDepth&&this.negationPassTurn.get(p.id)===this.turn){responses.set(p.id,'pass');continue;}this.prompts.set(p.id,q);
    if(p.bot)bots.push(setTimeout(async()=>{try{if(this.prompts.get(p.id)?.id===q.id){const answer=await this.decideBot(p,q,['pass']);if(this.prompts.get(p.id)?.id===q.id)this.answer(p.id,q.id,answer[0]?[answer[0]]:['pass']);}}catch{if(this.prompts.get(p.id)?.id===q.id)this.answer(p.id,q.id,['pass']);}},this.botPacing?Math.min(1400,windowMs/2):0));
+   else if(p.takeover)this.scheduleTakeover(p,q);
   }
   await new Promise(resolve=>{const timer=setTimeout(resolve,windowMs);finishEarly=()=>{clearTimeout(timer);resolve();};this.cancelResponseWindow=finishEarly;this.changed();if(responses.size===people.length)finishEarly();});
   for(const timer of bots)clearTimeout(timer);
-  for(const p of people)if(this.prompts.get(p.id)?.id===ids.get(p.id))this.prompts.delete(p.id);
+  for(const p of people)if(this.prompts.get(p.id)?.id===ids.get(p.id)){clearTimeout(this.prompts.get(p.id).botTimer);this.prompts.delete(p.id);}
   for(const p of people)if(ids.has(p.id))this.botRequests.get(p.id)?.abort(new Error(Date.now()>=deadline?'decision-expired':'window-closed'));
   this.cancelResponseWindow=null;this.responseWindow=null;this.changed();
   if(this.stopped||this.winner)throw new Finished();
@@ -497,7 +523,8 @@ export class Game {
    skills[name]=!p.alive?'You are eliminated.':usedKey&&this.used[usedKey]?'Already used this Play Phase.':/Once per Play Phase|During your Play Phase/.test(desc)?prompt?.zone==='turn'?'Its card or target requirements are not met.':'Available during your Play Phase.':'Triggered or conversion skill · '+desc;
   }return {cards,skills};
  }
- view(pid){const viewer=this.players.find(p=>p.id===pid);const prompt=this.prompts.get(pid);return {
+ view(pid){const viewer=this.players.find(p=>p.id===pid);const prompt=viewer?.takeover?null:this.prompts.get(pid);const remainingRoles={...this.roleCounts};for(const p of this.players)if(!p.alive&&p.role)remainingRoles[p.role]=Math.max(0,(remainingRoles[p.role]||0)-1);return {
+  roleCounts:{...this.roleCounts},remainingRoles,control:viewer?{takeover:!!viewer.takeover,model:viewer.botModel||'classic'}:null,
   availability:this.availability(viewer,prompt),pindian:this.pindianState,bluff:this.bluffState,expandedGenerals:this.expandedGenerals,actionHistory:this.actionHistory,matchId:this.matchId,testing:this.testing,actionGroup:this.actionGroup,movements:this.movements,responseWindow:this.responseWindow?{...this.responseWindow}:null,discardReview:this.discardReview?{...this.discardReview}:null,negationPassed:this.negationPassTurn.get(pid)===this.turn,maneuver:this.maneuver,totalCards:this.totalCards,decision:this.responseWindow?null:this.decision?{...this.decision}:null,decisions:this.responseWindow?[]:[...this.decisions.values()].map(d=>({...d})),current:this.current?.id,phase:this.phase,turn:this.turn,winner:this.winner,deckCount:this.deck.length,discardCount:this.discard.length,table:this.table.map(info),logs:this.logs,effects:this.effects,recentCards:this.recentCards.map(r=>({...r,card:{...r.card}})),judgments:this.judgments.map(j=>({...j,cards:j.cards.map(r=>({...r,card:{...r.card}}))})),
   players:this.players.map(p=>({id:p.id,name:p.name,alive:p.alive,chained:!!p.chained,wineBoost:p.wineBoost||0,hp:p.hp,maxHp:p.maxHp,wounds:(p.wounds||[]).map(info),nirvanaUsed:!!p.nirvanaUsed,general:p.general||null,role:p.id===pid||p.role==='lord'||!p.alive||this.winner?p.role:null,handCount:p.hand.length,hand:p.id===pid?p.hand.map(c=>this.cardInfo(p,c)):undefined,equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,this.cardInfo(p,c)])),judge:p.judge.map(c=>({...info(c),placedBy:this.delayedPlacements.get(c.id)||null}))})),
   prompt:prompt?{id:prompt.id,title:prompt.title,options:prompt.options,min:prompt.min,max:prompt.max,zone:prompt.zone,context:prompt.context,startedAt:prompt.startedAt,deadline:prompt.deadline}:null

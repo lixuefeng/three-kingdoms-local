@@ -529,4 +529,12 @@ export const ALL_GENERALS = [...GENERALS,...EXPANSION_GENERALS];
 
 export function shuffle(a){for(let i=a.length-1;i>0;i--){const j=randomInt(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
 export const ROLES={4:['lord','loyal','rebel','spy'],5:['lord','loyal','rebel','rebel','spy'],6:['lord','loyal','rebel','rebel','rebel','spy'],7:['lord','loyal','loyal','rebel','rebel','rebel','spy'],8:['lord','loyal','loyal','rebel','rebel','rebel','rebel','spy']};
+export const LORD_GENERALS=['liubei','sunquan','caocao','yuanshao','dongzhuo','sunjian'];
+export function defaultRoleCounts(seats){return Object.fromEntries(['lord','loyal','rebel','spy'].map(role=>[role,(ROLES[seats]||(seats>0?['lord',...Array(Math.max(0,seats-1)).fill('rebel')]:[])).filter(r=>r===role).length]));}
+export function validateRoleCounts(value,seats){
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['lord','loyal','rebel','spy'].includes(k)))throw Error('Choose valid role counts.');
+ const counts=Object.fromEntries(['lord','loyal','rebel','spy'].map(r=>[r,value[r]]));
+ if(Object.values(counts).some(n=>!Number.isInteger(n)||n<0)||counts.lord!==1||counts.spy>1||counts.rebel<1||Object.values(counts).reduce((a,b)=>a+b,0)!==seats)throw Error('Roles must total the seated players, with exactly 1 Lord, 0–1 Spy, and at least 1 Rebel.');
+ return counts;
+}
 export const ROLE_NAMES={lord:'Lord',loyal:'Loyalist',rebel:'Rebel',spy:'Spy'};

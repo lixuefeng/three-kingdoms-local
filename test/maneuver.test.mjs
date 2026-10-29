@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game} from '../engine.mjs';
 import {GENERALS,META,makeDeck} from '../cards.mjs';
-let serial=0;const card=(kind,suit='♠',rank=7)=>({id:'m'+serial++,kind,suit,rank});
+let serial=0;const card=(kind='sha',suit='♠',rank=7)=>({id:'m'+serial++,kind,suit,rank});
 const setGeneral=(p,id)=>{p.general=GENERALS.find(g=>g.id===id);};
 function game(ask=(p,q,f)=>f){const g=new Game(Array.from({length:4},(_,i)=>({id:String(i),name:'P'+i})),{maneuver:true,ask});g.players.forEach((p,i)=>{setGeneral(p,'zhangfei');p.role=['lord','loyal','rebel','spy'][i];});g.current=g.players[0];g.phase='Play';g.used={sha:0};return g;}
 const yes=(p,q,f)=>q.options.some(o=>o.id==='yes')?['yes']:f;

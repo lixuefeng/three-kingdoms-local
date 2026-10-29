@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {chatView,postChat} from '../chat.mjs';
 const setup=()=>{const a={id:'a',name:'Alice'},b={id:'b',name:'Bob'},watcher={id:'w',name:'Watcher',spectator:true};return {a,b,watcher,room:{players:[a,b],status:'lobby',game:{players:[{id:'a',alive:true},{id:'b',alive:false}]}}};};
-test('chat shares lobby history, isolates gallery during play, and reunites after game',()=>{
+test('chat is shared by living, eliminated and spectator participants throughout play',()=>{
  const {a,b,watcher,room}=setup();postChat(room,a,'hello',1000);assert.equal(chatView(room,watcher).messages.length,1);
  room.status='playing';postChat(room,watcher,'hidden hand discussion',2000);postChat(room,b,'eliminated',2000);
- assert.deepEqual(chatView(room,a).messages.map(m=>m.text),['hello']);assert.equal(chatView(room,b).channel,'gallery');assert.equal(chatView(room,watcher).messages.length,2);
+ assert.deepEqual(chatView(room,a).messages.map(m=>m.text),['hello','hidden hand discussion','eliminated']);assert.equal(chatView(room,b).channel,'room');assert.equal(chatView(room,watcher).messages.length,3);assert.equal(chatView(room,a).messages[1].audience,'spectator');assert.equal(chatView(room,a).messages[2].audience,'eliminated');
  room.status='finished';assert.equal(chatView(room,a).messages.length,3);
 });
 test('chat validates messages, throttles each sender and retains at most 100',()=>{

@@ -110,3 +110,13 @@ v0.73.0 adds `--suite logged` with seven anonymized recorded decision positions 
 v0.74.0: hosts can select **Strategy → Role-focused** for each LLM bot in the lobby or **AI Controls** during a match. It uses the same role-objective guidance as the benchmark with no additional model calls. Current remains the default. Switching strategy cancels pending decisions; new decisions use the new setting. The selected strategy is recorded in AI traces and model decision events.
 
 v0.75.0 fixes Negation pass scope: **Pass for this spell** skips repeated original-effect prompts, but every played Negation opens a fresh counter opportunity. **Pass this counter** affects only that counter window. This applies to both live shared windows and adapter-driven decisions.
+
+### AFK seats and table controls
+
+During a match, **AFK · AI takeover** hands your existing seat to a bot; **I’m back · Take control** returns it to you. Choose Practice bot or a configured model under **Table → AFK model** before handing over. The host can also manage human seats under **Host → AI & AFK controls**. AI takeover starts automatically after an ordinary decision times out or after 15 seconds without an event-stream connection. Reconnecting preserves your seat; explicitly take control when you return. Pending AI work is cancelled on handback, and a shared rescue/Negation deadline is never extended. Bot decisions use only that seat's private hand and observed history.
+
+In the lobby, the host can set the numbers of Loyalists, Rebels and Spies. Assignments remain random; counts must match the seats, with exactly one Lord, zero or one Spy, and at least one Rebel. Adding or removing a seat restores the standard role preset. The top role counter subtracts only publicly revealed eliminations, so it does not reveal living players' identities.
+
+The Lord's choices include Liu Bei, Sun Quan and Cao Cao plus random candidates. With expansion generals enabled, Yuan Shao, Dong Zhuo and Sun Jian join that guaranteed group. Bans and explicit testing presets still apply. Other players choose concurrently after the Lord.
+
+Table chat is shared by living players, eliminated players and spectators. Spectators still cannot inspect hands or hidden roles. Audio, table tools and host controls are grouped into top-right menus. A progress bar above the hand follows the current decision or response-window deadline.

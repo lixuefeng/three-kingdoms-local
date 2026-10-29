@@ -41,7 +41,7 @@ export class BotKnowledge{
   if(current===this.playerId&&turn>0&&this.plan?.turn!==turn)this.plan={turn,objective:player.role==='rebel'?'Pressure the Lord while retaining enough defense.':player.role==='spy'?'Survive and balance the sides until a final duel with the Lord.':'Protect the Lord and pressure likely Rebels.',steps:[],reserveCardIds:[],source:'baseline',revision:0,status:'active'};
  }
  beliefs(view){
-  const counts={lord:0,loyal:0,rebel:0,spy:0};for(const role of ROLES[view.players.length]||['lord','loyal','rebel','spy'])counts[role]++;
+  const counts={lord:0,loyal:0,rebel:0,spy:0};if(view.roleCounts)Object.assign(counts,view.roleCounts);else for(const role of ROLES[view.players.length]||['lord','loyal','rebel','spy'])counts[role]++;
   const known=new Map();for(const p of view.players){const role=p.id===this.playerId?(this.own?.role||p.role):p.role==='lord'||!p.alive?p.role:null;if(role){known.set(p.id,role);counts[role]=Math.max(0,counts[role]-1);}}
   const unknown=view.players.filter(p=>!known.has(p.id)),details=new Map();
   for(const p of unknown){let bias=0;const evidence=[];for(const pair of this.pairs.values())if(pair.sourceId===p.id&&known.has(pair.targetId)){const targetRole=known.get(pair.targetId);if(['lord','loyal','rebel'].includes(targetRole)){bias+=pair.pressure*(targetRole==='rebel'?1:-1);evidence.push({...pair,targetKnownRole:targetRole});}}details.set(p.id,{bias:Math.max(-3,Math.min(3,bias)),evidence});}

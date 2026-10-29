@@ -30,7 +30,7 @@ export function createAutonomousChat({provider,broadcast,onMessage=()=>{},now=Da
   const chosen=candidates[0];if(!chosen)return;
   const {bot,reasons}=chosen,profile=bot.botModel,turn=game.turn,channel=chatChannel(room,bot),controller=new AbortController(),job={controller,channel,spontaneous:true};
   room.chatJobs??=new Map();room.chatJobs.set(bot.id,job);state.lastAt=time;state.count++;state.byBot.set(bot.id,{turn,at:time});bot.lastAIChatAt=time;
-  const current=()=>room.game===game&&room.status==='playing'&&!game.stopped&&!game.winner&&game.turn===turn&&now()-time<12000&&(room.botChatter||'occasional')!=='off'&&room.players.includes(bot)&&bot.botMode==='llm'&&bot.botModel===profile&&chatChannel(room,bot)===channel&&!controller.signal.aborted;
+  const current=()=>room.game===game&&room.status==='playing'&&!game.stopped&&!game.winner&&game.turn===turn&&now()-time<12000&&(room.botChatter||'occasional')!=='off'&&room.players.includes(bot)&&bot.botMode==='llm'&&bot.botModel===profile&&game.players.find(p=>p.id===bot.id)?.alive!==false&&chatChannel(room,bot)===channel&&!controller.signal.aborted;
   const context={...chatObservation(room,bot,{name:'Table event',text:'Optional reaction after a resolved action.'}),spontaneous:true,language:'English',opportunity:{action:event.label,actorId:event.actorId,turn:event.turn,reasons,changes,publicEvents:event.publicEvents}};
   broadcast(room);
   // Detached from gameplay. Silence, errors and stale replies post nothing.

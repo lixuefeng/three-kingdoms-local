@@ -22,9 +22,9 @@ export function createAIChat({provider,broadcast,onMessage=()=>{}}){
   if(room.chatJobs.has(bot.id))return 'That bot is still replying. Your message was posted.';
   if(room.chatJobs.size>=2)return 'Two bots are already replying. Your message was posted.';
   if(Date.now()-Math.max(bot.lastAIChatAt||0,bot.lastChatAt||0)<4000)return 'Give that bot a moment before asking again. Your message was posted.';
-  const game=room.game,status=room.status,channel=chatChannel(room,bot),mode=bot.botMode,profile=bot.botModel,controller=new AbortController(),job={controller,channel};
+  const game=room.game,alive=game?.players.find(p=>p.id===bot.id)?.alive,status=room.status,channel=chatChannel(room,bot),mode=bot.botMode,profile=bot.botModel,controller=new AbortController(),job={controller,channel};
   room.chatJobs.set(bot.id,job);bot.lastAIChatAt=Date.now();broadcast(room);
-  const current=()=>room.game===game&&room.status===status&&room.players.includes(bot)&&bot.botMode===mode&&bot.botModel===profile&&chatChannel(room,bot)===channel&&!controller.signal.aborted;
+  const current=()=>room.game===game&&room.status===status&&room.players.includes(bot)&&bot.botMode===mode&&bot.botModel===profile&&game?.players.find(p=>p.id===bot.id)?.alive===alive&&chatChannel(room,bot)===channel&&!controller.signal.aborted;
   void(async()=>{try{
    let reply;
    if(mode!=='llm')reply="I'm a practice bot—switch my model to Kimi, Claude or DeepSeek if you want to talk strategy or roast my plays!";
