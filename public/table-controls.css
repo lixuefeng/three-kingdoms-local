@@ -9,3 +9,5 @@
 @media(max-width:900px){.compact-toolbar .table-meta{gap:5px}.compact-toolbar .turn-label{font-size:11px}.remaining-roles{font-size:9px}.toolbar-menus{gap:4px}.toolbar-menu>summary,.toolbar-menus>button{padding:5px;font-size:10px}.timer-meter{width:130px;flex-basis:130px}}
 
 .in-game .game-layout{top:var(--toolbar-height,48px)}.in-game .connection-status{top:var(--toolbar-height,48px)}
+
+.bot-name-form{display:flex;gap:6px;align-items:center;margin:6px 0;max-width:260px}.bot-name-form input{width:130px;min-width:0;flex:1;padding:6px 8px;font-size:12px;background:#fff5df;color:#243c34;border:1px solid #a89c7a;border-radius:4px}.bot-name-form button{font-size:11px;padding:6px 9px;background:#ead8aa;color:#29392e;border:1px solid #a89c7a;border-radius:4px}

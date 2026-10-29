@@ -15,8 +15,18 @@ test('profiles require PIN, store only salted hashes, persist results and dedupl
  const profiles=Array.from({length:4},(_,i)=>store.claim({newProfileName:'Friend '+i,pin:'8675309'}));assert.throws(()=>store.claim({profileId:profiles[0].id,pin:'1111'}),/Incorrect/);assert.equal(store.claim({profileId:profiles[0].id,pin:'8675309'}).name,'Friend 0');assert.throws(()=>store.claim({newProfileName:'friend 0',pin:'1234'}),/exists/);
  const game=fixture();game.players.forEach((p,i)=>p.profileId=profiles[i].id);assert.equal(store.record(game).ranked,true);store.record(game);store=createResults(directory);const rows=store.leaderboard();assert.equal(rows[0].wins,1);assert.equal(rows[0].matches,1);assert.equal(rows[0].roles.lord.damage,7);assert.equal(rows.find(r=>r.name==='Friend 1').wins,1);assert.ok(!JSON.stringify(store.profiles()).includes('pinHash'));assert.ok(!readFileSync(join(directory,'results.json'),'utf8').includes('8675309'));
 });
-test('bots, testing, guests and aborted matches cannot inflate rankings',()=>{
- const store=createResults(null),g=fixture();assert.equal(store.record(g,{bots:true}).ranked,false);g.matchId='testing';assert.equal(store.record(g,{testing:true}).ranked,false);g.matchId='guest';g.players[0].profileId=null;assert.equal(store.record(g).ranked,false);g.winner=null;assert.equal(store.record(g).ranked,false);assert.deepEqual(store.leaderboard(),[]);
+test('four-seat matches count registered humans even with bots and guests; testing and short games do not',()=>{
+ const store=createResults(null),profile=store.claim({newProfileName:'Friend',pin:'1234'}),g=fixture();
+ g.players.forEach((p,i)=>{p.profileId=i===0?profile.id:null;p.bot=i>0;});
+ assert.equal(store.record(g,{bots:true}).ranked,true);assert.equal(store.leaderboard()[0].wins,1);assert.equal(store.leaderboard()[0].roles.lord.matches,1);
+ g.matchId='guest';g.players[1].bot=false;assert.equal(store.record(g).ranked,true);assert.equal(store.leaderboard()[0].matches,2);
+ g.matchId='testing';assert.equal(store.record(g,{testing:true}).ranked,false);
+ g.matchId='short';g.players=g.players.slice(0,3);assert.equal(store.record(g).ranked,false);
+ g.matchId='aborted';g.winner=null;assert.equal(store.record(g).ranked,false);assert.equal(store.leaderboard()[0].matches,2);
+});
+test('guests never create anonymous leaderboard profiles and duplicate profiles cannot double-count',()=>{
+ const store=createResults(null),g=fixture();g.players.forEach(p=>p.profileId=null);assert.equal(store.record(g).ranked,false);assert.deepEqual(store.leaderboard(),[]);
+ g.matchId='duplicate';g.players[0].profileId=g.players[1].profileId='same';assert.equal(store.record(g).ranked,false);
 });
 test('wrong PIN attempts are throttled for a profile',()=>{const store=createResults(null),p=store.claim({newProfileName:'A',pin:'1234'});for(let i=0;i<5;i++)assert.throws(()=>store.claim({profileId:p.id,pin:'9999'}),/Incorrect/);assert.throws(()=>store.claim({profileId:p.id,pin:'1234'}),/Too many/);});
 test('winning elimination and final damage are counted before victory stops resolution',async()=>{

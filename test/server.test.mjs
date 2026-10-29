@@ -280,3 +280,22 @@ test('brief stream reconnect preserves human control; sustained disconnect enabl
  b.controller.abort();await b.reader.cancel().catch(()=>{});for(let i=0;i<60&&!g.players[0].takeover;i++)await new Promise(r=>setTimeout(r,5));assert.equal(g.players[0].takeover,true);assert.equal((await req('state',undefined,host.token)).data.game.control.takeover,true);
  assert.equal((await req('takeover',{enabled:false},host.token)).status,200);g.stop();
 });
+test('host renames bot seats in lobby and active match; names are validated and IDs stay stable',async t=>{
+ const {req,rooms}=await fixture(t),host=(await req('create',{name:'Host'})).data,code=host.state.room.code,friend=(await req('join',{name:'Friend',code})).data,watcher=(await req('spectate',{name:'Viewer',code})).data;
+ await req('bot',{},host.token);const room=rooms.get(code),bot=room.players.find(p=>p.bot),id=bot.id;
+ assert.equal((await req('bot-name',{id,name:'Strategist'},friend.token)).status,400);assert.equal((await req('bot-name',{id,name:'Strategist'},watcher.token)).status,400);
+ for(const name of ['', 'x'.repeat(25),'host','Viewer','bad\nname'])assert.equal((await req('bot-name',{id,name},host.token)).status,400);
+ assert.equal((await req('bot-name',{id:friend.state.room.me,name:'Other'},host.token)).status,400);
+ assert.equal((await req('bot-name',{id,name:'Strategist'},host.token)).status,200);assert.equal((await req('state',undefined,friend.token)).data.room.players.find(p=>p.id===id).name,'Strategist');
+ const {Game}=await import('../engine.mjs');room.status='playing';room.game=new Game(room.players,{seconds:0});
+ assert.equal((await req('bot-name',{id,name:'Commander'},host.token)).status,200);assert.equal(room.game.players.find(p=>p.id===id).name,'Commander');assert.equal(bot.id,id);room.game.stop();
+});
+test('leaderboard records a profile in four-seat games containing bots and a guest',async t=>{
+ const {req,rooms}=await fixture(t),host=(await req('create',{name:'Ranked host',createProfile:true,profilePin:'1234'})).data,code=host.state.room.code;
+ await req('join',{name:'Guest',code});await req('bot',{},host.token);await req('bot',{},host.token);
+ const room=rooms.get(code),{Game}=await import('../engine.mjs'),{GENERALS}=await import('../cards.mjs');room.status='finished';const g=room.game=new Game(room.players);
+ g.players.forEach((p,i)=>{p.general=GENERALS[i];p.role=['lord','loyal','rebel','spy'][i];});g.winner='lord';g.turn=8;
+ assert.equal((await req('save-results',{},host.token)).status,200);assert.equal((await req('state',undefined,host.token)).data.review.ranked,true);
+ const rows=(await req('leaderboard')).data.players;assert.equal(rows.length,1);assert.equal(rows[0].name,'Ranked host');assert.equal(rows[0].matches,1);assert.equal(rows[0].wins,1);
+ await req('save-results',{},host.token);assert.equal((await req('leaderboard')).data.players[0].matches,1);g.stop();
+});

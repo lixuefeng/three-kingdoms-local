@@ -120,3 +120,9 @@ In the lobby, the host can set the numbers of Loyalists, Rebels and Spies. Assig
 The Lord's choices include Liu Bei, Sun Quan and Cao Cao plus random candidates. With expansion generals enabled, Yuan Shao, Dong Zhuo and Sun Jian join that guaranteed group. Bans and explicit testing presets still apply. Other players choose concurrently after the Lord.
 
 Table chat is shared by living players, eliminated players and spectators. Spectators still cannot inspect hands or hidden roles. Audio, table tools and host controls are grouped into top-right menus. A progress bar above the hand follows the current decision or response-window deadline.
+
+### Bot names and leaderboard eligibility
+
+The host can rename each bot in the lobby or under **AI controls** during a match. Bot seat IDs, models and game state stay intact; names must be unique at the table and contain 1–24 characters.
+
+Completed, non-testing games with at least **4 seated players** count on the leaderboard for registered human profiles. Bots and guests may occupy other seats; they do not receive human profile statistics. AFK takeover does not turn a human profile into a bot profile. Games without any human profiles, testing games and unfinished matches do not count. This policy applies to newly recorded results; previously saved unranked results are not rewritten.
