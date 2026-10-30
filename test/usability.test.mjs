@@ -18,3 +18,10 @@ test('recap archives public plays and responses, never an unplayed hand card or 
  const h=g.view('observer').actionHistory;assert.equal(h.length,1);assert.equal(h[0].cards.length,2);assert.ok(!JSON.stringify(h).includes('secret-unplayed'));assert.match(recapTitle(h[0],g.players),/Zhang Fei · Attack → Zhao Yun.*Zhao Yun Dodged/);
  for(let i=0;i<12;i++){g.effect(a,b,'skill','Test');g.beginAction('Next');}assert.equal(g.actionHistory.length,8);
 });
+test('Borrowed Sword preview and recap identify the ordered attacker and victim by general',()=>{
+ const players=[{id:'a',name:'Alice',general:{name:'Cao Cao'}},{id:'b',name:'Bob',general:{name:'Zhang Fei'}},{id:'c',name:'Carol',general:{name:'Zhao Yun'}}];
+ assert.match(actionPreview({kind:'borrow'},[],players),/weapon holder first/);
+ assert.match(actionPreview({kind:'borrow'},['b'],players),/Zhang Fei.*Choose who/);
+ assert.match(actionPreview({kind:'borrow'},['b','c'],players),/Zhang Fei must Attack Zhao Yun/);
+ assert.match(recapTitle({borrowedSword:{sourceId:'a',attackerId:'b',targetId:'c'}},players),/Cao Cao.*Zhang Fei.*Zhao Yun/);
+});

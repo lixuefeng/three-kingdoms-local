@@ -8,6 +8,7 @@ export function botDecision(view,meId,q,used={}){
  const lord=live.find(p=>p.role==='lord');
  function enemy(t){
   if(!t||t.id===meId)return -1;
+  if(view.gameRules?.teamsArePublic)return t.role===me.role?-1:1.5;
   if(t.role==='lord')return me.role==='rebel'?1.5:me.role==='spy'?(live.length===2?1.5:-.7):-1;
   let alignment=0;const seen=new Set();
   for(const e of [...(view.actionHistory||[]).flatMap(g=>g.effects||[]),...(view.effects||[])]){

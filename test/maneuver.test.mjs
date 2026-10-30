@@ -33,3 +33,34 @@ test('Rattan blocking and Silver Lion damage reduction announce their actual tri
  const g=game(),[a,b]=g.players;b.equip.armor=card('rattan');await g.sha(a,b,{kind:'sha',cards:[],suit:'♥',nature:'normal'});assert.ok(g.effects.some(e=>e.kind==='trigger'&&e.label==='Rattan Armor'&&e.targetId===b.id));
  b.equip.armor=card('silverLion');g.effects=[];await g.damage(a,b,2);assert.ok(g.effects.some(e=>e.kind==='trigger'&&e.label==='Silver Lion Helmet'&&e.detail==='Damage reduced to 1'));
 });
+test('Borrowed Sword exposes ordered targets before Negation and throughout the public response',async()=>{
+ const {decisionInfo}=await import('../public/interaction.mjs');
+ const g=game(),[caster,holder,victim]=g.players;
+ setGeneral(caster,'caocao');setGeneral(holder,'zhangfei');setGeneral(victim,'zhaoyun');
+ const spell=card('borrow');caster.hand=[spell];holder.equip.weapon=card('crossbow');holder.hand=[card('sha')];
+ let checkedNegation=false,checkedResponse=false;
+ g.askAdapter=(p,q,f)=>{
+  if(q.context?.kind==='negation'){
+   checkedNegation=true;assert.match(q.title,/Zhang Fei must Attack Zhao Yun/);
+   const action=g.logs.find(l=>l.eventType==='action'&&l.cardKind==='borrow');assert.match(action.message,/Cao Cao.*Zhang Fei.*Zhao Yun/);
+   assert.ok(g.effects.some(e=>e.sourceId===holder.id&&e.targetId===victim.id&&e.label==='Borrowed Sword'));
+   return ['pass'];
+  }
+  if(q.context?.kind==='borrow-response'){
+   checkedResponse=true;assert.equal(q.context.sourceId,caster.id);assert.equal(q.context.attackerId,holder.id);assert.equal(q.context.targetId,victim.id);
+   assert.match(q.title,/Attack Zhao Yun.*Cao Cao/);assert.match(q.options.find(o=>o.id==='pass').label,/Cao Cao/);
+   for(const viewer of [holder.id,victim.id,'spectator']){
+    const info=decisionInfo(g.view(viewer),viewer);assert.match(info.title,/Cao Cao.*Zhang Fei.*Zhao Yun/);assert.equal(info.urgent,viewer===holder.id);
+   }
+   return ['pass'];
+  }
+  return f;
+ };
+ // Use the real ordered-target submission path, then switch to an adapter only for responses.
+ const responder=g.askAdapter;g.askAdapter=null;
+ const option=g.playOptions(caster).find(o=>o.kind==='borrow'),pending=g.ask(caster,'Play',g.playOptions(caster),{zone:'turn',timeout:0});
+ g.answerPlay(caster.id,g.prompts.get(caster.id).id,option.id,[holder.id,victim.id]);const[id]=await pending;g.askAdapter=responder;
+ // Offer a real counterspell so the adapter exercises the Negation prompt.
+ victim.hand=[card('negate')];await g.play(caster,id);
+ assert.equal(checkedNegation,true);assert.equal(checkedResponse,true);assert.equal(holder.equip.weapon,undefined);assert.equal(caster.hand[0].kind,'crossbow');
+});

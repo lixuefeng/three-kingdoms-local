@@ -2,7 +2,7 @@ import {readFileSync,writeFileSync,renameSync,mkdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {randomUUID,randomBytes,scryptSync,timingSafeEqual} from 'node:crypto';
 export const roleWon=(role,winner)=>winner==='lord'?['lord','loyal'].includes(role):role===winner;
-export function matchReview(game){return {id:game.matchId,winner:game.winner,turns:game.turn,finishedAt:Date.now(),eliminations:game.eliminations||[],players:game.players.map(p=>({id:p.id,profileId:p.profileId||null,bot:!!p.bot,name:p.name,role:p.role,general:p.general,alive:p.alive,won:roleWon(p.role,game.winner)&&(game.winner!=='spy'||p.alive),kills:game.stats?.[p.id]?.kills||0,damage:game.stats?.[p.id]?.damage||0,damageTaken:game.stats?.[p.id]?.damageTaken||0}))};}
+export function matchReview(game){return {id:game.matchId,mode:game.mode||'identity',winner:game.winner,turns:game.turn,finishedAt:Date.now(),eliminations:game.eliminations||[],players:game.players.map(p=>({id:p.id,profileId:p.profileId||null,bot:!!p.bot,name:p.name,role:p.role,general:p.general,alive:p.alive,won:roleWon(p.role,game.winner)&&(game.winner!=='spy'||p.alive),kills:game.stats?.[p.id]?.kills||0,damage:game.stats?.[p.id]?.damage||0,damageTaken:game.stats?.[p.id]?.damageTaken||0}))};}
 export function createResults(directory){
  const path=directory?join(directory,'results.json'):null;let data={profiles:[],matches:[]};const failures=new Map();
  if(path){try{data=JSON.parse(readFileSync(path,'utf8'));if(!Array.isArray(data.profiles)||!Array.isArray(data.matches))throw Error('Invalid results database');}catch(e){if(e.code!=='ENOENT')throw e;}}

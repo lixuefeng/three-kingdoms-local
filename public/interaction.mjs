@@ -12,6 +12,9 @@ export function decisionInfo(game,viewerId){
  if(game.responseWindow)return {urgent:false,title:game.responseWindow.title,detail:'Everyone has the same response window. Passing is private.',decision:game.responseWindow};
  const decision=(game.decisions||[]).find(d=>d.playerId===viewerId)||game.decision;
  const q=game.prompt,actor=game.players.find(p=>p.id===decision?.playerId),action=decision?.action;
+ const borrow=action?.kind==='borrow'?action:q?.context?.kind==='borrow-response'?q.context:null;
+ if(borrow){const name=id=>{const p=game.players.find(p=>p.id===id);return p?.general?.name||p?.name||'Player';};return {urgent:borrow.attackerId===viewerId,title:`Borrowed Sword · ${name(borrow.sourceId)} orders ${name(borrow.attackerId)} to Attack ${name(borrow.targetId)}`,detail:borrow.attackerId===viewerId?`Play Attack against ${name(borrow.targetId)}, or surrender your weapon to ${name(borrow.sourceId)}.`:`Waiting for ${name(borrow.attackerId)}: Attack ${name(borrow.targetId)} or surrender the weapon.`,decision};}
+
  const source=game.players.find(p=>p.id===(q?.context?.sourceId||action?.sourceId));
  const target=game.players.find(p=>p.id===action?.targetId);
  if(action?.kind==='attack'||q?.context?.kind==='attack-response')return {urgent:decision?.playerId===viewerId,sourceId:source?.id,title:`${source?.name||'A player'} is attacking ${target?.id===viewerId?'YOU':target?.name||'you'}`,detail:decision?.playerId===viewerId?`${action?.label||q?.context?.label||'Attack'} · Play Dodge from your hand, use a skill, or Pass.`:`${action?.label||'Attack'} · Waiting for ${actor?.name||'a response'}.`,decision};

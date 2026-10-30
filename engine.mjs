@@ -1,3 +1,4 @@
+import {isTeamMode,validateMode,validateModeSeats} from './game-modes.mjs';
 import {BOT_STRATEGIES} from './bot-strategy.mjs';
 import {actionSelections,atomicSkills} from './action-selections.mjs';
 import {BotKnowledge,tacticalFacts} from './bot-knowledge.mjs';
@@ -12,8 +13,9 @@ import {randomUUID} from 'node:crypto';
 import {META,GENERALS,ALL_GENERALS,ROLES,ROLE_NAMES,LORD_GENERALS,defaultRoleCounts,validateRoleCounts,makeDeck,shuffle,red,info,isAttack,attackNature} from './cards.mjs';
 export class Finished extends Error {}
 export class Game {
- constructor(players,{ask,onChange=()=>{},onEvent=()=>{},seconds=60,seedDeck,maneuver=false,expandedGenerals=false,bannedGenerals=[],testing=false,pause,responseWindowMs=null,llmProvider=null,botPacing=true,publicChatFor=null,roleCounts=null}={}){
-  this.roleCounts=roleCounts?validateRoleCounts(roleCounts,players.length):defaultRoleCounts(players.length);
+ constructor(players,{ask,onChange=()=>{},onEvent=()=>{},seconds=60,seedDeck,maneuver=false,expandedGenerals=false,bannedGenerals=[],testing=false,pause,responseWindowMs=null,llmProvider=null,botPacing=true,publicChatFor=null,roleCounts=null,mode='identity'}={}){
+  this.mode=validateMode(mode);
+  this.roleCounts=isTeamMode(mode)?{red:players.length/2,blue:players.length/2}:roleCounts?validateRoleCounts(roleCounts,players.length):defaultRoleCounts(players.length);
   this.onEvent=onEvent;this.publicChatFor=publicChatFor;this.llmProvider=llmProvider;this.botPacing=botPacing;this.botAbort=new AbortController();this.botRequests=new Map();
   this.delayedPlacements=new Map();
   this.players=players.map(p=>({...p,hand:[],equip:{},judge:[],alive:true,hp:4,maxHp:4,wounds:[],nirvanaUsed:false,chained:false,wineBoost:0}));
@@ -38,7 +40,7 @@ export class Game {
   const q={id:randomUUID(),title,options,min,max,zone,context,startedAt,deadline:timeout?startedAt+timeout*1000:null};
   const defaults=fallback??(min?options.slice(0,min).map(o=>o.id):[]);
   // Public timing information excludes the private prompt, options, and card IDs.
-  const action=context?.kind==='attack-response'?{kind:'attack',sourceId:context.sourceId,targetId:p.id,label:context.label}:null;
+  const action=context?.kind==='attack-response'?{kind:'attack',sourceId:context.sourceId,targetId:p.id,label:context.label}:context?.kind==='borrow-response'?{kind:'borrow',sourceId:context.sourceId,attackerId:p.id,targetId:context.targetId,label:'Borrowed Sword'}:null;
   this.decisions.set(p.id,{playerId:p.id,startedAt,deadline:q.deadline,...(action?{action}: {})});
   this.decision=this.decisions.values().next().value||null;
   try{
@@ -134,7 +136,7 @@ export class Game {
  async yes(p,title){const active=(await this.ask(p,title,[{id:'yes',label:'Activate'},{id:'no',label:'Pass'}],{fallback:['no']}))[0]==='yes';if(active)this.effect(p,p,'skill',title.split(':')[0]);return active;}
  async target(p,title,candidates,{optional=false}={}){const opts=candidates.map(x=>this.option(x));if(optional)opts.push({id:'cancel',label:'Cancel'});const [id]=await this.ask(p,title,opts,{fallback:optional?['cancel']:undefined});return candidates.find(x=>x.id===id);}
  async selectGenerals(){
-  if(this.generalPool.length<3*this.players.length-2)throw new Error('Too many banned generals for three choices per player.');
+  if(this.generalPool.length<3*this.players.length-(isTeamMode(this.mode)?0:2))throw new Error('Too many banned generals for three choices per player.');
   const lord=this.players.find(p=>p.role==='lord'),reserved=this.testing?this.players.filter(p=>p.testGeneral).map(p=>p.testGeneral):[];
   if(new Set(reserved).size!==reserved.length||reserved.some(id=>!this.generalPool.some(g=>g.id===id)))throw new Error('Testing generals must be valid and unique.');
   const pool=shuffle(this.generalPool.filter(g=>!reserved.includes(g.id)));const preset=p=>this.testing&&p.testGeneral?this.generalPool.find(g=>g.id===p.testGeneral):null;
@@ -145,6 +147,11 @@ export class Game {
    return candidates.find(g=>g.id===id)||candidates[0];
   };
   const assign=(p,g)=>{p.general=g;p.maxHp=g.hp+(p.role==='lord'?1:0);p.hp=p.maxHp;};
+  if(isTeamMode(this.mode)){
+   const offers=this.players.map(p=>({p,candidates:preset(p)?[preset(p)]:pool.splice(0,3)}));
+   const results=await Promise.all(offers.map(async({p,candidates})=>({p,general:await choose(p,candidates)})));
+   if(this.stopped)throw new Finished();for(const {p,general}of results)assign(p,general);this.changed();return;
+  }
   const guaranteed=pool.filter(g=>LORD_GENERALS.includes(g.id));for(const g of guaranteed)pool.splice(pool.indexOf(g),1);
   const lordCandidates=preset(lord)?[preset(lord)]:[...guaranteed,...pool.splice(0,3)],chosen=await choose(lord,lordCandidates);
   if(preset(lord))pool.push(...guaranteed);
@@ -159,10 +166,12 @@ export class Game {
  }
  async start(){
   try{
-   const counts=validateRoleCounts(this.roleCounts,this.players.length),roles=shuffle(Object.entries(counts).flatMap(([r,n])=>Array(n).fill(r)));this.players.forEach((p,i)=>p.role=roles[i]);
+   validateModeSeats(this.mode,this.players.length);
+   if(isTeamMode(this.mode)){const first=Math.random()<.5?'red':'blue';this.players.forEach((p,i)=>p.role=i%2?(first==='red'?'blue':'red'):first);}
+   else {const counts=validateRoleCounts(this.roleCounts,this.players.length),roles=shuffle(Object.entries(counts).flatMap(([r,n])=>Array(n).fill(r)));this.players.forEach((p,i)=>p.role=roles[i]);}
    await this.selectGenerals();if(this.stopped)return;
    for(const p of this.players)this.draw(p,4);
-   this.current=this.players.find(p=>p.role==='lord');this.log('Roles assigned. The Lord takes the first turn.');
+   this.current=isTeamMode(this.mode)?shuffle(this.players)[0]:this.players.find(p=>p.role==='lord');this.log(isTeamMode(this.mode)?`${this.mode}: Red Team vs Blue Team. Eliminate all opponents to win. ${generalName(this.current)} takes the first turn.`:'Roles assigned. The Lord takes the first turn.');
    while(!this.winner&&!this.stopped){const p=this.current;if(p.alive)await this.takeTurn(p);if(this.stopped)break;this.current=this.order(p).find(x=>x!==p)||p;}
   }catch(e){if(!(e instanceof Finished))throw e;}
  }
@@ -344,7 +353,7 @@ export class Game {
    const had=source.hand.length,lostEquipment=Object.values(source.equip),lost=lostEquipment.length;this.recordCards(source,[...source.hand,...Object.values(source.equip)],'Discarded');this.discard.push(...source.hand,...Object.values(source.equip));source.hand=[];source.equip={};this.log('The Lord eliminated a Loyalist and discards all hand cards and equipment.');await this.afterLoss(source,had,lost,lostEquipment);
   }}this.changed();
  }
- checkWin(){const live=this.alive(),lord=live.find(p=>p.role==='lord');if(!lord)this.winner=live.length===1&&live[0].role==='spy'?'spy':'rebel';else if(!live.some(p=>p.role==='rebel'||p.role==='spy'))this.winner='lord';if(this.winner){this.phase='End';this.log(`Game over: ${this.winner==='lord'?'Lord and Loyalists':ROLE_NAMES[this.winner]} win!`);throw new Finished();}}
+ checkWin(){const live=this.alive();if(isTeamMode(this.mode)){const teams=new Set(live.map(p=>p.role));if(teams.size===1){this.winner=live[0].role;this.phase='End';this.log(`Game over: ${ROLE_NAMES[this.winner]} wins!`);throw new Finished();}return;}const lord=live.find(p=>p.role==='lord');if(!lord)this.winner=live.length===1&&live[0].role==='spy'?'spy':'rebel';else if(!live.some(p=>p.role==='rebel'||p.role==='spy'))this.winner='lord';if(this.winner){this.phase='End';this.log(`Game over: ${this.winner==='lord'?'Lord and Loyalists':ROLE_NAMES[this.winner]} win!`);throw new Finished();}}
  async sha(source,target,v,{follow=false,redirect=true,armorIgnored}={}){
   if(!target.alive)return;
   v=await this.prepareAttack(source,v);
@@ -441,7 +450,7 @@ export class Game {
    }else{const t=await this.target(p,`${META[kind][0]}: Choose a target`,candidates,{optional:true});if(!t)return;targets=[t];}
    if(kind==='borrow'&&!planned){victim=await this.target(p,'Borrowed Sword: Choose the Attack target',this.alive().filter(t=>this.canSha(targets[0],t)),{optional:true});if(!victim)return;}
   }
-  this.beginAction(META[kind][0]);v=await this.commitVirtual(p,v);if(!v)return;this.log(`${p.name} uses ${META[kind][0]}${targets.length?' → '+targets.map(t=>t.name).join(', '):''}.`,{eventType:'action',actorId:p.id,cardKind:kind});
+  this.beginAction(META[kind][0]);v=await this.commitVirtual(p,v);if(!v)return;this.log(kind==='borrow'?`${generalName(p)} uses Borrowed Sword: ${generalName(targets[0])} must Attack ${generalName(victim)}, or surrender the weapon to ${generalName(p)}.`:`${p.name} uses ${META[kind][0]}${targets.length?' → '+targets.map(t=>t.name).join(', '):''}.`,{eventType:'action',actorId:p.id,cardKind:kind,...(kind==='borrow'?{attackerId:targets[0].id,targetId:victim.id}:{})});
   if(p.general.id==='huangyueying'&&META[kind][1]==='trick'){this.trigger(p,'Cultivation','Draw 1 card');this.draw(p,1);}
   const type=META[kind][1];
   if(['weapon','armor','plus','minus'].includes(type)){this.effect(p,p,'announce',META[kind][0]);
@@ -453,8 +462,13 @@ export class Game {
   else if(kind==='indulgence'||kind==='lightning'||kind==='supply'){
    const t=kind==='lightning'?p:targets[0],c=v.cards[0];this.effect(p,t,'spell',META[kind][0]);if(kind==='lightning')this.log(`${p.name} places Lightning in their own judgment area.`);this.delayedPlacements.set(c.id,{playerId:p.id,playerName:p.name});t.judge.push(c.kind===kind?c:{...c,kind,original:c});this.table.splice(this.table.indexOf(c),1);
   }else if(kind==='borrow'){
-   const t=targets[0];this.effect(p,t,'spell','Borrowed Sword');if(!await this.negate(t,'Borrowed Sword')){
-    const next=await this.requestCard(t,'sha',`Borrowed Sword: Attack ${victim.name} or surrender your weapon`,{target:victim,passLabel:'Surrender weapon'});
+   const t=targets[0],order=`${generalName(t)} must Attack ${generalName(victim)}`;
+   const context={kind:'borrow-response',sourceId:p.id,attackerId:t.id,targetId:victim.id};
+   this.actionGroup.borrowedSword={sourceId:p.id,attackerId:t.id,targetId:victim.id};
+   this.effect(p,t,'spell','Borrowed Sword',undefined,undefined,order);
+   this.effect(t,victim,'spell','Borrowed Sword',undefined,undefined,'Required Attack target');
+   if(!await this.negate(t,`Borrowed Sword: ${order}`)){
+    const next=await this.requestCard(t,'sha',`Borrowed Sword: Attack ${generalName(victim)} or surrender your weapon to ${generalName(p)}`,{target:victim,passLabel:`Surrender weapon to ${generalName(p)}`,context});
     if(next){await this.sha(t,victim,next);this.finishCards(next.cards);}else if(t.equip.weapon)await this.remove(t,t.equip.weapon,p.hand);
    }
   }else if(kind==='harvest'){
@@ -524,9 +538,9 @@ export class Game {
   }return {cards,skills};
  }
  view(pid){const viewer=this.players.find(p=>p.id===pid);const prompt=viewer?.takeover?null:this.prompts.get(pid);const remainingRoles={...this.roleCounts};for(const p of this.players)if(!p.alive&&p.role)remainingRoles[p.role]=Math.max(0,(remainingRoles[p.role]||0)-1);return {
-  roleCounts:{...this.roleCounts},remainingRoles,control:viewer?{takeover:!!viewer.takeover,model:viewer.botModel||'classic'}:null,
+  mode:this.mode,gameRules:isTeamMode(this.mode)?{mode:this.mode,objective:'Eliminate every member of the opposing team. Eliminated teammates share the team victory.',teamsArePublic:true,turnOrder:'Normal seat order; teams alternate seats.',lordSkills:false,killReward:false}:null,roleCounts:{...this.roleCounts},remainingRoles,control:viewer?{takeover:!!viewer.takeover,model:viewer.botModel||'classic'}:null,
   availability:this.availability(viewer,prompt),pindian:this.pindianState,bluff:this.bluffState,expandedGenerals:this.expandedGenerals,actionHistory:this.actionHistory,matchId:this.matchId,testing:this.testing,actionGroup:this.actionGroup,movements:this.movements,responseWindow:this.responseWindow?{...this.responseWindow}:null,discardReview:this.discardReview?{...this.discardReview}:null,negationPassed:this.negationPassTurn.get(pid)===this.turn,maneuver:this.maneuver,totalCards:this.totalCards,decision:this.responseWindow?null:this.decision?{...this.decision}:null,decisions:this.responseWindow?[]:[...this.decisions.values()].map(d=>({...d})),current:this.current?.id,phase:this.phase,turn:this.turn,winner:this.winner,deckCount:this.deck.length,discardCount:this.discard.length,table:this.table.map(info),logs:this.logs,effects:this.effects,recentCards:this.recentCards.map(r=>({...r,card:{...r.card}})),judgments:this.judgments.map(j=>({...j,cards:j.cards.map(r=>({...r,card:{...r.card}}))})),
-  players:this.players.map(p=>({id:p.id,name:p.name,alive:p.alive,chained:!!p.chained,wineBoost:p.wineBoost||0,hp:p.hp,maxHp:p.maxHp,wounds:(p.wounds||[]).map(info),nirvanaUsed:!!p.nirvanaUsed,general:p.general||null,role:p.id===pid||p.role==='lord'||!p.alive||this.winner?p.role:null,handCount:p.hand.length,hand:p.id===pid?p.hand.map(c=>this.cardInfo(p,c)):undefined,equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,this.cardInfo(p,c)])),judge:p.judge.map(c=>({...info(c),placedBy:this.delayedPlacements.get(c.id)||null}))})),
+  players:this.players.map(p=>({id:p.id,name:p.name,alive:p.alive,chained:!!p.chained,wineBoost:p.wineBoost||0,hp:p.hp,maxHp:p.maxHp,wounds:(p.wounds||[]).map(info),nirvanaUsed:!!p.nirvanaUsed,general:p.general||null,role:isTeamMode(this.mode)||p.id===pid||p.role==='lord'||!p.alive||this.winner?p.role:null,handCount:p.hand.length,hand:p.id===pid?p.hand.map(c=>this.cardInfo(p,c)):undefined,equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,this.cardInfo(p,c)])),judge:p.judge.map(c=>({...info(c),placedBy:this.delayedPlacements.get(c.id)||null}))})),
   prompt:prompt?{id:prompt.id,title:prompt.title,options:prompt.options,min:prompt.min,max:prompt.max,zone:prompt.zone,context:prompt.context,startedAt:prompt.startedAt,deadline:prompt.deadline}:null
  };}
 }

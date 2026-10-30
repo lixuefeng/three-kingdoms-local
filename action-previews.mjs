@@ -3,7 +3,7 @@ import {META} from './cards.mjs';
 // A read-only projection: no opponent hand identities, secret roles, or deck.
 function projection(game,own){
  const g=Object.create(game);
- g.players=game.players.map(p=>({id:p.id,name:p.name,general:{...p.general},role:p===own?p.role:p.role==='lord'||!p.alive?p.role:null,hp:p.hp,maxHp:p.maxHp,alive:p.alive,chained:p.chained,wineBoost:p.wineBoost||0,nirvanaUsed:p.nirvanaUsed,wounds:p.wounds?.map(c=>({...c}))||[],hand:p===own?p.hand.map(c=>({...c})):Array.from({length:p.hand.length},()=>({})),equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,{...c}])),judge:p.judge.map(c=>({...c})),bot:p.bot}));
+ g.players=game.players.map(p=>({id:p.id,name:p.name,general:{...p.general},role:game.mode&&game.mode!=='identity'?p.role:p===own?p.role:p.role==='lord'||!p.alive?p.role:null,hp:p.hp,maxHp:p.maxHp,alive:p.alive,chained:p.chained,wineBoost:p.wineBoost||0,nirvanaUsed:p.nirvanaUsed,wounds:p.wounds?.map(c=>({...c}))||[],hand:p===own?p.hand.map(c=>({...c})):Array.from({length:p.hand.length},()=>({})),equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,{...c}])),judge:p.judge.map(c=>({...c})),bot:p.bot}));
  g.current=g.players.find(p=>p.id===game.current?.id);g.used={...game.used};
  g.deck=[];g.discard=[];g.table=[];return g;
 }

@@ -320,3 +320,22 @@ test('finished-room archives are shared with players and spectators, never live 
  const other=(await req('create',{name:'Other'})).data;
  assert.equal((await req('match-analysis',{matchId:g.matchId},other.token)).status,400);
 });
+test('host can start Double Spy and select team modes with exact seat checks',async t=>{
+ const {req,rooms}=await fixture(t);
+ const a=(await req('create',{name:'Host'})).data;
+ const guest=(await req('join',{name:'Friend',code:a.state.room.code})).data;
+ await req('bot',{},a.token);await req('bot',{},a.token);
+ assert.equal((await req('settings',{mode:'2v2'},guest.token)).status,400);
+ assert.equal((await req('role-counts',{preset:'double-spy'},a.token)).status,200);
+ assert.equal((await req('state',undefined,a.token)).data.room.roleCounts.spy,2);
+ await req('ready',{ready:true},guest.token);assert.equal((await req('start',{},a.token)).status,200);
+ const room=rooms.get(a.state.room.code);assert.equal(room.game.players.filter(p=>p.role==='spy').length,2);
+ await req('abort',{},a.token);
+ assert.equal((await req('settings',{mode:'3v3'},a.token)).status,200);
+ await req('ready',{ready:true},guest.token);assert.equal((await req('start',{},a.token)).status,400);
+ assert.equal((await req('settings',{mode:'2v2'},a.token)).status,200);
+ assert.equal((await req('role-counts',{preset:'double-spy'},a.token)).status,400);
+ await req('ready',{ready:true},guest.token);assert.equal((await req('start',{},a.token)).status,200);
+ const view=(await req('state',undefined,guest.token)).data;assert.equal(view.game.mode,'2v2');assert.ok(view.game.players.every(p=>['red','blue'].includes(p.role)));assert.equal(view.game.roleCounts.red,2);
+ assert.equal((await req('settings',{mode:'identity'},a.token)).status,400);
+});

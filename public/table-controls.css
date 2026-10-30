@@ -11,3 +11,7 @@
 .in-game .game-layout{top:var(--toolbar-height,48px)}.in-game .connection-status{top:var(--toolbar-height,48px)}
 
 .bot-name-form{display:flex;gap:6px;align-items:center;margin:6px 0;max-width:260px}.bot-name-form input{width:130px;min-width:0;flex:1;padding:6px 8px;font-size:12px;background:#fff5df;color:#243c34;border:1px solid #a89c7a;border-radius:4px}.bot-name-form button{font-size:11px;padding:6px 9px;background:#ead8aa;color:#29392e;border:1px solid #a89c7a;border-radius:4px}
+
+.role-red{--role-color:#df6862}.role-blue{--role-color:#77aefa}
+.role-count.role-red,.player.role-red .actual-role{color:#ffaaa4}.role-count.role-blue,.player.role-blue .actual-role{color:#a6ccff}
+.player.role-red{border-color:#c6655f}.player.role-blue{border-color:#6798d0}

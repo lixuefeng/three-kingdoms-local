@@ -136,3 +136,13 @@ Custom role composition allows multiple Spies. Each Spy competes independently a
 ### Chat speech bubbles
 
 New human and bot messages appear briefly above the sender’s general, even with chat minimized. Spectators and lobby messages appear at the upper left. Bubbles last 6–12 seconds; long messages are shortened in the bubble and remain complete in chat. The latest message replaces that sender’s bubble. Existing messages are not replayed on joining or refreshing.
+
+### v0.85: Borrowed Sword target clarity
+
+Borrowed Sword now announces the caster, weapon holder, and intended Attack victim before Negation. Two animation routes show caster → weapon holder → victim. The public decision and responder prompt identify the victim and who receives the weapon if surrendered, using general names.
+
+### Team modes and Double Spy
+
+In the lobby, the host can select **2v2** (exactly 4 seats) or **3v3** (exactly 6 seats). These are simple team-elimination modes, not the tournament captain-rule variant. Public Red and Blue teams alternate around the table; the first player is random. All players choose generals concurrently, with normal base HP and no Lord-only skills or identity kill rewards. Eliminate all enemies to win; eliminated teammates share the win. Bots receive the visible team assignments and team victory objective. Completed non-testing matches continue to count for registered human profiles.
+
+For identity games, **Double Spy** applies a valid two-Spy composition in one click. Each Spy must independently be the sole survivor with the Lord eliminated last. This is not a Spy team. Custom counts remain available.
