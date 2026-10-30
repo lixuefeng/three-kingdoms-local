@@ -339,3 +339,19 @@ test('host can start Double Spy and select team modes with exact seat checks',as
  const view=(await req('state',undefined,guest.token)).data;assert.equal(view.game.mode,'2v2');assert.ok(view.game.players.every(p=>['red','blue'].includes(p.role)));assert.equal(view.game.roleCounts.red,2);
  assert.equal((await req('settings',{mode:'identity'},a.token)).status,400);
 });
+test('players and spectators can leave a finished review without resetting the match',async t=>{
+ const {req,rooms}=await fixture(t);
+ const host=(await req('create',{name:'Host'})).data,code=host.state.room.code;
+ const guest=(await req('join',{name:'Guest',code})).data;
+ const watcher=(await req('spectate',{name:'Watcher',code})).data;
+ const nextHost=(await req('join',{name:'Next host',code})).data;
+ const room=rooms.get(code),{Game}=await import('../engine.mjs'),{GENERALS}=await import('../cards.mjs');
+ const game=room.game=new Game(room.players);game.players.forEach(p=>{p.general=GENERALS[0];p.role='loyal';});game.winner='lord';room.status='finished';
+ const {matchReview}=await import('../results.mjs');room.review=matchReview(game);const review=room.review;
+ for(const token of [guest.token,watcher.token,host.token]){
+  assert.equal((await req('leave',{},token)).status,200);
+  assert.equal((await req('state',undefined,token)).status,400);
+  assert.equal(room.game,game);assert.equal(room.review,review);assert.equal(room.status,'finished');
+ }
+ assert.equal(room.host,nextHost.state.room.me);assert.equal((await req('state',undefined,nextHost.token)).data.game.winner,'lord');
+});

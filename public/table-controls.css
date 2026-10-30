@@ -15,3 +15,5 @@
 .role-red{--role-color:#df6862}.role-blue{--role-color:#77aefa}
 .role-count.role-red,.player.role-red .actual-role{color:#ffaaa4}.role-count.role-blue,.player.role-blue .actual-role{color:#a6ccff}
 .player.role-red{border-color:#c6655f}.player.role-blue{border-color:#6798d0}
+
+.review-navigation{position:sticky;top:-22px;z-index:2;display:flex;justify-content:flex-end;background:#f5eddb;padding:4px 0 8px}.review-navigation button{background:#3e3428;color:#fff1cf;border-color:#9f875e}@media(max-width:1100px){.review-navigation{top:-14px}}
