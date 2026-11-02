@@ -32,13 +32,13 @@ export class BotKnowledge{
    this.pairs.set(key,pair);
   }
  }
- observeOwn({turn,current,phase,player}){
+ observeOwn({turn,current,phase,player,mode}){
   if(!player)return;const hand=player.hand||[],ids=new Set(hand.map(c=>c.id)),gained=hand.filter(c=>!this.lastHand.has(c.id)),lost=[...this.lastHand].filter(id=>!ids.has(id));
   for(const c of hand)this.ownCards.set(c.id,face(c));
   if(gained.length||lost.length){this.ownDrawn+=gained.length;this.ownLost+=lost.length;this.ownChanges.push({turn,phase,gained:gained.map(face),lostCardIds:lost});this.ownChanges=this.ownChanges.slice(-16);}
   if(!this.observedFeedback||gained.length||lost.length||this.own?.hp!==player.hp||this.observedFeedback.phase!==phase||this.observedFeedback.turn!==turn||this.observedFeedback.lastSubmittedSelection!==this.lastSelection)this.observedFeedback={turn,phase,lastSubmittedSelection:this.lastSelection,observedSincePreviousSnapshot:{gained:gained.map(face),lost:lost.map(id=>this.ownCards.get(id)||{id}),hpBefore:this.own?.hp??null,hpNow:player.hp},currentHand:hand.map(face),note:'Selection records submission only. Changes are observed facts since the previous feedback snapshot and may include other actions; do not infer cause or successful damage from submission.'};
   this.lastHand=ids;this.own={role:player.role,hp:player.hp,alive:player.alive};
-  if(current===this.playerId&&turn>0&&this.plan?.turn!==turn)this.plan={turn,objective:['red','blue'].includes(player.role)?'Eliminate the opposing team while supporting surviving teammates.':player.role==='rebel'?'Pressure the Lord while retaining enough defense.':player.role==='spy'?'Survive and balance the sides until a final duel with the Lord.':'Protect the Lord and pressure likely Rebels.',steps:[],reserveCardIds:[],source:'baseline',revision:0,status:'active'};
+  if(current===this.playerId&&turn>0&&this.plan?.turn!==turn)this.plan={turn,objective:mode==='3v3'?'Defeat the opposing commander while protecting your commander.': ['red','blue'].includes(player.role)?'Eliminate the opposing team while supporting surviving teammates.':player.role==='rebel'?'Pressure the Lord while retaining enough defense.':player.role==='spy'?'Survive and balance the sides until a final duel with the Lord.':'Protect the Lord and pressure likely Rebels.',steps:[],reserveCardIds:[],source:'baseline',revision:0,status:'active'};
  }
  beliefs(view){
   if(view.gameRules?.teamsArePublic)return view.players.map(p=>({playerId:p.id,knownRole:p.role,probabilities:{[p.role]:1},basis:'Public team'}));

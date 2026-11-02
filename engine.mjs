@@ -1,3 +1,4 @@
+import {classicThree,classicRoster,CLASSIC_THREE_RULES} from './classic-three.mjs';
 import {isTeamMode,validateMode,validateModeSeats} from './game-modes.mjs';
 import {BOT_STRATEGIES} from './bot-strategy.mjs';
 import {actionSelections,atomicSkills} from './action-selections.mjs';
@@ -13,21 +14,21 @@ import {randomUUID} from 'node:crypto';
 import {META,GENERALS,ALL_GENERALS,ROLES,ROLE_NAMES,LORD_GENERALS,defaultRoleCounts,validateRoleCounts,makeDeck,shuffle,red,info,isAttack,attackNature} from './cards.mjs';
 export class Finished extends Error {}
 export class Game {
- constructor(players,{ask,onChange=()=>{},onEvent=()=>{},seconds=60,seedDeck,maneuver=false,expandedGenerals=false,bannedGenerals=[],testing=false,pause,responseWindowMs=null,llmProvider=null,botPacing=true,publicChatFor=null,roleCounts=null,mode='identity'}={}){
-  this.mode=validateMode(mode);
+ constructor(players,{ask,onChange=()=>{},onEvent=()=>{},seconds=60,seedDeck,maneuver=false,expandedGenerals=false,bannedGenerals=[],testing=false,pause,responseWindowMs=null,llmProvider=null,botPacing=true,publicChatFor=null,roleCounts=null,mode='identity',classicSeatIds=null}={}){
+  this.mode=validateMode(mode);this.classicSeatIds=classicSeatIds;this.threeVThree=null;
   this.roleCounts=isTeamMode(mode)?{red:players.length/2,blue:players.length/2}:roleCounts?validateRoleCounts(roleCounts,players.length):defaultRoleCounts(players.length);
   this.onEvent=onEvent;this.publicChatFor=publicChatFor;this.llmProvider=llmProvider;this.botPacing=botPacing;this.botAbort=new AbortController();this.botRequests=new Map();
   this.delayedPlacements=new Map();
   this.players=players.map(p=>({...p,hand:[],equip:{},judge:[],alive:true,hp:4,maxHp:4,wounds:[],nirvanaUsed:false,chained:false,wineBoost:0}));
   this.botKnowledge=new Map(this.players.map(p=>[p.id,new BotKnowledge(p.id)]));
-  this.stats=Object.fromEntries(players.map(p=>[p.id,{kills:0,damage:0,damageTaken:0}]));this.eliminations=[];this.matchId=randomUUID();this.responseWindowMs=responseWindowMs??5000;this.autoResponseWindow=responseWindowMs==null;this.responseWindow=null;this.cancelResponseWindow=null;this.pause=pause||(ask?async()=>{}:ms=>new Promise(resolve=>setTimeout(resolve,ms)));this.discardReview=null;this.testing=!!testing;this.expandedGenerals=!!expandedGenerals;this.bannedGenerals=new Set(bannedGenerals);this.generalPool=(this.expandedGenerals?ALL_GENERALS:GENERALS).filter(g=>!this.bannedGenerals.has(g.id));this.pindianState=null;this.bluffState=null;this.negationPassTurn=new Map();this.askAdapter=ask;this.onChange=onChange;this.seconds=seconds;this.maneuver=!!maneuver;this.deck=seedDeck||shuffle(makeDeck({maneuver:this.maneuver}));this.totalCards=this.deck.length;this.discard=[];this.table=[];this.reserved=[];this.logs=[];this.effects=[];this.judgments=[];this.recentCards=[];this.actionHistory=[];this.actionGroup=null;this.movements=[];this.current=null;this.phase='General Selection';this.winner=null;this.turn=0;this.used={};this.prompts=new Map();this.plannedPlays=new Map();this.decision=null;this.decisions=new Map();this.stopped=false;
+  this.stats=Object.fromEntries(players.map(p=>[p.id,{kills:0,damage:0,damageTaken:0}]));this.eliminations=[];this.matchId=randomUUID();this.responseWindowMs=responseWindowMs??5000;this.autoResponseWindow=responseWindowMs==null;this.responseWindow=null;this.cancelResponseWindow=null;this.pause=pause||(ask?async()=>{}:ms=>new Promise(resolve=>setTimeout(resolve,ms)));this.discardReview=null;this.testing=!!testing;this.expandedGenerals=!!expandedGenerals;this.bannedGenerals=new Set(bannedGenerals);this.generalPool=(mode==='3v3'?classicRoster(this.expandedGenerals):this.expandedGenerals?ALL_GENERALS:GENERALS).filter(g=>!this.bannedGenerals.has(g.id));this.pindianState=null;this.bluffState=null;this.negationPassTurn=new Map();this.askAdapter=ask;this.onChange=onChange;this.seconds=seconds;this.maneuver=mode==='3v3'?false:!!maneuver;this.deck=(seedDeck||shuffle(makeDeck({maneuver:this.maneuver}))).filter(c=>mode!=='3v3'||c.kind!=='lightning');this.totalCards=this.deck.length;this.discard=[];this.table=[];this.reserved=[];this.logs=[];this.effects=[];this.judgments=[];this.recentCards=[];this.actionHistory=[];this.actionGroup=null;this.movements=[];this.current=null;this.phase='General Selection';this.winner=null;this.turn=0;this.used={};this.prompts=new Map();this.plannedPlays=new Map();this.decision=null;this.decisions=new Map();this.stopped=false;
  }
  effect(source,target,kind,label,amount,nature,detail){this.effects.push({id:randomUUID(),sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,groupId:this.actionGroup?.id,...(detail?{detail}: {})});this.effects=this.effects.slice(-32);this.remember({type:'effect',sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,...(detail?{detail}:{})});this.changed();}
  trigger(p,name,result){this.effect(p,p,'trigger',name,undefined,undefined,result);this.log(`${p.name} · ${name}${result?' · '+result:''}`,{eventType:'trigger',actorId:p.id,actorName:p.name,skill:name});}
  log(message,details={}){this.logs.push({...details,id:randomUUID(),message,displayMessage:eventText(message,this.players),turn:this.turn,turnPlayerId:this.current?.id||null,turnGeneral:this.current?generalName(this.current):null,groupId:this.actionGroup?.id||null,groupLabel:this.actionGroup?.label||null});this.logs=this.logs.slice(-2000);this.remember({type:'log',...this.logs.at(-1),text:eventText(message,this.players)});this.changed();}
  remember(event){const e={turn:this.turn,turnPlayerId:this.current?.id||null,actionLabel:this.actionGroup?.label,phase:this.phase,groupId:this.actionGroup?.id,...event};this.onEvent(e);for(const knowledge of this.botKnowledge?.values()||[])knowledge.consume(e);}
  rememberChat(message,botIds){for(const id of botIds)this.botKnowledge.get(id)?.consume({type:'chat',turn:this.turn,turnPlayerId:this.current?.id||null,speakerId:message.senderId,name:message.name,text:message.text,ai:!!message.ai});}
- changed(){for(const [id,k] of this.botKnowledge||[]){const p=this.players.find(p=>p.id===id);k.observeOwn({turn:this.turn,current:this.current?.id,phase:this.phase,player:{...p,hand:p.hand.map(c=>this.cardInfo(p,c))}});}this.onChange();}
+ changed(){for(const [id,k] of this.botKnowledge||[]){const p=this.players.find(p=>p.id===id);k.observeOwn({mode:this.mode,turn:this.turn,current:this.current?.id,phase:this.phase,player:{...p,hand:p.hand.map(c=>this.cardInfo(p,c))}});}this.onChange();}
  alive(){return this.players.filter(p=>p.alive);}
  order(start=this.current){const i=this.players.indexOf(start);return Array.from({length:this.players.length},(_,n)=>this.players[(Math.max(i,0)+n)%this.players.length]).filter(p=>p.alive);}
  label(c){return `${c.suit}${c.rank===1?'A':c.rank===11?'J':c.rank===12?'Q':c.rank===13?'K':c.rank} ${META[c.kind][0]}`;}
@@ -136,6 +137,7 @@ export class Game {
  async yes(p,title){const active=(await this.ask(p,title,[{id:'yes',label:'Activate'},{id:'no',label:'Pass'}],{fallback:['no']}))[0]==='yes';if(active)this.effect(p,p,'skill',title.split(':')[0]);return active;}
  async target(p,title,candidates,{optional=false}={}){const opts=candidates.map(x=>this.option(x));if(optional)opts.push({id:'cancel',label:'Cancel'});const [id]=await this.ask(p,title,opts,{fallback:optional?['cancel']:undefined});return candidates.find(x=>x.id===id);}
  async selectGenerals(){
+  if(this.mode==='3v3')return this.selectClassicGenerals();
   if(this.generalPool.length<3*this.players.length-(isTeamMode(this.mode)?0:2))throw new Error('Too many banned generals for three choices per player.');
   const lord=this.players.find(p=>p.role==='lord'),reserved=this.testing?this.players.filter(p=>p.testGeneral).map(p=>p.testGeneral):[];
   if(new Set(reserved).size!==reserved.length||reserved.some(id=>!this.generalPool.some(g=>g.id===id)))throw new Error('Testing generals must be valid and unique.');
@@ -167,10 +169,12 @@ export class Game {
  async start(){
   try{
    validateModeSeats(this.mode,this.players.length);
-   if(isTeamMode(this.mode)){const first=Math.random()<.5?'red':'blue';this.players.forEach((p,i)=>p.role=i%2?(first==='red'?'blue':'red'):first);}
+   if(this.mode==='3v3')this.setupClassicTeams();
+   else if(isTeamMode(this.mode)){const first=Math.random()<.5?'red':'blue';this.players.forEach((p,i)=>p.role=i%2?(first==='red'?'blue':'red'):first);}
    else {const counts=validateRoleCounts(this.roleCounts,this.players.length),roles=shuffle(Object.entries(counts).flatMap(([r,n])=>Array(n).fill(r)));this.players.forEach((p,i)=>p.role=roles[i]);}
    await this.selectGenerals();if(this.stopped)return;
    for(const p of this.players)this.draw(p,4);
+   if(this.mode==='3v3'){await this.runClassicBattle();return;}
    this.current=isTeamMode(this.mode)?shuffle(this.players)[0]:this.players.find(p=>p.role==='lord');this.log(isTeamMode(this.mode)?`${this.mode}: Red Team vs Blue Team. Eliminate all opponents to win. ${generalName(this.current)} takes the first turn.`:'Roles assigned. The Lord takes the first turn.');
    while(!this.winner&&!this.stopped){const p=this.current;if(p.alive)await this.takeTurn(p);if(this.stopped)break;this.current=this.order(p).find(x=>x!==p)||p;}
   }catch(e){if(!(e instanceof Finished))throw e;}
@@ -339,7 +343,7 @@ export class Game {
  async dying(p,source){
   if(await this.expansionDying(p))return;
   this.log(`${p.name} is dying and needs ${1-p.hp} HP to survive.`);
-  if(p.maxHp>0&&!this.askAdapter){await this.rescueShared(p);if(this.survivesDying(p))return;}
+  if(p.maxHp>0&&!this.askAdapter&&this.mode!=='3v3'){await this.rescueShared(p);if(this.survivesDying(p))return;}
   else if(p.maxHp>0)for(const rescuer of this.order()){
    while(!this.survivesDying(p)&&rescuer.alive){const choices=[...this.virtual(rescuer,'tao',{response:true}),...(rescuer===p?this.virtual(rescuer,'wine',{response:true}):[])];if(!choices.length)break;
     const [id]=await this.ask(rescuer,`Rescue ${p.name}: ${1-p.hp} more HP needed`,[...choices.map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)})),{id:'pass',label:'Do not rescue'}],{fallback:['pass'],context:{kind:'rescue',targetId:p.id}});
@@ -349,11 +353,11 @@ export class Game {
   if(source&&source!==p)this.stats[source.id].kills++;this.eliminations.push({killerId:source?.id||null,victimId:p.id,turn:this.turn});p.alive=false;p.chained=false;p.wineBoost=0;this.log(`${p.name} is eliminated. Their role was ${ROLE_NAMES[p.role]}.`);
   this.movement(p,null,p.hand.length+Object.keys(p.equip).length+p.judge.length+(p.wounds?.length||0),'discard');this.recordCards(p,[...p.hand,...Object.values(p.equip),...p.judge,...(p.wounds||[])],'Discarded');this.discard.push(...p.hand,...Object.values(p.equip),...p.judge,...(p.wounds||[]));p.wounds=[];p.hand=[];p.equip={};p.judge=[];
   this.checkWin();
-  if(source?.alive){if(p.role==='rebel'){this.draw(source,3);this.log(`${source.name} eliminated a Rebel and draws 3 cards.`);}else if(p.role==='loyal'&&source.role==='lord'){
+  if(source?.alive){if(this.mode==='3v3'){this.draw(source,3);this.log(`${generalName(source)} receives 3 cards for eliminating a vanguard.`);}else if(p.role==='rebel'){this.draw(source,3);this.log(`${source.name} eliminated a Rebel and draws 3 cards.`);}else if(p.role==='loyal'&&source.role==='lord'){
    const had=source.hand.length,lostEquipment=Object.values(source.equip),lost=lostEquipment.length;this.recordCards(source,[...source.hand,...Object.values(source.equip)],'Discarded');this.discard.push(...source.hand,...Object.values(source.equip));source.hand=[];source.equip={};this.log('The Lord eliminated a Loyalist and discards all hand cards and equipment.');await this.afterLoss(source,had,lost,lostEquipment);
   }}this.changed();
  }
- checkWin(){const live=this.alive();if(isTeamMode(this.mode)){const teams=new Set(live.map(p=>p.role));if(teams.size===1){this.winner=live[0].role;this.phase='End';this.log(`Game over: ${ROLE_NAMES[this.winner]} wins!`);throw new Finished();}return;}const lord=live.find(p=>p.role==='lord');if(!lord)this.winner=live.length===1&&live[0].role==='spy'?'spy':'rebel';else if(!live.some(p=>p.role==='rebel'||p.role==='spy'))this.winner='lord';if(this.winner){this.phase='End';this.log(`Game over: ${this.winner==='lord'?'Lord and Loyalists':ROLE_NAMES[this.winner]} win!`);throw new Finished();}}
+ checkWin(){const live=this.alive();if(this.mode==='3v3'){const dead=this.players.find(p=>p.commander&&!p.alive);if(dead){this.winner=dead.role==='red'?'blue':'red';this.phase='End';this.log(`Game over: ${ROLE_NAMES[this.winner]} wins after the opposing commander falls.`);throw new Finished();}return;}if(isTeamMode(this.mode)){const teams=new Set(live.map(p=>p.role));if(teams.size===1){this.winner=live[0].role;this.phase='End';this.log(`Game over: ${ROLE_NAMES[this.winner]} wins!`);throw new Finished();}return;}const lord=live.find(p=>p.role==='lord');if(!lord)this.winner=live.length===1&&live[0].role==='spy'?'spy':'rebel';else if(!live.some(p=>p.role==='rebel'||p.role==='spy'))this.winner='lord';if(this.winner){this.phase='End';this.log(`Game over: ${this.winner==='lord'?'Lord and Loyalists':ROLE_NAMES[this.winner]} win!`);throw new Finished();}}
  async sha(source,target,v,{follow=false,redirect=true,armorIgnored}={}){
   if(!target.alive)return;
   v=await this.prepareAttack(source,v);
@@ -472,11 +476,12 @@ export class Game {
     if(next){await this.sha(t,victim,next);this.finishCards(next.cards);}else if(t.equip.weapon)await this.remove(t,t.equip.weapon,p.hand);
    }
   }else if(kind==='harvest'){
+   const harvestOrder=await this.groupSpellOrder(p,kind);
    for(const t of this.alive())this.effect(p,t,'spell','Bumper Harvest');const pool=[];for(let i=0;i<this.alive().length;i++){if(!this.deck.length)this.deck=shuffle(this.discard.splice(0));if(this.deck.length)pool.push(this.deck.shift());}
    this.table.push(...pool);this.log(`Bumper Harvest reveals: ${pool.map(c=>this.label(c)).join(', ')}`);
-   for(const t of this.order(p)){if(!pool.length)break;if(await this.negate(t,'Bumper Harvest'))continue;const [cid]=await this.ask(t,'Bumper Harvest: Choose a card',pool.map(c=>({id:c.id,label:this.label(c)})),{zone:'harvest',context:{kind:'harvest'}});const i=pool.findIndex(c=>c.id===cid);const c=pool.splice(i,1)[0];t.hand.push(c);this.movement(null,t,1,'gain');this.table.splice(this.table.indexOf(c),1);this.log(`${t.name} takes ${this.label(c)}.`);}
+   for(const t of harvestOrder){if(!pool.length)break;if(await this.negate(t,'Bumper Harvest'))continue;const [cid]=await this.ask(t,'Bumper Harvest: Choose a card',pool.map(c=>({id:c.id,label:this.label(c)})),{zone:'harvest',context:{kind:'harvest'}});const i=pool.findIndex(c=>c.id===cid);const c=pool.splice(i,1)[0];t.hand.push(c);this.movement(null,t,1,'gain');this.table.splice(this.table.indexOf(c),1);this.log(`${t.name} takes ${this.label(c)}.`);}
    this.finishCards(pool);
-  }else if(['barbarian','arrows','feast'].includes(kind)){if(kind==='barbarian'){this.barbarianSource=this.alive().find(t=>t.general.id==='menghuo')||p;if(this.barbarianSource!==p)this.trigger(this.barbarianSource,'Culprit','Barbarian damage source');}for(const t of this.order(p).filter(t=>kind==='feast'||t!==p))await this.trick(p,t,kind,{cards:v.cards});}
+  }else if(['barbarian','arrows','feast'].includes(kind)){if(kind==='barbarian'){this.barbarianSource=this.alive().find(t=>t.general.id==='menghuo')||p;if(this.barbarianSource!==p)this.trigger(this.barbarianSource,'Culprit','Barbarian damage source');}for(const t of (await this.groupSpellOrder(p,kind)).filter(t=>kind==='feast'||t!==p))await this.trick(p,t,kind,{cards:v.cards});}
   else await this.trick(p,kind==='draw2'?p:targets[0],kind,{cards:v.cards});
   const finishing=v.cards.filter(c=>this.table.includes(c));this.finishCards(v.cards);
   if(kind==='barbarian'){const zhu=this.alive().find(t=>t!==p&&t.general.id==='zhurong');if(zhu)for(const c of finishing.filter(c=>c.kind==='barbarian')){const i=this.discard.indexOf(c);if(i>=0){this.discard.splice(i,1);zhu.hand.push(c);this.movement(null,zhu,1,'gain');this.trigger(zhu,'Giant Elephant','Obtained Barbarian Invasion');}}this.barbarianSource=null;}
@@ -538,11 +543,11 @@ export class Game {
   }return {cards,skills};
  }
  view(pid){const viewer=this.players.find(p=>p.id===pid);const prompt=viewer?.takeover?null:this.prompts.get(pid);const remainingRoles={...this.roleCounts};for(const p of this.players)if(!p.alive&&p.role)remainingRoles[p.role]=Math.max(0,(remainingRoles[p.role]||0)-1);return {
-  mode:this.mode,gameRules:isTeamMode(this.mode)?{mode:this.mode,objective:'Eliminate every member of the opposing team. Eliminated teammates share the team victory.',teamsArePublic:true,turnOrder:'Normal seat order; teams alternate seats.',lordSkills:false,killReward:false}:null,roleCounts:{...this.roleCounts},remainingRoles,control:viewer?{takeover:!!viewer.takeover,model:viewer.botModel||'classic'}:null,
+  mode:this.mode,threeVThree:this.threeVThree?structuredClone(this.threeVThree):null,gameRules:this.mode==='3v3'?CLASSIC_THREE_RULES:isTeamMode(this.mode)?{mode:this.mode,objective:'Eliminate every member of the opposing team. Eliminated teammates share the team victory.',teamsArePublic:true,turnOrder:'Normal seat order; teams alternate seats.',lordSkills:false,killReward:false}:null,roleCounts:{...this.roleCounts},remainingRoles,control:viewer?{takeover:!!viewer.takeover,model:viewer.botModel||'classic'}:null,
   availability:this.availability(viewer,prompt),pindian:this.pindianState,bluff:this.bluffState,expandedGenerals:this.expandedGenerals,actionHistory:this.actionHistory,matchId:this.matchId,testing:this.testing,actionGroup:this.actionGroup,movements:this.movements,responseWindow:this.responseWindow?{...this.responseWindow}:null,discardReview:this.discardReview?{...this.discardReview}:null,negationPassed:this.negationPassTurn.get(pid)===this.turn,maneuver:this.maneuver,totalCards:this.totalCards,decision:this.responseWindow?null:this.decision?{...this.decision}:null,decisions:this.responseWindow?[]:[...this.decisions.values()].map(d=>({...d})),current:this.current?.id,phase:this.phase,turn:this.turn,winner:this.winner,deckCount:this.deck.length,discardCount:this.discard.length,table:this.table.map(info),logs:this.logs,effects:this.effects,recentCards:this.recentCards.map(r=>({...r,card:{...r.card}})),judgments:this.judgments.map(j=>({...j,cards:j.cards.map(r=>({...r,card:{...r.card}}))})),
-  players:this.players.map(p=>({id:p.id,name:p.name,alive:p.alive,chained:!!p.chained,wineBoost:p.wineBoost||0,hp:p.hp,maxHp:p.maxHp,wounds:(p.wounds||[]).map(info),nirvanaUsed:!!p.nirvanaUsed,general:p.general||null,role:isTeamMode(this.mode)||p.id===pid||p.role==='lord'||!p.alive||this.winner?p.role:null,handCount:p.hand.length,hand:p.id===pid?p.hand.map(c=>this.cardInfo(p,c)):undefined,equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,this.cardInfo(p,c)])),judge:p.judge.map(c=>({...info(c),placedBy:this.delayedPlacements.get(c.id)||null}))})),
+  players:this.players.map(p=>({id:p.id,name:p.name,commander:!!p.commander,actedThisRound:!!this.threeVThree?.actedIds.includes(p.id),alive:p.alive,chained:!!p.chained,wineBoost:p.wineBoost||0,hp:p.hp,maxHp:p.maxHp,wounds:(p.wounds||[]).map(info),nirvanaUsed:!!p.nirvanaUsed,general:p.general||null,role:isTeamMode(this.mode)||p.id===pid||p.role==='lord'||!p.alive||this.winner?p.role:null,handCount:p.hand.length,hand:p.id===pid?p.hand.map(c=>this.cardInfo(p,c)):undefined,equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,this.cardInfo(p,c)])),judge:p.judge.map(c=>({...info(c),placedBy:this.delayedPlacements.get(c.id)||null}))})),
   prompt:prompt?{id:prompt.id,title:prompt.title,options:prompt.options,min:prompt.min,max:prompt.max,zone:prompt.zone,context:prompt.context,startedAt:prompt.startedAt,deadline:prompt.deadline}:null
  };}
 }
 
-Object.assign(Game.prototype,actionSelections,classicSkills,maneuverSkills,expansionSkills,extraExpansionSkills);
+Object.assign(Game.prototype,classicThree,actionSelections,classicSkills,maneuverSkills,expansionSkills,extraExpansionSkills);

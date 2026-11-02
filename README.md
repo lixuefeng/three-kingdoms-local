@@ -143,6 +143,6 @@ Borrowed Sword now announces the caster, weapon holder, and intended Attack vict
 
 ### Team modes and Double Spy
 
-In the lobby, the host can select **2v2** (exactly 4 seats) or **3v3** (exactly 6 seats). These are simple team-elimination modes, not the tournament captain-rule variant. Public Red and Blue teams alternate around the table; the first player is random. All players choose generals concurrently, with normal base HP and no Lord-only skills or identity kill rewards. Eliminate all enemies to win; eliminated teammates share the win. Bots receive the visible team assignments and team victory objective. Completed non-testing matches continue to count for registered human profiles.
+In the lobby, **2v2** remains a four-seat public team-elimination mode. **3v3** now uses classic commander rules: grouped seats, a shared 16-general draft, private deployment, commander +1 HP, linked vanguard turns, round action markers, commander-kill victory, and three-card kill rewards. The host arranges the six seats before starting. The 106-card standard deck excludes Lightning; Lord skills and Maneuver are disabled. Group spells allow either resolution direction. See [Classic 3v3 rules and supported roster](CLASSIC-3V3.md) for the exact edition and project-specific boundaries. Completed non-testing matches count for registered human profiles.
 
 For identity games, **Double Spy** applies a valid two-Spy composition in one click. Each Spy must independently be the sole survivor with the Lord eliminated last. This is not a Spy team. Custom counts remain available.

@@ -110,8 +110,13 @@ export function botDecision(view,meId,q,used={}){
  }
  if(q.zone==='general'){
   const strength={sunquan:10,zhugeliang:9,zhenji:9,guojia:9,huangyueying:8,liubei:8,zhangliao:8,huatuo:8,caocao:8};
-  return pick([...options].sort((a,b)=>(strength[b.id]||5)-(strength[a.id]||5))[0].id);
+  return {ids:[...options].sort((a,b)=>(strength[b.id]||5)-(strength[a.id]||5)).slice(0,q.min||1).map(o=>o.id)};
  }
+ if(ctx.kind==='3v3-draft-order')return pick(me.role);
+ if(ctx.kind==='3v3-initiative')return pick(me.role);
+ if(ctx.kind==='3v3-unit'){const team=view.threeVThree?.teams[me.role],fronts=(team?.vanguardIds||[]).map(player).filter(p=>p?.alive&&!p.actedThisRound);return pick(ids.includes('vanguards')&&fronts.some(p=>p.handCount>=4)?'vanguards':ids[0]);}
+ if(ctx.kind==='3v3-vanguard-order')return pick([...options].sort((a,b)=>(player(b.id)?.handCount||0)-(player(a.id)?.handCount||0))[0].id);
+ if(ctx.kind==='3v3-spell-direction')return pick('counterclockwise');
  if(ctx.kind==='guhuo-challenge')return pick(enemy(player(ctx.actorId))>.4&&me.hp>=3?'challenge':'pass');
  if(ctx.kind==='collapse')return pick(me.hp<=2&&me.maxHp>me.hp?'maxhp':'hp');
  if(ctx.kind==='rescue')return pick(enemy(player(ctx.targetId))<-.4?cheapest(options.filter(o=>o.id!=='pass'))?.id||'pass':'pass');

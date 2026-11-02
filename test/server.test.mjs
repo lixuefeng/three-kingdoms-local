@@ -355,3 +355,22 @@ test('players and spectators can leave a finished review without resetting the m
  }
  assert.equal(room.host,nextHost.state.room.me);assert.equal((await req('state',undefined,nextHost.token)).data.game.winner,'lord');
 });
+test('Classic 3v3 host arranges commander seats, starts the draft, and cannot enable Maneuver',async t=>{
+ const {req,rooms}=await fixture(t);const host=(await req('create',{name:'Host'})).data,code=host.state.room.code;
+ const guest=(await req('join',{name:'Guest',code})).data;for(let i=0;i<4;i++)await req('bot',{},host.token);
+ assert.equal((await req('settings',{mode:'3v3'},host.token)).status,200);
+ const room=rooms.get(code),ids=room.players.map(p=>p.id);[ids[0],ids[1]]=[ids[1],ids[0]];
+ assert.equal((await req('classic-seats',{playerIds:ids},guest.token)).status,400);
+ assert.equal((await req('classic-seats',{playerIds:ids.slice(1)},host.token)).status,400);
+ assert.equal((await req('classic-seats',{playerIds:ids},host.token)).status,200);
+ assert.equal((await req('settings',{maneuver:true},host.token)).status,400);
+ const before=(await req('state',undefined,host.token)).data;assert.equal(before.room.totalCards,106);assert.ok(!before.cardGuide.some(c=>c.kind==='lightning'));
+ await req('ready',{ready:true},guest.token);assert.equal((await req('start',{},host.token)).status,200);
+ const own=(await req('state',undefined,host.token)).data;assert.equal(own.game.threeVThree.teams.red.commanderId,host.state.room.me);assert.equal(own.game.prompt.context.kind,'3v3-draft-order');
+ assert.equal(own.game.players[1].id,host.state.room.me);assert.equal(own.game.gameRules.killReward,3);
+ assert.equal((await req('classic-seats',{playerIds:ids},host.token)).status,400);
+ await req('answer',{promptId:own.game.prompt.id,ids:['red']},host.token);
+ const draft=(await req('state',undefined,host.token)).data.game.prompt;assert.equal(draft.context.kind,'3v3-draft');
+ assert.equal((await req('answer',{promptId:draft.id,ids:[draft.options[0].id]},guest.token)).status,400);
+ await req('abort',{},host.token);
+});

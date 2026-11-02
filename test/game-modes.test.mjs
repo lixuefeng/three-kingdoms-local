@@ -12,7 +12,7 @@ test('Double Spy preset is valid at every supported table size',()=>{
  for(let n=4;n<=8;n++){const counts=doubleSpyCounts(n);assert.equal(counts.spy,2);assert.deepEqual(validateRoleCounts(counts,n),counts);}
  assert.throws(()=>doubleSpyCounts(3));
 });
-for(const mode of ['2v2','3v3'])test(`${mode} starts with balanced public teams and simultaneous general selection`,async()=>{
+for(const mode of ['2v2'])test(`${mode} starts with balanced public teams and simultaneous general selection`,async()=>{
  const g=setup(mode);const started=g.start();await new Promise(r=>setImmediate(r));
  assert.equal(g.prompts.size,g.players.length);assert.ok([...g.prompts.values()].every(q=>q.zone==='general'));
  assert.equal(g.players.filter(p=>p.role==='red').length,g.players.length/2);
