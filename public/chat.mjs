@@ -3,10 +3,6 @@ export function createChat({send,onError}){
  const root=document.createElement('aside');root.className='room-chat';root.hidden=true;
  root.innerHTML='<button class="chat-resize" type="button" aria-label="Resize chat" title="Drag to resize chat. Arrow keys also resize.">↖</button><section id="chat-panel" class="chat-panel" aria-label="Room chat"><div class="chat-heading"><strong>Table chat</strong><small>Talk strategy · Talk trash</small><button type="button" class="chat-minimize" aria-label="Minimize chat" aria-expanded="true">−</button></div><p class="chat-channel"></p><div class="chat-messages" role="log" aria-label="Messages" aria-live="polite"></div><p class="chat-typing" role="status"></p><form class="chat-form"><label class="chat-recipient-label">To <select class="chat-recipient" aria-label="Chat recipient"><option value="">Table · @mention a bot to get a reply</option></select></label><div class="chat-compose"><input name="message" aria-label="Chat message" placeholder="Say something…" maxlength="500" autocomplete="off" required><button type="submit">Send</button></div></form></section>';
  document.body.append(root);
- const bubbleStyle=document.createElement('style');bubbleStyle.textContent=`
- .table-speech{position:fixed;z-index:85;box-sizing:border-box;width:max-content;max-width:min(250px,calc(100vw - 24px));padding:10px 13px;border:1px solid #c6ad7b;border-radius:13px;background:#fff8e9;color:#29241c;box-shadow:0 5px 20px #0005;pointer-events:none;font:14px/1.4 system-ui,sans-serif;overflow-wrap:anywhere;white-space:pre-wrap}
- .table-speech strong{display:block;font-size:11px;color:#795b30;margin-bottom:3px}.table-speech.anchored:after{content:'';position:absolute;bottom:-7px;left:var(--tail,50%);width:12px;height:12px;background:#fff8e9;border-right:1px solid #c6ad7b;border-bottom:1px solid #c6ad7b;transform:rotate(45deg)}
- `;document.head.append(bubbleStyle);
  const bubbles=new Map();let bubbleFrame=0,bubbleRoom=null,seenMessages=new Set();
  function clearBubbles(){for(const b of bubbles.values())b.node.remove();bubbles.clear();cancelAnimationFrame(bubbleFrame);bubbleFrame=0;}
  function positionBubbles(){
