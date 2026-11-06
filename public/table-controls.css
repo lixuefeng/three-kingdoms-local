@@ -35,3 +35,8 @@
 .general-selection-controls{flex:none;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 3px 3px;color:#fff0cb;font-size:12px}
 .general-selection-controls button{background:#f5edda;color:#294638;border:1px solid #c9b178;min-height:32px;padding:6px 13px}.general-selection-controls .primary{background:#efd18a;color:#283b2c}.general-selection-controls button:disabled{opacity:.5;cursor:default}
 @media(max-width:700px){.table-core:has(.center-generals){width:79%}.center-generals .general-grid{grid-template-columns:repeat(auto-fit,minmax(110px,135px));gap:7px}.table-core .center-generals>h2{font-size:15px!important}.center-generals>p{font-size:10px}.general-selection-controls{gap:5px;font-size:10px}}
+
+/* Selection and inspection are separate sibling buttons, including touch/keyboard. */
+.general-choice{position:relative;width:100%;max-width:160px;min-width:0;height:178px}
+.center-generals .general-choice-info{position:absolute;top:12px;right:12px;z-index:2;display:grid;place-items:center;width:28px;height:28px;min-height:28px;padding:0;border:1px solid #d5c18c;border-radius:50%;background:#211f1cf2;color:#fff2d4;font:20px/1 sans-serif;transform:none}
+.center-generals .general-choice-info:hover{background:#493e2c;color:#fff7e6;transform:none}
