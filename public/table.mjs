@@ -4,7 +4,9 @@ export const POSITIONS={
  5:[[50,85],[85,58],[72,15],[28,15],[15,58]],
  6:[[50,85],[85,66],[85,22],[50,15],[15,22],[15,66]],
  7:[[50,85],[85,70],[85,35],[68,15],[32,15],[15,35],[15,70]],
- 8:[[50,85],[86,73],[86,44],[86,15],[50,15],[14,15],[14,44],[14,73]]
+ 8:[[50,85],[86,73],[86,44],[86,15],[50,15],[14,15],[14,44],[14,73]],
+ 9:[[50,85],[90,83],[90,50],[90,17],[63,17],[37,17],[10,17],[10,50],[10,83]],
+ 10:[[50,85],[90,83],[90,50],[90,17],[70,17],[50,17],[30,17],[10,17],[10,50],[10,83]]
 };
 export function seatsFromViewer(players,viewerId){
  const mine=players.findIndex(p=>p.id===viewerId);
@@ -29,3 +31,6 @@ export function seatsFromLord(players){const start=Math.max(0,players.findIndex(
 
 // Opponents stay in seat order; the local player lives in the bottom dock.
 export function opponentsFromViewer(players,viewerId){return seatsFromViewer(players,viewerId).filter(s=>s.offset!==0);}
+
+// Fit the full portrait + equipment rail and name label within each perimeter cell.
+export const largeTableScale=(width,height)=>Math.max(.1,Math.min(1,(width*.2-12)/230,(height*.32-12)/240));

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {seatsFromViewer,nextLiving,timerState,POSITIONS} from '../public/table.mjs';
 import {Game} from '../engine.mjs';
 test('each viewer is at the bottom; counterclockwise seats retain original seat numbers',()=>{
- for(let n=4;n<=8;n++){
+ for(let n=4;n<=10;n++){
   const players=Array.from({length:n},(_,i)=>({id:'p'+i,alive:true}));
   for(let viewer=0;viewer<n;viewer++){
    const seats=seatsFromViewer(players,players[viewer].id);
@@ -33,5 +33,5 @@ test('expired decisions apply their fallback and clear public and private timers
 });
 test('Lord anchors the top seat while engine seat order and numbers stay unchanged',async()=>{const {seatsFromLord}=await import('../public/table.mjs');const players=Array.from({length:8},(_,i)=>({id:String(i),role:i===3?'lord':null}));const seats=seatsFromLord(players);assert.equal(seats[0].player.id,'3');assert.deepEqual(seats.map(s=>s.seat),[4,5,6,7,8,1,2,3]);assert.deepEqual(players.map(p=>p.id),['0','1','2','3','4','5','6','7']);});
 test('edge seating excludes the local dock player and preserves every opponent in order',async()=>{
- const {opponentsFromViewer}=await import('../public/table.mjs');for(let n=4;n<=8;n++){const players=Array.from({length:n},(_,i)=>({id:String(i)}));for(const p of players){const seats=opponentsFromViewer(players,p.id);assert.equal(seats.length,n-1);assert.ok(seats.every(s=>s.player.id!==p.id));assert.deepEqual(seats.map(s=>s.offset),Array.from({length:n-1},(_,i)=>i+1));assert.equal(new Set(seats.map(s=>s.player.id)).size,n-1);}}
+ const {opponentsFromViewer}=await import('../public/table.mjs');for(let n=4;n<=10;n++){const players=Array.from({length:n},(_,i)=>({id:String(i)}));for(const p of players){const seats=opponentsFromViewer(players,p.id);assert.equal(seats.length,n-1);assert.ok(seats.every(s=>s.player.id!==p.id));assert.deepEqual(seats.map(s=>s.offset),Array.from({length:n-1},(_,i)=>i+1));assert.equal(new Set(seats.map(s=>s.player.id)).size,n-1);}}
 });

@@ -1,5 +1,5 @@
 import {classicThree,classicRoster,CLASSIC_THREE_RULES} from './classic-three.mjs';
-import {isTeamMode,validateMode,validateModeSeats} from './game-modes.mjs';
+import {isTeamMode,validateMode,validateModeSeats,minimumGenerals,generalChoiceCount} from './game-modes.mjs';
 import {BOT_STRATEGIES} from './bot-strategy.mjs';
 import {actionSelections,atomicSkills} from './action-selections.mjs';
 import {BotKnowledge,tacticalFacts} from './bot-knowledge.mjs';
@@ -138,7 +138,8 @@ export class Game {
  async target(p,title,candidates,{optional=false}={}){const opts=candidates.map(x=>this.option(x));if(optional)opts.push({id:'cancel',label:'Cancel'});const [id]=await this.ask(p,title,opts,{fallback:optional?['cancel']:undefined});return candidates.find(x=>x.id===id);}
  async selectGenerals(){
   if(this.mode==='3v3')return this.selectClassicGenerals();
-  if(this.generalPool.length<3*this.players.length-(isTeamMode(this.mode)?0:2))throw new Error('Too many banned generals for three choices per player.');
+  if(this.generalPool.length<minimumGenerals(this.mode,this.players.length))throw new Error('Too many banned generals for general selection.');
+  const choiceCount=generalChoiceCount(this.mode,this.players.length,this.generalPool.length);
   const lord=this.players.find(p=>p.role==='lord'),reserved=this.testing?this.players.filter(p=>p.testGeneral).map(p=>p.testGeneral):[];
   if(new Set(reserved).size!==reserved.length||reserved.some(id=>!this.generalPool.some(g=>g.id===id)))throw new Error('Testing generals must be valid and unique.');
   const pool=shuffle(this.generalPool.filter(g=>!reserved.includes(g.id)));const preset=p=>this.testing&&p.testGeneral?this.generalPool.find(g=>g.id===p.testGeneral):null;
@@ -159,7 +160,7 @@ export class Game {
   if(preset(lord))pool.push(...guaranteed);
   assign(lord,chosen);pool.push(...lordCandidates.filter(g=>g!==chosen));this.changed();
   // Reserve disjoint candidate sets before opening concurrent private prompts.
-  const offers=this.players.filter(p=>p!==lord).map(p=>({p,candidates:preset(p)?[preset(p)]:pool.splice(0,3)}));
+  const offers=this.players.filter(p=>p!==lord).map(p=>({p,candidates:preset(p)?[preset(p)]:pool.splice(0,choiceCount)}));
   const results=await Promise.all(offers.map(async({p,candidates})=>({p,general:await choose(p,candidates)})));
   // Reveal the other generals together, after every selection is settled.
   if(this.stopped)throw new Finished();

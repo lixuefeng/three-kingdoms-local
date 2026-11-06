@@ -374,3 +374,17 @@ test('Classic 3v3 host arranges commander seats, starts the draft, and cannot en
  assert.equal((await req('answer',{promptId:draft.id,ids:[draft.options[0].id]},guest.token)).status,400);
  await req('abort',{},host.token);
 });
+
+test('identity accepts ten humans and bots, rejects an eleventh, and validates team capacity',async t=>{
+ const {req,rooms}=await fixture(t);const h=(await req('create',{name:'Host'})).data,code=h.state.room.code;
+ assert.equal(h.state.room.maxPlayers,10);
+ for(let i=1;i<9;i++)assert.equal((await req('join',{name:'Friend '+i,code})).status,200);
+ assert.equal((await req('bot',{},h.token)).status,200);
+ let view=(await req('state',undefined,h.token)).data;assert.equal(view.room.players.length,10);assert.equal(view.room.roleCounts.spy,2);assert.equal(view.room.minimumGenerals,19);
+ assert.equal((await req('join',{name:'Eleventh',code})).status,400);assert.equal((await req('bot',{},h.token)).status,400);
+ assert.equal((await req('settings',{mode:'3v3'},h.token)).status,400);assert.equal(rooms.get(code).mode||'identity','identity');
+ for(const p of view.room.players.slice(4))await req('kick',{id:p.id},h.token);
+ assert.equal((await req('settings',{mode:'2v2'},h.token)).status,200);
+ assert.equal((await req('join',{name:'Extra',code})).status,400);assert.equal((await req('bot',{},h.token)).status,400);
+ assert.equal((await req('settings',{mode:'identity'},h.token)).status,200);assert.equal((await req('join',{name:'Extra',code})).status,200);
+});

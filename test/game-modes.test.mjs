@@ -9,7 +9,7 @@ import {BotKnowledge} from '../bot-knowledge.mjs';
 import {matchReview} from '../results.mjs';
 function setup(mode){const n=mode==='3v3'?6:4;return new Game(Array.from({length:n},(_,i)=>({id:String(i),name:'P'+i})),{mode,botPacing:false,seconds:0,pause:async()=>{}});}
 test('Double Spy preset is valid at every supported table size',()=>{
- for(let n=4;n<=8;n++){const counts=doubleSpyCounts(n);assert.equal(counts.spy,2);assert.deepEqual(validateRoleCounts(counts,n),counts);}
+ for(let n=4;n<=10;n++){const counts=doubleSpyCounts(n);assert.equal(counts.spy,2);assert.deepEqual(validateRoleCounts(counts,n),counts);}
  assert.throws(()=>doubleSpyCounts(3));
 });
 for(const mode of ['2v2'])test(`${mode} starts with balanced public teams and simultaneous general selection`,async()=>{

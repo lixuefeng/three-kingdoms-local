@@ -28,7 +28,7 @@ Keep `SGS_DATA_DIR` outside releases. It stores private profiles, results, match
 
 ## Features
 
-- Four identity roles, four to eight players, simultaneous non-Lord selection.
+- Four identity roles, four to ten players, simultaneous non-Lord selection.
 - 25 standard and 19 selected classic expansion generals; bans and expansion cards configurable separately.
 - Direct card/target selection, equipment/judgment zones, timers, animations, synthesized audio and optional speech.
 - Spectating, resizable chat, testing tools and persistent profile-based leaderboards.
@@ -146,3 +146,5 @@ Borrowed Sword now announces the caster, weapon holder, and intended Attack vict
 In the lobby, **2v2** remains a four-seat public team-elimination mode. **3v3** now uses classic commander rules: grouped seats, a shared 16-general draft, private deployment, commander +1 HP, linked vanguard turns, round action markers, commander-kill victory, and three-card kill rewards. The host arranges the six seats before starting. The 106-card standard deck excludes Lightning; Lord skills and Maneuver are disabled. Group spells allow either resolution direction. See [Classic 3v3 rules and supported roster](CLASSIC-3V3.md) for the exact edition and project-specific boundaries. Completed non-testing matches count for registered human profiles.
 
 For identity games, **Double Spy** applies a valid two-Spy composition in one click. Each Spy must independently be the sole survivor with the Lord eliminated last. This is not a Spy team. Custom counts remain available.
+
+Nine-player defaults: 1 Lord, 3 Loyalists, 4 Rebels, 1 Spy. Ten-player defaults: 1 Lord, 3 Loyalists, 4 Rebels, 2 Spies. Custom role counts remain available. Ten-player identity offers two unique general choices per non-Lord when fewer than 28 unbanned generals are available, or three with a larger pool. The Lord still chooses first from all enabled, unbanned Lord generals plus random candidates. Team modes remain fixed at four or six seats.
