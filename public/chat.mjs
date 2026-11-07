@@ -1,8 +1,8 @@
 import {overlayBounds,fitOverlay} from './table.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function createChat({send,onError}){
+export function createChat({send,onError,closeMobile}){
  const root=document.createElement('aside');root.className='room-chat';root.hidden=true;
- root.innerHTML='<button class="chat-resize" type="button" aria-label="Resize chat" title="Drag to resize chat. Arrow keys also resize.">↖</button><section id="chat-panel" class="chat-panel" aria-label="Room chat"><div class="chat-heading"><strong>Table chat</strong><small>Talk strategy · Talk trash</small><button type="button" class="chat-minimize" aria-label="Minimize chat" aria-expanded="true">−</button></div><p class="chat-channel"></p><div class="chat-messages" role="log" aria-label="Messages" aria-live="polite"></div><p class="chat-typing" role="status"></p><form class="chat-form"><label class="chat-recipient-label">To <select class="chat-recipient" aria-label="Chat recipient"><option value="">Table · @mention a bot to get a reply</option></select></label><div class="chat-compose"><input name="message" aria-label="Chat message" placeholder="Say something…" maxlength="500" autocomplete="off" required><button type="submit">Send</button></div></form></section>';
+ root.innerHTML='<button class="chat-resize" type="button" aria-label="Resize chat" title="Drag to resize chat. Arrow keys also resize.">↖</button><section id="chat-panel" class="chat-panel" aria-label="Room chat"><div class="chat-heading"><strong>Table chat</strong><small>Talk strategy · Talk trash</small><button type="button" class="chat-minimize" aria-label="Minimize chat" aria-expanded="true">−</button><button type="button" class="chat-sheet-close" hidden>Close</button></div><p class="chat-channel"></p><div class="chat-messages" role="log" aria-label="Messages" aria-live="polite"></div><p class="chat-typing" role="status"></p><form class="chat-form"><label class="chat-recipient-label">To <select class="chat-recipient" aria-label="Chat recipient"><option value="">Table · @mention a bot to get a reply</option></select></label><div class="chat-compose"><input name="message" aria-label="Chat message" placeholder="Say something…" maxlength="500" autocomplete="off" required><button type="submit">Send</button></div></form></section>';
  document.body.append(root);
  const bubbles=new Map();let bubbleFrame=0,bubbleRoom=null,seenMessages=new Set();
  function clearBubbles(){for(const b of bubbles.values())b.node.remove();bubbles.clear();cancelAnimationFrame(bubbleFrame);bubbleFrame=0;}
@@ -45,10 +45,20 @@ export function createChat({send,onError}){
   if(bubbles.size&&!bubbleFrame)bubbleFrame=requestAnimationFrame(positionBubbles);
  }
 
- let minimized=localStorage.getItem('sgs-chat-minimized')==='1';
- const minimize=root.querySelector('.chat-minimize');
- function setMinimized(value){minimized=value;root.classList.toggle('chat-minimized',value);minimize.textContent=value?'+':'−';minimize.setAttribute('aria-label',value?'Expand chat':'Minimize chat');minimize.setAttribute('aria-expanded',String(!value));for(const el of root.querySelectorAll('.chat-channel,.chat-messages,.chat-typing,.chat-form,.chat-resize'))el.hidden=value;try{localStorage.setItem('sgs-chat-minimized',value?'1':'0');}catch{}}
- minimize.addEventListener('click',()=>setMinimized(!minimized));setMinimized(minimized);
+ let minimized=localStorage.getItem('sgs-chat-minimized')==='1',chatState=null;
+ const minimize=root.querySelector('.chat-minimize'),close=root.querySelector('.chat-sheet-close');
+ const lobbyMedia=matchMedia('(max-width: 760px)'),gameMedia=matchMedia('(max-width: 600px) and (orientation: portrait)');
+ function syncPresentation(){
+  const sheet=!!chatState&&(chatState.game?gameMedia.matches:lobbyMedia.matches);
+  const collapsed=!sheet&&minimized;
+  root.classList.toggle('chat-sheet',sheet);root.classList.toggle('chat-minimized',collapsed);
+  minimize.hidden=sheet;close.hidden=!sheet;
+  minimize.textContent=collapsed?'+':'−';minimize.setAttribute('aria-label',collapsed?'Expand chat':'Minimize chat');minimize.setAttribute('aria-expanded',String(!collapsed));
+  for(const el of root.querySelectorAll('.chat-channel,.chat-messages,.chat-typing,.chat-form,.chat-resize'))el.hidden=collapsed||(sheet&&el.classList.contains('chat-resize'));
+ }
+ minimize.addEventListener('click',()=>{minimized=!minimized;try{localStorage.setItem('sgs-chat-minimized',minimized?'1':'0');}catch{}syncPresentation();});
+ close.addEventListener('click',()=>closeMobile?.());
+ lobbyMedia.addEventListener('change',syncPresentation);gameMedia.addEventListener('change',syncPresentation);syncPresentation();
  const log=root.querySelector('.chat-messages'),input=root.querySelector('input'),recipient=root.querySelector('select'),form=root.querySelector('form');let key=null,signature=null,botSignature='',sending=false;
  root.addEventListener('keydown',e=>e.stopPropagation());
  const grip=root.querySelector('.chat-resize'),panel=root.querySelector('.chat-panel');
@@ -66,9 +76,22 @@ export function createChat({send,onError}){
  grip.addEventListener('pointerup',save);grip.addEventListener('pointercancel',save);
  grip.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const rect=panel.getBoundingClientRect();resize(rect.width+(e.key==='ArrowLeft'?20:e.key==='ArrowRight'?-20:0),rect.height+(e.key==='ArrowUp'?20:e.key==='ArrowDown'?-20:0));try{localStorage.setItem('sgs-chat-size',JSON.stringify(size));}catch{}});
  window.addEventListener('resize',()=>{if(size)resize(size.width,size.height);});
+ // Keep the composer above the software keyboard without moving the table.
+ function positionSheet(){
+  const v=window.visualViewport;
+  if(!v||document.activeElement!==input){root.style.removeProperty('--chat-sheet-top');root.style.removeProperty('--chat-sheet-height');return;}
+  const height=Math.min(v.height,Math.max(175,v.height/2));
+  root.style.setProperty('--chat-sheet-top',(v.offsetTop+v.height-height)+'px');
+  root.style.setProperty('--chat-sheet-height',height+'px');
+ }
+ window.visualViewport?.addEventListener('resize',positionSheet);
+ window.visualViewport?.addEventListener('scroll',positionSheet);
+ input.addEventListener('focus',positionSheet);input.addEventListener('blur',positionSheet);
+
 
  form.addEventListener('submit',async e=>{e.preventDefault();const value=input.value.trim();if(!value||sending)return;sending=true;form.querySelector('button').disabled=true;try{const result=await send(value,recipient.value||null);if(input.value.trim()===value)input.value='';if(result?.notice)onError(result.notice);}catch(e){onError(e.message);}finally{sending=false;form.querySelector('button').disabled=false;input.focus();}});
  return state=>{
+  chatState=state;syncPresentation();
   root.hidden=!state;document.body.classList.toggle('has-room-chat',!!state);if(!state){key=null;updateBubbles(null,[]);return;}
   const chat=state.chat||{channel:'room',messages:[],bots:[]},nextKey=state.room.code+':'+state.room.me+':'+chat.channel;
   updateBubbles(state,chat.messages);
