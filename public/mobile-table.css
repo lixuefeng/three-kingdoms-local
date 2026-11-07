@@ -201,7 +201,7 @@ body.mobile-game.in-game,body.mobile-game.in-game #app{height:100svh;overflow:hi
 
 /* Keep compact card typography and action lines at their declared sizes on iOS. */
 body.mobile-game{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-.selection-lord{flex:none;margin:0 0 4px;padding:4px 7px;border-radius:5px;color:#ffe2a1;background:#19382e;font-size:12px;overflow-wrap:anywhere}
+.selection-lord{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;margin:0 0 4px;padding:4px 7px;border-radius:5px;color:#ffe2a1;background:#19382e;font-size:12px;overflow-wrap:anywhere}
 .hp-fraction{font:11px system-ui,sans-serif;margin-left:4px;white-space:nowrap}
 .mobile-game .mobile-ring .current-action-events{line-height:1.45;max-height:54px}
 .mobile-game .mobile-ring .current-action-events>div{padding:2px 0;overflow-wrap:anywhere}
@@ -219,3 +219,6 @@ body.mobile-game{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mobile-game .mobile-ring .center-card-entry .played-card .card-illustration{min-height:0!important;max-height:22px;margin:0!important}
 .mobile-game .mobile-ring .center-card-entry .played-card .card-type{font-size:8px!important;line-height:10px!important;position:static!important;margin:0!important}
 .mobile-game .mobile-ring .center-card-entry .card-info-icon{top:auto!important;bottom:3px!important;right:3px!important;width:16px!important;min-width:16px!important;height:16px!important;min-height:16px!important;font-size:10px!important}
+
+.selection-lord small{color:#e6d8b8}
+.selection-lord button{color:inherit;padding:2px 8px}
