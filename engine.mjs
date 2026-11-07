@@ -260,7 +260,8 @@ export class Game {
  }
  async sharedResponses(kind,title,optionsFor,context){
   if(this.stopped||this.winner)throw new Finished();
-  const windowMs=this.autoResponseWindow&&this.llmProvider?.enabled&&this.alive().some(p=>(p.bot||p.takeover)&&p.botMode==='llm')?Math.max(15000,this.responseWindowMs):this.responseWindowMs;
+  const longerWindow=kind==='rescue'||(this.llmProvider?.enabled&&this.alive().some(p=>(p.bot||p.takeover)&&p.botMode==='llm'));
+  const windowMs=this.autoResponseWindow&&longerWindow?Math.max(15000,this.responseWindowMs):this.responseWindowMs;
   const people=this.order(),startedAt=Date.now(),deadline=startedAt+windowMs,responses=new Map(),ids=new Map(),bots=[];
   let finishEarly=()=>{};
   this.responseWindow={kind,title,startedAt,deadline};

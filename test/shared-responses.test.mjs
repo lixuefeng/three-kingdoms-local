@@ -58,3 +58,25 @@ test('passing a counter does not suppress a later counter or set an original-spe
  await new Promise(r=>setImmediate(r));q=g.prompts.get(a.id);assert.ok(q);assert.equal(q.context.negationDepth,2);assert.equal(g.view(a.id).negationPassed,false);g.answer(a.id,q.id,['a-negation']);
  assert.equal(await run,true);assert.equal(g.discard.filter(c=>c.kind==='negate').length,3);
 });
+
+test('Pang Tong can privately rescue a dying Lord with either Peach during the full human response window',async()=>{
+ const {decisionInfo}=await import('../public/interaction.mjs');
+ const g=new Game(Array.from({length:6},(_,i)=>({id:String(i),name:'P'+i})),{expandedGenerals:true,seconds:30});
+ const [lord,pang,attacker,observer]=g.players;
+ g.players.forEach((p,i)=>{p.role=i?'rebel':'lord';p.general=g.generalPool.find(x=>x.id==='zhangfei');});
+ lord.general=g.generalPool.find(x=>x.id==='menghuo');lord.hp=1;
+ pang.general=g.generalPool.find(x=>x.id==='pangtong');pang.role='spy';
+ pang.hand=[{id:'peach-one',kind:'tao',suit:'♥',rank:3},{id:'peach-two',kind:'tao',suit:'♥',rank:4}];
+ g.current=attacker;g.beginAction('Attack');g.negationPassTurn.set(pang.id,g.turn);
+ const run=g.damage(attacker,lord,1,{kind:'sha'});
+ try{
+  await new Promise(resolve=>setImmediate(resolve));
+  const own=g.view(pang.id),publicView=g.view(observer.id),q=own.prompt;
+  assert.equal(lord.hp,0);assert.equal(q?.context.kind,'rescue');assert.equal(q.context.targetId,lord.id);
+  assert.equal(q.deadline-q.startedAt,15000);assert.deepEqual(q.options.map(o=>o.id),['peach-one','peach-two','pass']);
+  assert.match(decisionInfo(own,pang.id).title,/Rescue Meng Huo/);assert.equal(decisionInfo(own,pang.id).urgent,true);
+  assert.equal(publicView.prompt,null);assert.equal(publicView.responseWindow.deadline,q.deadline);assert.equal(decisionInfo(publicView,observer.id).urgent,false);
+  g.answer(pang.id,q.id,['peach-two']);await run;
+  assert.equal(lord.hp,1);assert.equal(lord.alive,true);assert.equal(g.winner,null);assert.deepEqual(pang.hand.map(c=>c.id),['peach-one']);assert.equal(g.responseWindow,null);
+ }finally{g.stop();await run.catch(()=>{});}
+});

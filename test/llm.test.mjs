@@ -160,7 +160,7 @@ test('LLM shared windows use a uniform 15 seconds regardless of response-card ow
   assert.equal(deadline,15000);g.botAnswer=original;
  }
  const g=game();g.botPacing=false;g.players.forEach(p=>p.botMode='classic');g.llmProvider={enabled:true};let deadline;g.botAnswer=(p,q,defaults)=>{deadline=q.deadline-q.startedAt;return defaults;};
- await g.sharedResponses('rescue','Rescue?',p=>p.id==='a'?[{id:'tao'},{id:'pass'}]:[{id:'pass'}],{kind:'rescue'});assert.equal(deadline,5000);
+ await g.sharedResponses('negation','Negation?',p=>p.id==='a'?[{id:'negate'},{id:'pass'}]:[{id:'pass'}],{kind:'negation'});assert.equal(deadline,5000);
 });
 
 test('Claude has independent reasoning budget and Haiku adaptive controls, preserving other models',async()=>{

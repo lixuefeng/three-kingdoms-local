@@ -40,3 +40,5 @@
 .general-choice{position:relative;width:100%;max-width:160px;min-width:0;height:178px}
 .center-generals .general-choice-info{position:absolute;top:12px;right:12px;z-index:2;display:grid;place-items:center;width:28px;height:28px;min-height:28px;padding:0;border:1px solid #d5c18c;border-radius:50%;background:#211f1cf2;color:#fff2d4;font:20px/1 sans-serif;transform:none}
 .center-generals .general-choice-info:hover{background:#493e2c;color:#fff7e6;transform:none}
+
+.hand-status.rescue-action .action-copy>strong{color:#ffd18b;text-shadow:0 0 12px #e9a84b55}

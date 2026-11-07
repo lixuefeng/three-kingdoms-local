@@ -9,6 +9,8 @@ export function starAnswer(draft){return [...draft.top,'bottom',...draft.bottom]
 
 // Only data already visible to this viewer is used for decision feedback.
 export function decisionInfo(game,viewerId){
+ const rescue=game.prompt?.context?.kind==='rescue'?game.prompt:null;
+ if(rescue){const target=game.players.find(p=>p.id===rescue.context.targetId);return {urgent:true,title:`Rescue ${target?.general?.name||target?.name||'dying player'}?`,detail:'Choose a highlighted rescue card, then Confirm, or Pass.',decision:rescue};}
  if(game.responseWindow)return {urgent:false,title:game.responseWindow.title,detail:'Everyone has the same response window. Passing is private.',decision:game.responseWindow};
  const decision=(game.decisions||[]).find(d=>d.playerId===viewerId)||game.decision;
  const q=game.prompt,actor=game.players.find(p=>p.id===decision?.playerId),action=decision?.action;
