@@ -42,3 +42,8 @@
 .center-generals .general-choice-info:hover{background:#493e2c;color:#fff7e6;transform:none}
 
 .hand-status.rescue-action .action-copy>strong{color:#ffd18b;text-shadow:0 0 12px #e9a84b55}
+
+/* Number the two legs so the ordered targets are distinct from the actual attack. */
+.battle-effect.forced-route .effect-label{font-size:15px;padding:5px 9px}
+.battle-effect.route-step-2 .effect-path{stroke:#ffcc7d;filter:drop-shadow(0 0 5px #ffcc7d)}
+@media(prefers-reduced-motion:reduce){.battle-effect.forced-route .effect-path{display:block!important;animation:none!important;stroke-dashoffset:0}}

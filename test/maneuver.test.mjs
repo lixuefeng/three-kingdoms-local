@@ -43,7 +43,7 @@ test('Borrowed Sword exposes ordered targets before Negation and throughout the 
   if(q.context?.kind==='negation'){
    checkedNegation=true;assert.match(q.title,/Zhang Fei must Attack Zhao Yun/);
    const action=g.logs.find(l=>l.eventType==='action'&&l.cardKind==='borrow');assert.match(action.message,/Cao Cao.*Zhang Fei.*Zhao Yun/);
-   assert.ok(g.effects.some(e=>e.sourceId===holder.id&&e.targetId===victim.id&&e.label==='Borrowed Sword'));
+   assert.deepEqual(g.effects.filter(e=>e.label==='Borrowed Sword'&&e.routeStep).map(e=>[e.sourceId,e.targetId,e.routeStep]),[[caster.id,holder.id,1],[holder.id,victim.id,2]]);
    return ['pass'];
   }
   if(q.context?.kind==='borrow-response'){

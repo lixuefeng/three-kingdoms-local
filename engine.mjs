@@ -23,7 +23,11 @@ export class Game {
   this.botKnowledge=new Map(this.players.map(p=>[p.id,new BotKnowledge(p.id)]));
   this.stats=Object.fromEntries(players.map(p=>[p.id,{kills:0,damage:0,damageTaken:0}]));this.eliminations=[];this.matchId=randomUUID();this.responseWindowMs=responseWindowMs??5000;this.autoResponseWindow=responseWindowMs==null;this.responseWindow=null;this.cancelResponseWindow=null;this.pause=pause||(ask?async()=>{}:ms=>new Promise(resolve=>setTimeout(resolve,ms)));this.discardReview=null;this.testing=!!testing;this.expandedGenerals=!!expandedGenerals;this.bannedGenerals=new Set(bannedGenerals);this.generalPool=(mode==='3v3'?classicRoster(this.expandedGenerals):this.expandedGenerals?ALL_GENERALS:GENERALS).filter(g=>!this.bannedGenerals.has(g.id));this.pindianState=null;this.bluffState=null;this.negationPassTurn=new Map();this.askAdapter=ask;this.onChange=onChange;this.seconds=seconds;this.maneuver=mode==='3v3'?false:!!maneuver;this.deck=(seedDeck||shuffle(makeDeck({maneuver:this.maneuver}))).filter(c=>mode!=='3v3'||c.kind!=='lightning');this.totalCards=this.deck.length;this.discard=[];this.table=[];this.reserved=[];this.logs=[];this.effects=[];this.judgments=[];this.recentCards=[];this.actionHistory=[];this.actionGroup=null;this.movements=[];this.current=null;this.phase='General Selection';this.winner=null;this.turn=0;this.used={};this.prompts=new Map();this.plannedPlays=new Map();this.decision=null;this.decisions=new Map();this.stopped=false;
  }
- effect(source,target,kind,label,amount,nature,detail){this.effects.push({id:randomUUID(),sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,groupId:this.actionGroup?.id,...(detail?{detail}: {})});this.effects=this.effects.slice(-32);this.remember({type:'effect',sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,...(detail?{detail}:{})});this.changed();}
+ effect(source,target,kind,label,amount,nature,detail,routeStep){this.effects.push({id:randomUUID(),sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,groupId:this.actionGroup?.id,...(detail?{detail}: {}),...(routeStep?{routeStep}:{})});this.effects=this.effects.slice(-32);this.remember({type:'effect',sourceId:source?.id||null,targetId:target?.id||null,kind,label,amount,nature,...(detail?{detail}:{}),...(routeStep?{routeStep}:{})});this.changed();}
+ forcedTargetEffects(actor,source,target,kind,label,secondLabel){
+  this.effect(actor,source,kind,label,undefined,undefined,undefined,1);
+  this.effect(source,target,kind,label,undefined,undefined,secondLabel,2);
+ }
  trigger(p,name,result){this.effect(p,p,'trigger',name,undefined,undefined,result);this.log(`${p.name} · ${name}${result?' · '+result:''}`,{eventType:'trigger',actorId:p.id,actorName:p.name,skill:name});}
  log(message,details={}){this.logs.push({...details,id:randomUUID(),message,displayMessage:eventText(message,this.players),turn:this.turn,turnPlayerId:this.current?.id||null,turnGeneral:this.current?generalName(this.current):null,groupId:this.actionGroup?.id||null,groupLabel:this.actionGroup?.label||null});this.logs=this.logs.slice(-2000);this.remember({type:'log',...this.logs.at(-1),text:eventText(message,this.players)});this.changed();}
  remember(event){const e={turn:this.turn,turnPlayerId:this.current?.id||null,actionLabel:this.actionGroup?.label,phase:this.phase,groupId:this.actionGroup?.id,...event};this.onEvent(e);for(const knowledge of this.botKnowledge?.values()||[])knowledge.consume(e);}
@@ -461,8 +465,7 @@ export class Game {
    const t=targets[0],order=`${generalName(t)} must Attack ${generalName(victim)}`;
    const context={kind:'borrow-response',sourceId:p.id,attackerId:t.id,targetId:victim.id};
    this.actionGroup.borrowedSword={sourceId:p.id,attackerId:t.id,targetId:victim.id};
-   this.effect(p,t,'spell','Borrowed Sword',undefined,undefined,order);
-   this.effect(t,victim,'spell','Borrowed Sword',undefined,undefined,'Required Attack target');
+   this.forcedTargetEffects(p,t,victim,'spell','Borrowed Sword','Attack target');
    if(!await this.negate(t,`Borrowed Sword: ${order}`)){
     const next=await this.requestCard(t,'sha',`Borrowed Sword: Attack ${generalName(victim)} or surrender your weapon to ${generalName(p)}`,{target:victim,passLabel:`Surrender weapon to ${generalName(p)}`,context});
     if(next){await this.sha(t,victim,next);this.finishCards(next.cards);}else if(t.equip.weapon)await this.remove(t,t.equip.weapon,p.hand);
