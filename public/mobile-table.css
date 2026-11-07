@@ -1,8 +1,10 @@
+/* Use the small viewport so expanding browser bars cannot resize the table. */
+body.mobile-game.in-game,body.mobile-game.in-game #app{height:100svh;overflow:hidden;overscroll-behavior:none}
 /* Portrait play uses the viewport as the table; only dense local panels can scroll. */
 .mobile-game.in-game .game-shell{
- display:flex;flex-direction:column;gap:5px;
- padding:max(4px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))!important;
- --mobile-card-height:clamp(63px,12dvh,103px);height:100dvh!important
+ display:flex;flex-direction:column;gap:clamp(3px,.65svh,5px);container:mobile-table / size;
+ padding:max(4px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))!important;
+ --mobile-card-height:clamp(63px,12svh,103px);height:100svh!important
 }
 .mobile-game.in-game .game-toolbar.compact-toolbar{position:relative;inset:auto;flex:none;gap:3px;min-height:0;padding:2px 0}
 .mobile-game .compact-toolbar .table-meta{flex:1 1 auto;gap:4px}
@@ -128,8 +130,8 @@
 .mobile-game .mobile-action-row .hand-buttons{flex:1;min-width:0}
 .mobile-game:not(.mobile-chat-open) .room-chat{display:none!important}
 .mobile-game .room-chat{bottom:max(8px,env(safe-area-inset-bottom))}
-.mobile-game .connection-status{position:relative;inset:auto;flex:none;padding:2px;font-size:10px}
-.mobile-game #general-inspector.mobile-general-card{width:min(calc(100vw - 14px),440px);max-width:none;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 18px);margin:auto;overflow:auto;padding:12px}
+.mobile-game .connection-status{position:absolute;top:var(--toolbar-height,42px);left:8px;right:8px;bottom:auto;pointer-events:none;padding:2px;font-size:10px}
+.mobile-game #general-inspector.mobile-general-card{width:min(calc(100vw - 14px),440px);max-width:none;max-height:calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 18px);margin:auto;overflow:auto;padding:12px}
 .mobile-game #general-inspector.mobile-general-card[open]{display:block}
 .mobile-general-card .inspector-portrait{max-height:108px;overflow:hidden}
 .mobile-general-card .inspector-copy{padding:0!important}
@@ -142,8 +144,7 @@
 .mobile-detail-gear dd{margin:0;font-size:12px}
 .mobile-detail-card{padding:3px 5px;font-size:12px;white-space:normal}
 .mobile-detail-judges{display:flex;flex-wrap:wrap;gap:4px;font-size:12px}
-@media(max-height:720px){
- .mobile-game.in-game .game-shell{gap:3px}
+@container mobile-table (max-height:720px){
  .mobile-game .mobile-roster{gap:3px}
  .mobile-game .mobile-seat .mobile-seat-main{min-height:38px}
  .mobile-game .mobile-self .mobile-seat-main{min-height:28px}

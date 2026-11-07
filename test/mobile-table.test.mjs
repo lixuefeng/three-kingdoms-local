@@ -54,3 +54,38 @@ test('compact tiles inspect by default and preserve an independent inspector whi
  const own=f.run('mobilePlayer(p,{seat:1,self:true,renderRail:items=>items[0].c.name})');
  assert.match(own,/Your equipment[\s\S]*Sword/);assert.match(own,/Your judgments[\s\S]*Acedia[\s\S]*Lightning/);
 });
+
+test('mobile snapshot preserves the card and timer nodes when a receipt disappears',()=>{
+ const start=source.indexOf('function mobileNodeKey(');
+ const end=source.indexOf('function placeGameControls(',start);
+ const context=vm.createContext({});
+ vm.runInContext(source.slice(start,end),context);
+ class Element {
+  constructor(tag,attrs={},children=[]){this.nodeType=1;this.nodeName=this.tagName=tag;this.attrs={...attrs};this.childNodes=children;for(const child of children)child.parent=this;}
+  get classList(){const classes=(this.attrs.class||'').split(/\s+/).filter(Boolean);return Object.assign(classes,{contains:name=>classes.includes(name)});}
+  get attributes(){return Object.entries(this.attrs).map(([name,value])=>({name,value}));}
+  get firstChild(){return this.childNodes[0]||null;}
+  get nextSibling(){return this.parent?.childNodes[this.parent.childNodes.indexOf(this)+1]||null;}
+  hasAttribute(name){return Object.hasOwn(this.attrs,name);}
+  getAttribute(name){return this.attrs[name]??null;}
+  setAttribute(name,value){this.attrs[name]=value;}
+  removeAttribute(name){delete this.attrs[name];}
+  isEqualNode(other){return this.nodeName===other.nodeName&&JSON.stringify(this.attrs)===JSON.stringify(other.attrs)&&this.childNodes.length===other.childNodes.length&&this.childNodes.every((child,i)=>child.isEqualNode(other.childNodes[i]));}
+  remove(){if(!this.parent)return;this.parent.childNodes.splice(this.parent.childNodes.indexOf(this),1);this.parent=null;}
+  insertBefore(node,before){node.remove();const i=before?this.childNodes.indexOf(before):this.childNodes.length;this.childNodes.splice(i,0,node);node.parent=this;}
+ }
+ const card=new Element('BUTTON',{'data-card':'c1',class:'card'});
+ const clock=new Element('PROGRESS',{'data-deadline':'15000',value:'.7',class:'urgent'});
+ const dock=new Element('SECTION',{class:'play-dock'},[card,clock]);
+ context.live=new Element('MAIN',{},[new Element('DIV',{class:'connection-status'}),dock]);
+ context.next=new Element('MAIN',{},[new Element('SECTION',{class:'play-dock'},[
+  new Element('BUTTON',{'data-card':'c1',class:'card selected'}),
+  new Element('PROGRESS',{'data-deadline':'15000',value:'1'})
+ ])]);
+ vm.runInContext('patchMobileChildren(live,next)',context);
+ assert.deepEqual(context.live.childNodes,[dock]);
+ assert.deepEqual(dock.childNodes,[card,clock]);
+ assert.equal(card.getAttribute('class'),'card selected');
+ assert.equal(clock.getAttribute('value'),'.7');
+ assert.equal(clock.getAttribute('class'),'urgent');
+});
