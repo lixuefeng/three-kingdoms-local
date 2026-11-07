@@ -1,0 +1,159 @@
+/* Portrait play uses the viewport as the table; only dense local panels can scroll. */
+.mobile-game.in-game .game-shell{
+ display:flex;flex-direction:column;gap:5px;
+ padding:max(4px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))!important;
+ --mobile-card-height:clamp(63px,12dvh,103px);height:100dvh!important
+}
+.mobile-game.in-game .game-toolbar.compact-toolbar{position:relative;inset:auto;flex:none;gap:3px;min-height:0;padding:2px 0}
+.mobile-game .compact-toolbar .table-meta{flex:1 1 auto;gap:4px}
+.mobile-game .compact-toolbar .turn-label{max-width:none;line-height:1.15}
+.mobile-game .remaining-roles{display:none}
+.mobile-game .toolbar-menus{margin-left:auto;gap:3px}
+.mobile-game .toolbar-menu>div{max-width:calc(100vw - 20px)}
+.mobile-game.in-game .game-layout{position:relative;inset:auto;flex:1 1 0;min-height:0!important}
+.mobile-game .table-viewport{overflow:hidden!important}
+.mobile-game .mobile-ring{position:absolute;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:5px;width:100%;height:100%;min-width:0;min-height:0}
+.mobile-game .mobile-ring:not(:has(.mobile-roster)){grid-template-rows:minmax(0,1fr)}
+.mobile-game .mobile-ring:before{display:none}
+.mobile-roster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;align-content:start}
+.mobile-seat{position:relative;min-width:0;border:1px solid #9e8c644f;border-radius:7px;background:#203e32;color:#faedce}
+.mobile-seat-row{display:flex;min-width:0}
+.mobile-seat .mobile-seat-main{flex:1;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto auto;align-items:center;gap:3px;min-width:0;min-height:43px;padding:2px 4px;text-align:left;border:0;background:none;color:inherit;transform:none}
+.mobile-seat .mobile-seat-main:hover{background:#ffffff0e}
+.mobile-seat-number{display:grid;place-items:center;background:#d5ad69;color:#302416;border-radius:4px;font-size:10px;min-height:15px}
+.mobile-seat-names{min-width:0;line-height:1.15}
+.mobile-seat-names strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;font-size:11px}
+.mobile-seat-names small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#c7d3bb;font-size:10px;margin-top:2px}
+.mobile-seat-stats,.mobile-judge-count{display:grid;grid-template-rows:repeat(2,13px);font-size:10px;line-height:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mobile-seat-stats{color:#efdeb8}
+.mobile-gear-grid{display:grid;grid-template-columns:repeat(2,13px);gap:1px;font-size:10px;line-height:12px}
+.mobile-gear-grid>span{text-align:center;background:#172e25;color:#a5b4a5;border-radius:2px}
+.mobile-gear-grid>span.filled{background:#725a34;color:#fff2cb}
+.mobile-judge-count{text-align:center;min-width:11px;color:#9eaf9f}
+.mobile-judge-count.filled{color:#ffdb92}
+.mobile-current{border-color:#f1ce83;box-shadow:inset 0 1px #f1ce83}
+.mobile-deciding{border-color:#91dcd4}
+.mobile-out{opacity:.62}
+.mobile-targetable{outline:1px solid #a1cc9a}
+.mobile-picked{outline:2px solid #f4cf81}
+.mobile-target-order{position:absolute;top:0;right:1px;color:#261d10;background:#f4cf81;border-radius:4px;font-size:10px;padding:0 3px;pointer-events:none}
+.mobile-seat .mobile-inspect{width:24px;flex:none;padding:0;background:#294c3e;color:#f4dfb1;border-color:#aa936550;border-radius:0 6px 6px 0}
+.mobile-game .mobile-ring .table-core{
+ position:relative;inset:auto;transform:none;width:100%;height:auto;max-height:none;min-height:0;max-width:none;
+ display:flex;flex-direction:column;justify-content:safe center;gap:4px;padding:4px;
+ background:#16362b;border:1px solid #bcaa714a;border-radius:8px;overflow:auto;pointer-events:auto;
+ scrollbar-width:none;overscroll-behavior:contain
+}
+.mobile-game .mobile-ring .table-core:has(.center-generals),.mobile-game .mobile-ring .table-core:has(.star-backdrop){justify-content:flex-start}
+.mobile-game .mobile-ring .table-core>.public-decision,.mobile-game .mobile-ring .table-core>.between-actions{display:none}
+.mobile-game .mobile-ring .table-core .table-turn{display:block;margin:0;font-size:12px}
+.mobile-game .mobile-ring .table-core .table-turn>span{font-size:10px}
+.mobile-game .mobile-ring .current-action{flex:none;margin:0 auto;width:100%;padding:0 3px}
+.mobile-game .mobile-ring .current-action h3{font-size:12px;line-height:1.2;margin:0}
+.mobile-game .mobile-ring .current-action-events{max-height:37px;font-size:10px;line-height:1.2;scrollbar-width:none}
+.mobile-game .mobile-ring .table-cards:not(:empty){flex:none;min-height:0;padding:1px 2px;scrollbar-width:none}
+.mobile-game .mobile-ring .table-cards:empty{display:none}
+.mobile-game .mobile-ring .center-card-entry{flex-basis:62px}
+.mobile-game .mobile-ring .center-card-entry .table-card.played-card{height:66px!important;min-height:66px!important;padding:3px!important}
+.mobile-game .mobile-ring .center-card-entry .played-card>strong{font-size:11px!important}
+.mobile-game .mobile-ring .center-card-entry .played-card>span{font-size:11px!important}
+.mobile-game .mobile-ring .center-card-entry .card-illustration{min-height:0;max-height:30px}
+.mobile-game .mobile-ring .center-card-entry .card-emblem{max-height:25px}
+.mobile-game .mobile-ring .center-card-entry>.history-player{font-size:9px!important}
+.mobile-game .mobile-ring .center-generals{min-height:0;flex:1 0 110px}
+.mobile-game .mobile-ring .general-grid{min-height:72px;grid-template-columns:repeat(auto-fit,minmax(92px,116px));grid-auto-rows:127px;gap:5px}
+.mobile-game .mobile-ring .general-option{height:127px;min-height:127px;max-height:127px}
+.mobile-game .mobile-ring .general-option .portrait-art{height:52px!important;min-height:52px}
+.mobile-game .mobile-ring .general-option strong{font-size:13px}
+.mobile-game .mobile-ring .star-backdrop{position:static;inset:auto}
+.mobile-game .mobile-ring .star-editor{max-height:none}
+.mobile-game.in-game .game-shell>.hand-status{position:relative;inset:auto;height:auto;flex:none;padding:0 2px!important}
+.mobile-game .hand-status .action-copy{min-height:0;max-width:none;text-align:left;gap:0;width:100%}
+.mobile-game .hand-status .action-copy strong{font-size:12px;line-height:1.2}
+.mobile-game .hand-status .action-copy>span{max-width:none;font-size:10px;line-height:1.2}
+.mobile-game.in-game .game-shell>.play-dock{
+ display:flex!important;flex-direction:column;align-items:stretch;gap:3px;position:relative!important;inset:auto!important;
+ height:auto;flex:none;min-width:0;--local-dock-span:0px
+}
+.mobile-game .play-dock .self-panel{display:flex;flex-direction:column;align-items:stretch;height:auto;padding:0}
+.mobile-self{background:none;border:none}
+.mobile-self .mobile-seat-main{min-height:30px;grid-template-columns:15px minmax(0,1fr) auto}
+.mobile-self .mobile-seat-stats{display:flex;gap:7px}
+.mobile-own-zones{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,1fr);gap:3px}
+.mobile-own-gear{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+.mobile-own-gear>div,.mobile-own-judge{min-width:0;background:#244739;border-radius:4px;padding:2px 3px;color:#f7e5ba}
+.mobile-own-zones small{display:block;font-size:9px;color:#e7cc98;line-height:1.1}
+.mobile-own-zones .rail-item{margin:0;display:block;min-width:0}
+.mobile-own-zones .rail-item>button:not(.rail-info),.mobile-own-judge>button{
+ min-height:21px;width:100%;height:auto;padding:0!important;background:transparent!important;border:0!important;color:#f7e5ba;
+ text-align:left;font-size:10px;line-height:1.12;white-space:normal;overflow-wrap:anywhere
+}
+.mobile-own-zones .rail-item>button>span,.mobile-own-zones .rail-info{display:none}
+.mobile-own-zones .rail-item>button small{font-size:10px;color:#f7e5ba;display:block;white-space:normal}
+.mobile-own-judge{max-height:45px;overflow:auto;scrollbar-width:none}
+.mobile-own-judge>button{display:block;min-height:17px}
+.mobile-empty{font-size:11px;color:#a7b5a4}
+.mobile-game .self-panel .self-skills{display:flex;flex-direction:row;justify-content:flex-start;align-self:stretch;margin:0;gap:3px;overflow-x:auto;scrollbar-width:none}
+.mobile-game .self-panel .self-skills:not(:has(button:not(:disabled))){display:none}
+.mobile-game .self-panel .self-skills button{min-height:25px;padding:2px 6px;flex:none}
+.mobile-game .self-panel .self-skills button:disabled{display:none}
+.mobile-game .play-dock .hand-panel{height:auto;padding:0;gap:3px;min-width:0}
+.mobile-game .hand-panel .dock-body{order:2;width:100%;min-height:0}
+.mobile-game .play-dock .hand{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;width:100%;
+ min-height:var(--mobile-card-height)!important;max-height:none!important;padding:0!important;overflow:visible!important
+}
+.mobile-game .play-dock .hand-card{width:100%!important;min-width:0;height:var(--mobile-card-height)!important;margin:0!important;transform:none!important}
+.mobile-game .play-dock .hand-card>.card{
+ width:100%!important;min-width:0;height:100%!important;min-height:0!important;padding:3px!important;margin:0!important;transform:none!important
+}
+.mobile-game .play-dock .hand-card.picked>.card{box-shadow:inset 0 0 0 2px #f7cb72!important}
+.mobile-game .hand-card .card-heading{height:auto!important;min-height:24px!important;flex-basis:auto!important}
+.mobile-game .hand-card .card-heading .card-name{font-size:11px!important}
+.mobile-game .hand-card .card-heading .suit{font-size:11px!important}
+.mobile-game .hand-card .card-illustration{height:27px!important;min-height:0!important}
+.mobile-game .hand-card .card-emblem{max-height:23px}
+.mobile-game .hand-card .card-type{font-size:8px!important}
+.mobile-game .hand-card .card-info-icon{width:17px;height:17px;font-size:11px}
+.mobile-hand-pager{order:1;display:flex;align-items:center;justify-content:space-between;color:#f4e2bb;font-size:11px}
+.mobile-hand-pager button{background:#2c5140;color:#f4e2bb;border:1px solid #9c895b;border-radius:5px;width:42px;min-height:26px;padding:0}
+.mobile-game .hand-panel .hand-buttons{order:3;min-height:0;margin:0!important;width:100%;flex-wrap:wrap;justify-content:flex-end;gap:3px}
+.mobile-game .hand-panel .hand-buttons button{padding:4px 6px;min-height:30px}
+.mobile-action-row{order:3;display:flex;gap:5px;align-items:center}
+.mobile-game .mobile-action-row .timer-meter{width:80px;flex:0 0 80px;display:grid!important;gap:3px;min-width:0}
+.mobile-game .mobile-action-row .timer-meter strong{font-size:10px;color:#ffe2a1;white-space:normal;line-height:1.1}
+.mobile-game .mobile-action-row .timer-meter strong.urgent{color:#ffae9b!important}
+.mobile-game .mobile-action-row .timer-meter progress{width:100%;height:4px;border:0;accent-color:#e5c17b}
+.mobile-game .mobile-action-row .timer-meter progress.urgent{accent-color:#f08a71}
+.mobile-game .mobile-action-row .hand-buttons{flex:1;min-width:0}
+.mobile-game:not(.mobile-chat-open) .room-chat{display:none!important}
+.mobile-game .room-chat{bottom:max(8px,env(safe-area-inset-bottom))}
+.mobile-game .connection-status{position:relative;inset:auto;flex:none;padding:2px;font-size:10px}
+.mobile-game #general-inspector.mobile-general-card{width:min(calc(100vw - 14px),440px);max-width:none;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 18px);margin:auto;overflow:auto;padding:12px}
+.mobile-game #general-inspector.mobile-general-card[open]{display:block}
+.mobile-general-card .inspector-portrait{max-height:108px;overflow:hidden}
+.mobile-general-card .inspector-copy{padding:0!important}
+.mobile-general-card .inspector-copy h2{font-size:22px;margin:3px 0}
+.mobile-general-card .inspector-copy h3{font-size:13px;margin:7px 0 3px}
+.mobile-general-card .inspector-copy p{font-size:12px;margin:3px 0}
+.mobile-detail-gear{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:0}
+.mobile-detail-gear>div{padding:4px;background:#dcd5bd;border-radius:4px}
+.mobile-detail-gear dt,.mobile-guess-label{font-size:11px}
+.mobile-detail-gear dd{margin:0;font-size:12px}
+.mobile-detail-card{padding:3px 5px;font-size:12px;white-space:normal}
+.mobile-detail-judges{display:flex;flex-wrap:wrap;gap:4px;font-size:12px}
+@media(max-height:720px){
+ .mobile-game.in-game .game-shell{gap:3px}
+ .mobile-game .mobile-roster{gap:3px}
+ .mobile-game .mobile-seat .mobile-seat-main{min-height:38px}
+ .mobile-game .mobile-self .mobile-seat-main{min-height:28px}
+ .mobile-game .mobile-ring .current-action-events{max-height:27px}
+}
+
+.mobile-role-counts{display:flex;flex-wrap:wrap;gap:3px;font-size:10px}
+.mobile-role-lord .mobile-seat-number,.mobile-role-red .mobile-seat-number{background:#e5a09a}
+.mobile-role-blue .mobile-seat-number{background:#a8c4ef}
+.mobile-game .mobile-ring .center-generals .general-grid{overflow:auto;overscroll-behavior:contain}
+.mobile-game .mobile-action-row .timer-meter strong{white-space:normal}
+.mobile-game .mobile-ring .table-core .star-cards{min-height:0;flex-wrap:wrap}
+.mobile-game .mobile-ring .table-core .star-card{min-width:65px;width:65px;min-height:90px}
