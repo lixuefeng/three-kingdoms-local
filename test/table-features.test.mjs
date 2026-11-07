@@ -38,7 +38,7 @@ test('first expired human decision keeps its fallback and enables takeover for s
  const g=game(),p=g.players[0];assert.deepEqual(await g.ask(p,'Choose',[{id:'yes'},{id:'no'}],{timeout:.01,fallback:['no']}),['no']);assert.equal(p.takeover,true);g.stop();
 });
 test('takeover also answers shared windows and reclaim never extends a shared deadline',async()=>{
- const g=game({responseWindowMs:1000}),p=g.players[0];const task=g.sharedResponses('rescue','Rescue',x=>x===p?[{id:'peach'},{id:'pass'}]:[{id:'pass'}],{kind:'rescue',targetId:'1'});
+ const g=game({responseWindowMs:1000}),p=g.players[0];const task=g.sharedResponses('negation','Negation',x=>x===p?[{id:'peach'},{id:'pass'}]:[{id:'pass'}],{kind:'negation',targetId:'1'});
  const deadline=g.responseWindow.deadline;g.setTakeover(p.id,true);g.setTakeover(p.id,false);assert.equal(g.responseWindow.deadline,deadline);const q=g.prompts.get(p.id);g.answer(p.id,q.id,['pass']);await task;g.stop();
 });
 test('AI takeover retains earlier public history while receiving only its own hand and role',async()=>{

@@ -42,7 +42,7 @@ export class Game {
   const defaults=fallback??(min?options.slice(0,min).map(o=>o.id):[]);
   // Public timing information excludes the private prompt, options, and card IDs.
   const action=context?.kind==='attack-response'?{kind:'attack',sourceId:context.sourceId,targetId:p.id,label:context.label}:context?.kind==='borrow-response'?{kind:'borrow',sourceId:context.sourceId,attackerId:p.id,targetId:context.targetId,label:'Borrowed Sword'}:null;
-  this.decisions.set(p.id,{playerId:p.id,startedAt,deadline:q.deadline,...(action?{action}: {})});
+  this.decisions.set(p.id,{playerId:p.id,startedAt,deadline:q.deadline,...(context?.kind==='rescue'?{private:true}:{}),...(action?{action}: {})});
   this.decision=this.decisions.values().next().value||null;
   try{
    if(this.askAdapter){this.changed();return await this.askAdapter(p,q,defaults);}
@@ -54,19 +54,19 @@ export class Game {
    });
   }finally{this.decisions.delete(p.id);this.decision=this.decisions.values().next().value||null;this.changed();}
  }
- expireHuman(p,q,defaults){if(this.prompts.get(p.id)?.id!==q.id)return;this.answer(p.id,q.id,defaults);this.setTakeover(p.id,true,p.botModel||'classic','decision timeout');}
+ expireHuman(p,q,defaults){if(this.prompts.get(p.id)?.id!==q.id)return;this.answer(p.id,q.id,defaults);if(q.context?.kind==='rescue')return;this.setTakeover(p.id,true,p.botModel||'classic','decision timeout');}
  setTakeover(pid,enabled,model='classic',reason='manual'){
   const p=this.players.find(x=>x.id===pid&&!x.bot);if(!p||!p.alive||this.stopped||this.winner)throw Error('Choose an active human seat.');
   p.controlEpoch=(p.controlEpoch||0)+1;p.takeover=!!enabled;
   this.botRequests.get(pid)?.abort(new Error('model-switched'));
   const q=this.prompts.get(pid);if(q){clearTimeout(q.botTimer);this.plannedPlays.delete(pid);}
   if(enabled){p.botModel=model;p.botMode=model==='classic'?'classic':'llm';if(!this.botKnowledge.has(pid)){const k=new BotKnowledge(pid);for(const event of this.logs)k.consume({type:'log',...event});this.botKnowledge.set(pid,k);}if(q)this.scheduleTakeover(p,q);}
-  else if(q&&!this.responseWindow){clearTimeout(q.timer);q.startedAt=Date.now();q.deadline=this.seconds?q.startedAt+this.seconds*1000:null;this.decisions.set(pid,{...this.decisions.get(pid),playerId:pid,startedAt:q.startedAt,deadline:q.deadline});q.timer=q.deadline?setTimeout(()=>{if(this.prompts.get(pid)===q)this.expireHuman(p,q,q.defaults||[]);},this.seconds*1000):null;}
+  else if(q&&!this.responseWindow){clearTimeout(q.timer);if(q.context?.kind!=='rescue'){q.startedAt=Date.now();q.deadline=this.seconds?q.startedAt+this.seconds*1000:null;}this.decisions.set(pid,{...this.decisions.get(pid),playerId:pid,startedAt:q.startedAt,deadline:q.deadline});q.timer=q.deadline?setTimeout(()=>{if(this.prompts.get(pid)===q)this.expireHuman(p,q,q.defaults||[]);},Math.max(0,q.deadline-Date.now())):null;}
   this.decision=this.decisions.values().next().value||null;this.remember({type:'control',playerId:pid,takeover:p.takeover,model:p.botModel,reason});this.changed();
  }
  scheduleTakeover(p,q){
   clearTimeout(q.timer);clearTimeout(q.botTimer);const epoch=p.controlEpoch;
-  if(!this.responseWindow&&q.deadline&&q.deadline<=Date.now()){q.startedAt=Date.now();q.deadline=this.seconds?q.startedAt+this.seconds*1000:null;this.decisions.set(p.id,{...this.decisions.get(p.id),playerId:p.id,startedAt:q.startedAt,deadline:q.deadline});}
+  if(!this.responseWindow&&q.context?.kind!=='rescue'&&q.deadline&&q.deadline<=Date.now()){q.startedAt=Date.now();q.deadline=this.seconds?q.startedAt+this.seconds*1000:null;this.decisions.set(p.id,{...this.decisions.get(p.id),playerId:p.id,startedAt:q.startedAt,deadline:q.deadline});}
   q.botTimer=setTimeout(async()=>{const current=()=>!this.stopped&&!this.winner&&p.takeover&&p.controlEpoch===epoch&&this.prompts.get(p.id)===q;
    if(!current())return;
    try{const ids=await this.decideBot(p,q,q.defaults||['pass']);if(current())this.answer(p.id,q.id,ids);}
@@ -260,7 +260,7 @@ export class Game {
  }
  async sharedResponses(kind,title,optionsFor,context){
   if(this.stopped||this.winner)throw new Finished();
-  const longerWindow=kind==='rescue'||(this.llmProvider?.enabled&&this.alive().some(p=>(p.bot||p.takeover)&&p.botMode==='llm'));
+  const longerWindow=this.llmProvider?.enabled&&this.alive().some(p=>(p.bot||p.takeover)&&p.botMode==='llm');
   const windowMs=this.autoResponseWindow&&longerWindow?Math.max(15000,this.responseWindowMs):this.responseWindowMs;
   const people=this.order(),startedAt=Date.now(),deadline=startedAt+windowMs,responses=new Map(),ids=new Map(),bots=[];
   let finishEarly=()=>{};
@@ -291,16 +291,6 @@ export class Game {
    if(!play)return canceled;
    const v=this.virtual(play.p,'negate',{response:true}).find(v=>v.id===play.id),committed=await this.commitVirtual(play.p,v);if(!committed)continue;this.effect(play.p,target,'spell','Negation');this.log(`${play.p.name} uses Negation.`);if(play.p.general.id==='huangyueying')this.draw(play.p,1);this.finishCards(committed.cards);canceled=!canceled;depth++;
   }return canceled;
- }
- async rescueShared(target){
-  while(!this.survivesDying(target)){
-   const choices=new Map(this.order().map(p=>[p.id,[...this.virtual(p,'tao',{response:true}),...(p===target?this.virtual(p,'wine',{response:true}):[])]]));
-   const responses=await this.sharedResponses('rescue',`Rescue ${target.name}: Waiting for rescue responses`,p=>[...choices.get(p.id).map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)})),{id:'pass',label:'Pass'}],{kind:'rescue',targetId:target.id});
-   const play=responses.find(({p,id})=>choices.get(p.id).some(v=>v.id===id));if(!play)return;
-   const v=choices.get(play.p.id).find(v=>v.id===play.id),committed=await this.commitVirtual(play.p,v);if(!committed)continue;
-   const bonus=v.kind==='tao'&&target.role==='lord'&&target.general.id==='sunquan'&&play.p!==target&&play.p.general.kingdom==='Wu'?1:0;
-   await this.recover(target,1+bonus);this.finishCards(committed.cards);this.effect(play.p,target,'heal',META[v.kind][0]);this.log(`${play.p.name} rescues ${target.name} with ${META[v.kind][0]}.`);
-  }
  }
  async negate(target,title){if(!this.askAdapter)return this.negateShared(target,title);let canceled=false;let start=this.current;
   // Ask every eligible player in seat order; each counterspell opens a fresh window.
@@ -345,11 +335,11 @@ export class Game {
  async dying(p,source){
   if(await this.expansionDying(p))return;
   this.log(`${p.name} is dying and needs ${1-p.hp} HP to survive.`);
-  if(p.maxHp>0&&!this.askAdapter&&this.mode!=='3v3'){await this.rescueShared(p);if(this.survivesDying(p))return;}
-  else if(p.maxHp>0)for(const rescuer of this.order()){
+  if(p.maxHp>0)for(const rescuer of this.order()){
    while(!this.survivesDying(p)&&rescuer.alive){const choices=[...this.virtual(rescuer,'tao',{response:true}),...(rescuer===p?this.virtual(rescuer,'wine',{response:true}):[])];if(!choices.length)break;
-    const [id]=await this.ask(rescuer,`Rescue ${p.name}: ${1-p.hp} more HP needed`,[...choices.map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)})),{id:'pass',label:'Do not rescue'}],{fallback:['pass'],context:{kind:'rescue',targetId:p.id}});
-    const v=choices.find(v=>v.id===id);if(!v)break;await this.commitVirtual(rescuer,v);const bonus=v.kind==='tao'&&p.role==='lord'&&p.general.id==='sunquan'&&rescuer!==p&&rescuer.general.kingdom==='Wu'?1:0;await this.recover(p,1+bonus);this.finishCards(v.cards);this.effect(rescuer,p,'heal',META[v.kind][0]);this.log(`${rescuer.name} uses ${META[v.kind][0]} on ${p.name}${bonus?' (Deliverance +1 HP)':''}.`);
+    const [id]=await this.ask(rescuer,`Rescue ${p.name}: ${1-p.hp} more HP needed`,[...choices.map(v=>({id:v.id,label:v.label,cardIds:v.cards.map(c=>c.id)})),{id:'pass',label:'Do not rescue'}],{fallback:['pass'],timeout:15,context:{kind:'rescue',targetId:p.id}});
+    if(this.stopped)throw new Finished();
+    const v=choices.find(v=>v.id===id);if(!v)break;if(!await this.commitVirtual(rescuer,v))break;const bonus=v.kind==='tao'&&p.role==='lord'&&p.general.id==='sunquan'&&rescuer!==p&&rescuer.general.kingdom==='Wu'?1:0;await this.recover(p,1+bonus);this.finishCards(v.cards);this.effect(rescuer,p,'heal',META[v.kind][0]);this.log(`${rescuer.name} uses ${META[v.kind][0]} on ${p.name}${bonus?' (Deliverance +1 HP)':''}.`);
    }if(this.survivesDying(p))return;
   }
   if(source&&source!==p)this.stats[source.id].kills++;this.eliminations.push({killerId:source?.id||null,victimId:p.id,turn:this.turn});p.alive=false;p.chained=false;p.wineBoost=0;this.log(`${p.name} is eliminated. Their role was ${ROLE_NAMES[p.role]}.`);
@@ -544,9 +534,9 @@ export class Game {
    skills[name]=!p.alive?'You are eliminated.':usedKey&&this.used[usedKey]?'Already used this Play Phase.':/Once per Play Phase|During your Play Phase/.test(desc)?prompt?.zone==='turn'?'Its card or target requirements are not met.':'Available during your Play Phase.':'Triggered or conversion skill · '+desc;
   }return {cards,skills};
  }
- view(pid){const viewer=this.players.find(p=>p.id===pid);const prompt=viewer?.takeover?null:this.prompts.get(pid);const remainingRoles={...this.roleCounts};for(const p of this.players)if(!p.alive&&p.role)remainingRoles[p.role]=Math.max(0,(remainingRoles[p.role]||0)-1);return {
+ view(pid){const viewer=this.players.find(p=>p.id===pid);const prompt=viewer?.takeover?null:this.prompts.get(pid);const decisions=this.responseWindow?[]:[...this.decisions.values()].filter(d=>!d.private||d.playerId===pid).map(({private:_private,...d})=>d);const remainingRoles={...this.roleCounts};for(const p of this.players)if(!p.alive&&p.role)remainingRoles[p.role]=Math.max(0,(remainingRoles[p.role]||0)-1);return {
   mode:this.mode,threeVThree:this.threeVThree?structuredClone(this.threeVThree):null,gameRules:this.mode==='3v3'?CLASSIC_THREE_RULES:isTeamMode(this.mode)?{mode:this.mode,objective:'Eliminate every member of the opposing team. Eliminated teammates share the team victory.',teamsArePublic:true,turnOrder:'Normal seat order; teams alternate seats.',lordSkills:false,killReward:false}:null,roleCounts:{...this.roleCounts},remainingRoles,control:viewer?{takeover:!!viewer.takeover,model:viewer.botModel||'classic'}:null,
-  availability:this.availability(viewer,prompt),pindian:this.pindianState,bluff:this.bluffState,expandedGenerals:this.expandedGenerals,actionHistory:this.actionHistory,matchId:this.matchId,testing:this.testing,actionGroup:this.actionGroup,movements:this.movements,responseWindow:this.responseWindow?{...this.responseWindow}:null,discardReview:this.discardReview?{...this.discardReview}:null,negationPassed:this.negationPassTurn.get(pid)===this.turn,maneuver:this.maneuver,totalCards:this.totalCards,decision:this.responseWindow?null:this.decision?{...this.decision}:null,decisions:this.responseWindow?[]:[...this.decisions.values()].map(d=>({...d})),current:this.current?.id,phase:this.phase,turn:this.turn,winner:this.winner,deckCount:this.deck.length,discardCount:this.discard.length,table:this.table.map(info),logs:this.logs,effects:this.effects,recentCards:this.recentCards.map(r=>({...r,card:{...r.card}})),judgments:this.judgments.map(j=>({...j,cards:j.cards.map(r=>({...r,card:{...r.card}}))})),
+  availability:this.availability(viewer,prompt),pindian:this.pindianState,bluff:this.bluffState,expandedGenerals:this.expandedGenerals,actionHistory:this.actionHistory,matchId:this.matchId,testing:this.testing,actionGroup:this.actionGroup,movements:this.movements,responseWindow:this.responseWindow?{...this.responseWindow}:null,discardReview:this.discardReview?{...this.discardReview}:null,negationPassed:this.negationPassTurn.get(pid)===this.turn,maneuver:this.maneuver,totalCards:this.totalCards,decision:decisions[0]||null,decisions,current:this.current?.id,phase:this.phase,turn:this.turn,winner:this.winner,deckCount:this.deck.length,discardCount:this.discard.length,table:this.table.map(info),logs:this.logs,effects:this.effects,recentCards:this.recentCards.map(r=>({...r,card:{...r.card}})),judgments:this.judgments.map(j=>({...j,cards:j.cards.map(r=>({...r,card:{...r.card}}))})),
   players:this.players.map(p=>({id:p.id,name:p.name,commander:!!p.commander,actedThisRound:!!this.threeVThree?.actedIds.includes(p.id),alive:p.alive,chained:!!p.chained,wineBoost:p.wineBoost||0,hp:p.hp,maxHp:p.maxHp,wounds:(p.wounds||[]).map(info),nirvanaUsed:!!p.nirvanaUsed,general:p.general||null,role:isTeamMode(this.mode)||p.id===pid||p.role==='lord'||!p.alive||this.winner?p.role:null,handCount:p.hand.length,hand:p.id===pid?p.hand.map(c=>this.cardInfo(p,c)):undefined,equip:Object.fromEntries(Object.entries(p.equip).map(([k,c])=>[k,this.cardInfo(p,c)])),judge:p.judge.map(c=>({...info(c),placedBy:this.delayedPlacements.get(c.id)||null}))})),
   prompt:prompt?{id:prompt.id,title:prompt.title,options:prompt.options,min:prompt.min,max:prompt.max,zone:prompt.zone,context:prompt.context,startedAt:prompt.startedAt,deadline:prompt.deadline}:null
  };}

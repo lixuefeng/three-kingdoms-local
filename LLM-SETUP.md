@@ -126,7 +126,7 @@ Cancellation statuses now distinguish request-timeout, decision-expired, window-
 
 ### v0.57 shared windows and single-action decisions
 
-Default shared Negation/rescue windows last 15 seconds when any living seat uses an enabled LLM bot, independent of who has response cards. Practice/human-only games retain 5 seconds; explicit engine responseWindowMs overrides remain supported. All responses still close early once everyone answers; the model timeout remains unchanged.
+Default shared Negation windows last 15 seconds when any living seat uses an enabled LLM bot, independent of who has response cards. Practice/human-only games retain 5 seconds; explicit engine responseWindowMs overrides remain supported. All responses still close early once everyone answers; the model timeout remains unchanged.
 
 Turn responses must select one action. The narrow two-ID pattern [legal action, end] is normalized to the first action and fully validated, without automatically ending the turn. Other multi-action responses remain invalid. Wine lasts only this turn. Traces color success green, cancellation/deadline warnings amber, errors red; system/input/output use separate backgrounds.
 

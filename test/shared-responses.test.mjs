@@ -9,17 +9,12 @@ test('Negation only prompts cardholders while all players share the public windo
  assert.equal(g.prompts.size,1);const deadlines=new Set([...g.prompts.values()].map(q=>q.deadline));assert.equal(deadlines.size,1);
  for(const p of g.players){const q=g.prompts.get(p.id);if(q)g.answer(p.id,q.id,['pass']);}assert.equal(await running,false);assert.equal(g.responseWindow,null);
 });
-test('rescue includes players without Peach and consumes only the chosen legal response',async()=>{
- const g=setup(),[a,b]=g.players;a.hp=0;b.hand=[{id:'peach',kind:'tao',suit:'♥',rank:3}];const run=g.rescueShared(a);assert.equal(g.prompts.size,1);
- for(const p of g.players){const q=g.prompts.get(p.id);if(q)g.answer(p.id,q.id,[p===b?'peach':'pass']);}await run;assert.equal(a.hp,1);assert.equal(b.hand.length,0);assert.equal(g.discard[0].id,'peach');
-});
 test('private pass-all preference does not shorten or remove the public window',async()=>{
  const g=setup();g.negationPassTurn.set('0',g.turn);const run=g.negate(g.players[1],'Steal');assert.equal(g.prompts.has('0'),false);assert.equal(g.view('0').responseWindow.kind,'negation');assert.equal(g.view('1').negationPassed,false);for(const p of g.players.slice(1)){const q=g.prompts.get(p.id);if(q)g.answer(p.id,q.id,['pass']);}assert.equal(await run,false);
 });
 test('stopping a shared response window clears prompts and timers',async()=>{const g=setup(),run=g.negate(g.players[1],'Duel');g.stop();await assert.rejects(run,Finished);assert.equal(g.prompts.size,0);assert.equal(g.responseWindow,null);});
 test('players without legal responses see only the shared countdown, with no private buttons',async()=>{
- const g=setup();let run=g.negate(g.players[1],'Acedia');assert.equal(g.prompts.size,0);assert.equal(g.view('0').prompt,null);assert.ok(g.view('0').responseWindow);assert.equal(await run,false);
- g.players[0].hp=0;run=g.rescueShared(g.players[0]);assert.equal(g.prompts.size,0);assert.equal(g.view('1').prompt,null);assert.equal(g.view('1').responseWindow.kind,'rescue');await run;assert.equal(g.players[0].hp,0);
+ const g=setup();const run=g.negate(g.players[1],'Acedia');assert.equal(g.prompts.size,0);assert.equal(g.view('0').prompt,null);assert.ok(g.view('0').responseWindow);assert.equal(await run,false);
 });
 
 test('Negation waits for the last holder, then closes without waiting for its deadline',async()=>{
@@ -31,11 +26,6 @@ test('Negation waits for the last holder, then closes without waiting for its de
  const outcome=await Promise.race([run,new Promise(resolve=>{const timer=setTimeout(()=>resolve('deadline-wait'),100);timer.unref();})]);assert.equal(outcome,false);assert.equal(g.responseWindow,null);assert.equal(g.prompts.size,0);
 });
 
-test('Peach rescue closes after the last response instead of waiting for the deadline',async()=>{
- const g=setup();g.responseWindowMs=1000;const [a,b]=g.players;a.hp=0;b.hand=[{id:'quick-peach',kind:'tao',suit:'♥',rank:3}];
- const run=g.rescueShared(a),q=g.prompts.get(b.id);g.answer(b.id,q.id,['quick-peach']);
- const outcome=await Promise.race([run.then(()=>true),new Promise(resolve=>{const timer=setTimeout(()=>resolve(false),100);timer.unref();})]);assert.equal(outcome,true);assert.equal(a.hp,1);assert.equal(g.responseWindow,null);
-});
 test('pass-for-spell reopens for a counter but still skips later original spell targets',async()=>{
  const g=setup(),[a,b,t]=g.players;g.responseWindowMs=1000;g.beginAction('Barbarian Invasion');a.hand=[{id:'saved-negation',kind:'negate',suit:'♠',rank:11}];b.hand=[{id:'counter',kind:'negate',suit:'♥',rank:12}];
  const first=g.negate(t,'Barbarian Invasion');let q=g.prompts.get(a.id);assert.equal(q.options.find(o=>o.id==='pass-turn').label,'Pass for this spell');g.answer(a.id,q.id,['pass-turn']);q=g.prompts.get(b.id);g.answer(b.id,q.id,['counter']);
@@ -59,24 +49,35 @@ test('passing a counter does not suppress a later counter or set an original-spe
  assert.equal(await run,true);assert.equal(g.discard.filter(c=>c.kind==='negate').length,3);
 });
 
-test('Pang Tong can privately rescue a dying Lord with either Peach during the full human response window',async()=>{
+test('rescue prompts one eligible player at a time with a fresh private deadline',async()=>{
  const {decisionInfo}=await import('../public/interaction.mjs');
  const g=new Game(Array.from({length:6},(_,i)=>({id:String(i),name:'P'+i})),{expandedGenerals:true,seconds:30});
- const [lord,pang,attacker,observer]=g.players;
+ const [lord,pang,later,attacker,first,observer]=g.players;
  g.players.forEach((p,i)=>{p.role=i?'rebel':'lord';p.general=g.generalPool.find(x=>x.id==='zhangfei');});
  lord.general=g.generalPool.find(x=>x.id==='menghuo');lord.hp=1;
  pang.general=g.generalPool.find(x=>x.id==='pangtong');pang.role='spy';
  pang.hand=[{id:'peach-one',kind:'tao',suit:'♥',rank:3},{id:'peach-two',kind:'tao',suit:'♥',rank:4}];
+ first.hand=[{id:'first-peach',kind:'tao',suit:'♥',rank:5}];
+ later.hand=[{id:'later-peach',kind:'tao',suit:'♥',rank:6}];
  g.current=attacker;g.beginAction('Attack');g.negationPassTurn.set(pang.id,g.turn);
  const run=g.damage(attacker,lord,1,{kind:'sha'});
  try{
   await new Promise(resolve=>setImmediate(resolve));
+  const firstPrompt=g.view(first.id).prompt;
+  assert.equal(firstPrompt?.context.kind,'rescue');
+  assert.equal(firstPrompt.deadline-firstPrompt.startedAt,15000);
+  assert.equal(g.view(pang.id).prompt,null);
+  assert.equal(g.prompts.size,1);
+  const handoff=Date.now();
+  g.expireHuman(first,g.prompts.get(first.id),['pass']);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.ok(!first.takeover);
   const own=g.view(pang.id),publicView=g.view(observer.id),q=own.prompt;
   assert.equal(lord.hp,0);assert.equal(q?.context.kind,'rescue');assert.equal(q.context.targetId,lord.id);
-  assert.equal(q.deadline-q.startedAt,15000);assert.deepEqual(q.options.map(o=>o.id),['peach-one','peach-two','pass']);
+  assert.ok(q.startedAt>=handoff);assert.equal(q.deadline-q.startedAt,15000);assert.deepEqual(q.options.map(o=>o.id),['peach-one','peach-two','pass']);
   assert.match(decisionInfo(own,pang.id).title,/Rescue Meng Huo/);assert.equal(decisionInfo(own,pang.id).urgent,true);
-  assert.equal(publicView.prompt,null);assert.equal(publicView.responseWindow.deadline,q.deadline);assert.equal(decisionInfo(publicView,observer.id).urgent,false);
+  assert.equal(publicView.prompt,null);assert.equal(publicView.decision,null);assert.deepEqual(publicView.decisions,[]);assert.equal(g.prompts.size,1);assert.equal(g.view(later.id).prompt,null);assert.equal(decisionInfo(publicView,observer.id).urgent,false);
   g.answer(pang.id,q.id,['peach-two']);await run;
-  assert.equal(lord.hp,1);assert.equal(lord.alive,true);assert.equal(g.winner,null);assert.deepEqual(pang.hand.map(c=>c.id),['peach-one']);assert.equal(g.responseWindow,null);
+  assert.equal(lord.hp,1);assert.equal(lord.alive,true);assert.equal(g.winner,null);assert.deepEqual(pang.hand.map(c=>c.id),['peach-one']);assert.equal(g.prompts.size,0);assert.equal(later.hand.length,1);
  }finally{g.stop();await run.catch(()=>{});}
 });
