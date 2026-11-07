@@ -1,6 +1,6 @@
 import {classicThree,classicRoster,CLASSIC_THREE_RULES} from './classic-three.mjs';
 import {isTeamMode,validateMode,validateModeSeats,minimumGenerals,generalChoiceCount} from './game-modes.mjs';
-import {BOT_STRATEGIES} from './bot-strategy.mjs';
+import {BOT_STRATEGIES,DEFAULT_BOT_STRATEGY} from './bot-strategy.mjs';
 import {actionSelections,atomicSkills} from './action-selections.mjs';
 import {BotKnowledge,tacticalFacts} from './bot-knowledge.mjs';
 import {eventText,generalName} from './public/event-history.mjs';
@@ -80,14 +80,14 @@ export class Game {
  async decideBot(p,q,defaults){
   const controlEpoch=p.controlEpoch;
   if(p.botMode==='llm'&&this.llmProvider?.enabled){
-   const shared=this.prompts.get(p.id)?.id===q.id,modelProfile=p.botModel,botStrategy=p.botStrategy||'current';
+   const shared=this.prompts.get(p.id)?.id===q.id,modelProfile=p.botModel,botStrategy=p.botStrategy||DEFAULT_BOT_STRATEGY;
    const ownView=this.view(p.id),knowledge=this.botKnowledge.get(p.id);const agentState=knowledge?{knowledge:knowledge.snapshot(ownView),tactics:tacticalFacts(this,p,q)}:null;
    const request=new AbortController();this.botRequests.set(p.id,request);let decision;
-   const invalidReason=()=>this.stopped||this.winner?'match-ended':!p.bot&&(!p.takeover||p.controlEpoch!==controlEpoch)||p.botMode!=='llm'||p.botModel!==modelProfile||(p.botStrategy||'current')!==botStrategy?'model-switched':q.deadline&&Date.now()>=q.deadline?'decision-expired':shared&&this.prompts.get(p.id)?.id!==q.id?'window-closed':!shared&&!this.decisions.has(p.id)?'decision-expired':null;
+   const invalidReason=()=>this.stopped||this.winner?'match-ended':!p.bot&&(!p.takeover||p.controlEpoch!==controlEpoch)||p.botMode!=='llm'||p.botModel!==modelProfile||(p.botStrategy||DEFAULT_BOT_STRATEGY)!==botStrategy?'model-switched':q.deadline&&Date.now()>=q.deadline?'decision-expired':shared&&this.prompts.get(p.id)?.id!==q.id?'window-closed':!shared&&!this.decisions.has(p.id)?'decision-expired':null;
    try{decision=await this.llmProvider.decide({view:{...ownView,publicChat:this.publicChatFor?.(p)||[]},agentState,playerId:p.id,prompt:q,matchId:this.matchId,modelProfile,botStrategy,signal:AbortSignal.any([this.botAbort.signal,request.signal]),isCurrent:()=>!invalidReason(),invalidReason});}finally{if(this.botRequests.get(p.id)===request)this.botRequests.delete(p.id);}
    if(this.stopped||this.winner)throw new Finished();
    if(!p.bot&&(!p.takeover||p.controlEpoch!==controlEpoch))return defaults;
-   if(decision&&p.botMode==='llm'&&p.botModel===modelProfile&&(p.botStrategy||'current')===botStrategy){this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:'model',botStrategy,promptId:q.id,zone:q.zone,ids:decision.ids,targets:decision.targets,costs:decision.costs||[],mode:decision.mode});knowledge?.updatePlan(decision.plan,ownView,q);knowledge?.noteChoice(q,decision);this.llmProvider.recordPlan?.(this.matchId,p.id,q.id,knowledge?.plan);if(q.zone==='turn')this.plannedPlays.set(p.id,{optionId:decision.ids[0],targetIds:decision.targets||[],costIds:decision.costs||[],mode:decision.mode,chatIntent:decision.chatIntent});return decision.ids;}
+   if(decision&&p.botMode==='llm'&&p.botModel===modelProfile&&(p.botStrategy||DEFAULT_BOT_STRATEGY)===botStrategy){this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:'model',botStrategy,promptId:q.id,zone:q.zone,ids:decision.ids,targets:decision.targets,costs:decision.costs||[],mode:decision.mode});knowledge?.updatePlan(decision.plan,ownView,q);knowledge?.noteChoice(q,decision);this.llmProvider.recordPlan?.(this.matchId,p.id,q.id,knowledge?.plan);if(q.zone==='turn')this.plannedPlays.set(p.id,{optionId:decision.ids[0],targetIds:decision.targets||[],costIds:decision.costs||[],mode:decision.mode,chatIntent:decision.chatIntent});return decision.ids;}
   }
   const result=this.botAnswer(p,q,defaults);const plan=this.plannedPlays.get(p.id);this.onEvent({type:'bot-decision',turn:this.turn,playerId:p.id,source:p.botMode==='llm'?'fallback':'practice',promptId:q.id,zone:q.zone,ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});this.botKnowledge.get(p.id)?.noteChoice(q,{ids:result,targets:plan?.targetIds||[],costs:plan?.costIds||[],mode:plan?.mode});return result;
  }

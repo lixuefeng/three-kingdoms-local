@@ -11,3 +11,59 @@
 /* Chat bubbles use a same-origin stylesheet under the server CSP. */
 .table-speech{position:fixed;z-index:85;box-sizing:border-box;width:max-content;max-width:min(250px,calc(100vw - 24px));padding:10px 13px;border:1px solid #c6ad7b;border-radius:13px;background:#fff8e9;color:#29241c;box-shadow:0 5px 20px #0005;pointer-events:none;font:14px/1.4 system-ui,sans-serif;overflow-wrap:anywhere;white-space:pre-wrap}
  .table-speech strong{display:block;font-size:11px;color:#795b30;margin-bottom:3px}.table-speech.anchored:after{content:'';position:absolute;bottom:-7px;left:var(--tail,50%);width:12px;height:12px;background:#fff8e9;border-right:1px solid #c6ad7b;border-bottom:1px solid #c6ad7b;transform:rotate(45deg)}
+
+/* Room controls stay in predictable sections on both narrow and wide screens. */
+.entry-options{border:1px solid var(--line);border-radius:7px;padding:9px 11px;margin:12px 0}
+.entry-options>summary,.lobby-group>summary,.lobby-bot-options>summary{cursor:pointer}
+.entry-options[open]>summary{margin-bottom:10px}
+.organized-lobby .room-heading{margin-bottom:12px}
+.organized-lobby .room-heading h1{margin:5px 0}
+.organized-lobby .room-heading h1 .room-code{font-size:inherit}
+.lobby-primary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 18px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.lobby-primary>div{display:flex;align-items:center;gap:7px}
+.lobby-primary small{color:#536c5e}
+.organized-lobby .lobby-layout{grid-template-columns:minmax(0,1fr) minmax(250px,340px);gap:18px}
+.organized-lobby h2{font-size:16px;margin:0 0 8px}
+.lobby-roster h2 small{font-size:12px;font-weight:400;color:#536c5e;margin-left:5px}
+.organized-lobby .seats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.organized-lobby .lobby-seat{display:block;min-height:0;padding:9px;min-width:0}
+.lobby-seat-top{display:flex;align-items:center;gap:7px}
+.lobby-seat-number{display:grid;place-items:center;width:24px;height:24px;flex:none;border-radius:5px;background:#ebefdf;font-size:11px}
+.lobby-seat-person{min-width:0;flex:1;overflow-wrap:anywhere}
+.lobby-seat-person>small{display:block;color:#536c5e}
+.lobby-seat .badge{flex:none;white-space:nowrap;font-size:10px}
+.lobby-remove{margin-top:5px}
+.lobby-bot-options{margin:7px 0 0;border-top:1px solid var(--line);padding-top:6px;font-size:12px}
+.lobby-bot-options>div{display:grid;gap:6px;padding-top:6px}
+.lobby-bot-options input,.lobby-bot-options select{width:100%;min-width:0}
+.lobby-bot-options .bot-name-form{margin:0;max-width:none}
+.lobby-group{border:1px solid var(--line);border-radius:8px;background:var(--paper);margin-bottom:6px;min-width:0}
+.lobby-group>summary{padding:10px;overflow-wrap:anywhere}
+.lobby-group>summary small{display:block;margin:3px 0 0 14px;color:#536c5e}
+.lobby-group-body{padding:0 10px 10px}
+.lobby-group .role-settings,.lobby-group .ban-panel{margin:0}
+.lobby-group .ban-grid{grid-template-columns:repeat(auto-fit,minmax(108px,1fr))}
+.organized-lobby [data-action="lobby-chat"]{display:none}
+@media(max-width:760px){
+ .landing{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin:12px auto;padding:0 max(12px,env(safe-area-inset-left))}
+ .landing .form-panel{order:-1;padding:14px}
+ .landing .intro{margin:0;padding:3px 2px}
+ .landing .intro h1{font-size:27px;margin:4px 0}
+ .landing .intro .ink-tiles,.landing .intro>.eyebrow{display:none}
+ .landing .intro>p{margin:5px 0;line-height:1.4}
+ .landing .tabs{gap:4px}
+ .landing .tabs button{flex:1;min-width:0;min-height:44px;padding:5px;font-size:12px}
+ .landing input,.landing select,.organized-lobby input,.organized-lobby select{font-size:16px}
+ body:not(.in-game) #app>header{padding-top:max(8px,env(safe-area-inset-top));gap:5px;flex-wrap:wrap}
+ .organized-lobby{padding:0 12px max(18px,env(safe-area-inset-bottom));margin-top:12px}
+ .organized-lobby .room-heading{align-items:flex-start;flex-wrap:wrap;gap:7px}
+ .organized-lobby .room-heading h1{font-size:24px}
+ .organized-lobby .room-heading .small{font-size:12px;min-height:36px;padding:4px 7px}
+ .organized-lobby .lobby-layout,.organized-lobby .seats{grid-template-columns:minmax(0,1fr)}
+ .lobby-primary{margin-bottom:12px}
+ .lobby-primary>div{width:100%}
+ .lobby-primary button{flex:1;min-height:44px}
+ .lobby-group>summary{min-height:44px}
+ .organized-lobby [data-action="lobby-chat"]{display:inline-block}
+ body:has(.organized-lobby [data-action="lobby-chat"][aria-expanded="false"]) .room-chat{display:none!important}
+}

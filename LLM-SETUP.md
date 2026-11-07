@@ -174,6 +174,6 @@ Spontaneous context never includes private hands, own hidden identity, saved mem
 
 ## Role-focused gameplay (v0.74.0)
 
-Choose an LLM model for a bot, then set its **Strategy** to **Role-focused**, either beside the bot in the lobby or in **AI Controls** during play. The host controls the setting. It is per seat and works with each configured LLM model. **Current** remains the default; Practice bots do not use LLM strategy guidance. The choice survives model switches within the room and is copied into the match at start.
+Choose an LLM model for a bot, then set its **Strategy** to **Role-focused**, either beside the bot in the lobby or in **AI Controls** during play. The host controls the setting. It is per seat and works with each configured LLM model. **Role-focused** is the default for new bots; Practice bots do not use LLM strategy guidance. The choice survives model switches within the room and is copied into the match at start.
 
 Role-focused appends the exact guidance tested by the `role-focus` benchmark. It emphasizes role objectives and uncertain identity evidence without forbidding friendly damage or overriding legal choices. No extra planning/review calls are added, and existing validation/deadline/correction behavior still applies. Changing strategy cancels a pending decision; the old result cannot execute. Debug traces and saved model decision events identify `botStrategy`. The small benchmark is promising, not proof that ally-targeting mistakes are eliminated.

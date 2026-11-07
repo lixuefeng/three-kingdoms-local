@@ -237,9 +237,9 @@ test('host selects per-bot role-focused strategy, validation and model switches 
  const friend=(await req('join',{name:'Friend',code:state.room.code})).data;
  assert.equal((await req('bot',{mode:'llm'},token)).status,200);
  const room=rooms.get(state.room.code),bot=room.players.find(p=>p.bot);
- assert.equal(bot.botStrategy,'current');
+ assert.equal(bot.botStrategy,'role-focus');
  assert.equal((await req('bot-mode',{id:bot.id,strategy:'role-focus'},friend.token)).status,400);
- assert.equal((await req('bot-mode',{id:bot.id,strategy:'invented'},token)).status,400);assert.equal(bot.botStrategy,'current');
+ assert.equal((await req('bot-mode',{id:bot.id,strategy:'invented'},token)).status,400);assert.equal(bot.botStrategy,'role-focus');
  assert.equal((await req('bot-mode',{id:bot.id,strategy:'role-focus'},token)).status,200);
  assert.equal(bot.botStrategy,'role-focus');assert.equal(bot.botMode,'llm');
  const {Game}=await import('../engine.mjs');room.game=new Game(room.players);let updated;const setMode=room.game.setBotMode.bind(room.game);room.game.setBotMode=(...args)=>{updated=args;setMode(...args);};
