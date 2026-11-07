@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
-import {opponentsFromViewer,nextLiving} from '../public/table.mjs';
+import {opponentsFromViewer,nextLiving,overlayBounds,fitOverlay} from '../public/table.mjs';
 
 const source=await readFile(new URL('../public/app.js',import.meta.url),'utf8');
 const named=name=>{
@@ -88,4 +88,12 @@ test('mobile snapshot preserves the card and timer nodes when a receipt disappea
  assert.equal(card.getAttribute('class'),'card selected');
  assert.equal(clock.getAttribute('value'),'.7');
  assert.equal(clock.getAttribute('class'),'urgent');
+});
+
+test('overlay placement stays within both the visible phone screen and stable table',()=>{
+ const bounds=overlayBounds({visualViewport:{offsetLeft:4,offsetTop:18,width:350,height:570}},
+  {left:0,top:0,right:375,bottom:560});
+ assert.deepEqual(bounds,{left:4,top:18,right:354,bottom:560});
+ assert.deepEqual(fitOverlay(bounds,-20,-40,160,40),{x:12,y:26});
+ assert.deepEqual(fitOverlay(bounds,350,620,160,40),{x:186,y:512});
 });

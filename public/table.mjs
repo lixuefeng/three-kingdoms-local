@@ -34,3 +34,15 @@ export function opponentsFromViewer(players,viewerId){return seatsFromViewer(pla
 
 // Fit the full portrait + equipment rail and name label within each perimeter cell.
 export const largeTableScale=(width,height)=>Math.max(.1,Math.min(1,(width*.2-12)/230,(height*.32-12)/240));
+
+// Fixed overlays use layout coordinates, constrained to the visible screen.
+export function overlayBounds(win,table){
+ const v=win.visualViewport,left=v?.offsetLeft??0,top=v?.offsetTop??0;
+ return {left:Math.max(left,table?.left??left),top:Math.max(top,table?.top??top),
+  right:Math.min(left+(v?.width??win.innerWidth),table?.right??Infinity),
+  bottom:Math.min(top+(v?.height??win.innerHeight),table?.bottom??Infinity)};
+}
+export function fitOverlay(bounds,x,y,width,height,pad=8){
+ const left=bounds.left+pad,top=bounds.top+pad;
+ return {x:Math.max(left,Math.min(x,bounds.right-pad-width)),y:Math.max(top,Math.min(y,bounds.bottom-pad-height))};
+}

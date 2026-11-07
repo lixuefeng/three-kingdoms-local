@@ -1,3 +1,4 @@
+import {overlayBounds,fitOverlay} from './table.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function createChat({send,onError}){
  const root=document.createElement('aside');root.className='room-chat';root.hidden=true;
@@ -6,18 +7,23 @@ export function createChat({send,onError}){
  const bubbles=new Map();let bubbleFrame=0,bubbleRoom=null,seenMessages=new Set();
  function clearBubbles(){for(const b of bubbles.values())b.node.remove();bubbles.clear();cancelAnimationFrame(bubbleFrame);bubbleFrame=0;}
  function positionBubbles(){
-  bubbleFrame=0;let fallbackY=(document.querySelector('.game-toolbar')?.getBoundingClientRect().bottom||12)+12;
+  bubbleFrame=0;
+  const bounds=overlayBounds(window,document.querySelector('.mobile-game .game-shell')?.getBoundingClientRect());
+  let fallbackY=Math.max(bounds.top+12,(document.querySelector('.game-toolbar')?.getBoundingClientRect().bottom??bounds.top)+12);
   for(const [id,b] of bubbles){
    if(performance.now()>=b.until){b.node.remove();bubbles.delete(id);continue;}
    const anchor=document.querySelector(`[data-player-id="${CSS.escape(id)}"]`),rect=anchor?.getBoundingClientRect();
-   const visible=rect&&rect.bottom>0&&rect.top<innerHeight&&rect.right>0&&rect.left<innerWidth;
-   b.node.classList.toggle('anchored',!!visible);
+   const visible=rect&&rect.bottom>bounds.top&&rect.top<bounds.bottom&&rect.right>bounds.left&&rect.left<bounds.right;
+   b.node.style.maxWidth=Math.max(1,Math.min(250,bounds.right-bounds.left-24))+'px';
+   b.node.style.maxHeight=Math.max(1,bounds.bottom-bounds.top-24)+'px';
    const w=b.node.offsetWidth,h=b.node.offsetHeight;
-   const x=visible?Math.max(12,Math.min(innerWidth-w-12,rect.left+rect.width/2-w/2)):12;
-   const y=visible?Math.max(12,Math.min(innerHeight-h-12,rect.top-h-14)):fallbackY;
+   const above=visible&&rect.top-h-14>=bounds.top+12;
+   const desiredY=visible?(above?rect.top-h-14:rect.bottom+10):fallbackY;
+   const {x,y}=fitOverlay(bounds,visible?rect.left+rect.width/2-w/2:bounds.left+12,desiredY,w,h,12);
+   b.node.classList.toggle('anchored',!!above);
    b.node.style.left=x+'px';b.node.style.top=y+'px';
-   if(visible)b.node.style.setProperty('--tail',Math.max(12,Math.min(w-24,rect.left+rect.width/2-x))+'px');
-   else fallbackY+=h+10;
+   if(above)b.node.style.setProperty('--tail',Math.max(12,Math.min(w-24,rect.left+rect.width/2-x))+'px');
+   if(!visible)fallbackY=y+h+10;
   }
   if(bubbles.size)bubbleFrame=requestAnimationFrame(positionBubbles);
  }

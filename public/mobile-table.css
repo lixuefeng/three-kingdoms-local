@@ -158,3 +158,25 @@ body.mobile-game.in-game,body.mobile-game.in-game #app{height:100svh;overflow:hi
 .mobile-game .mobile-action-row .timer-meter strong{white-space:normal}
 .mobile-game .mobile-ring .table-core .star-cards{min-height:0;flex-wrap:wrap}
 .mobile-game .mobile-ring .table-core .star-card{min-width:65px;width:65px;min-height:90px}
+
+/* Results occupy the available portrait area below the table toolbar. */
+.mobile-game .game-shell:has(.match-review)>.game-layout,
+.mobile-game .game-shell:has(.match-review)>.play-dock,
+.mobile-game .game-shell:has(.match-review)>.hand-status{display:none!important}
+.mobile-game .match-review{order:2;position:relative;inset:auto;transform:none;width:100%;flex:1 1 0;min-height:0;max-height:none;padding:10px;overflow:auto;overscroll-behavior:contain}
+.mobile-game .match-review h2{font-size:23px}
+.mobile-game .review-navigation{top:-10px;padding:5px 0}
+.mobile-game .review-table{overflow:visible}
+.mobile-game .review-table table,.mobile-game .review-table tbody{display:block}
+.mobile-game .review-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.mobile-game .review-table tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;margin:5px 0;padding:7px;background:#fff7e5;border:1px solid #dac8a4;border-radius:7px}
+.mobile-game .review-table td{padding:2px 3px;border:none;min-width:0;overflow-wrap:anywhere}
+.mobile-game .review-table td:first-child{grid-column:1/-1}
+.mobile-game .review-table td:nth-child(2){grid-column:span 2}
+.mobile-game .review-table td[data-stat]::before{content:attr(data-stat);display:block;color:#6b664e;font-size:10px}
+.mobile-game .review-actions button{white-space:normal}
+.mobile-game .battle-effect .effect-label{width:max-content;white-space:normal;overflow-wrap:anywhere;text-align:center;font-size:13px;padding:5px 8px;line-height:1.2}
+.mobile-game .room-chat .chat-panel{max-height:calc(100svh - 52px)}
+.mobile-game .table-speech{overflow-wrap:anywhere}
+.mobile-game .table-speech:not(.anchored){overflow:hidden}
+.mobile-game #toast{max-width:calc(100vw - 24px);white-space:normal;overflow-wrap:anywhere}
