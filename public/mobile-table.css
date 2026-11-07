@@ -198,3 +198,24 @@ body.mobile-game.in-game,body.mobile-game.in-game #app{height:100svh;overflow:hi
 .room-chat.chat-sheet .chat-compose input,.room-chat.chat-sheet .chat-recipient{font-size:16px;min-width:0}
 .room-chat.chat-sheet .chat-compose button{min-height:38px}
 .room-chat .chat-sheet-close[hidden],.room-chat.chat-sheet .chat-resize,.room-chat.chat-sheet .chat-minimize{display:none!important}
+
+/* Keep compact card typography and action lines at their declared sizes on iOS. */
+body.mobile-game{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.selection-lord{flex:none;margin:0 0 4px;padding:4px 7px;border-radius:5px;color:#ffe2a1;background:#19382e;font-size:12px;overflow-wrap:anywhere}
+.hp-fraction{font:11px system-ui,sans-serif;margin-left:4px;white-space:nowrap}
+.mobile-game .mobile-ring .current-action-events{line-height:1.45;max-height:54px}
+.mobile-game .mobile-ring .current-action-events>div{padding:2px 0;overflow-wrap:anywhere}
+.mobile-game .current-action .event-card{line-height:inherit;vertical-align:baseline;transform:none;min-height:0}
+.mobile-game .mobile-ring .center-card-entry{flex-basis:68px}
+.mobile-game .mobile-ring .center-card-entry .table-card.played-card{
+ height:76px!important;min-height:76px!important;padding:4px!important;gap:1px!important
+}
+.mobile-game .mobile-ring .center-card-entry .played-card .card-heading,
+.mobile-game .play-dock .hand-card .card-heading{height:33px!important;min-height:33px!important;flex:0 0 33px!important;padding-top:10px}
+.mobile-game .mobile-ring .center-card-entry .played-card .card-heading>strong,
+.mobile-game .play-dock .hand-card .card-heading>.card-name{font-size:11px!important;line-height:11px!important;max-height:22px!important;overflow-wrap:anywhere}
+.mobile-game .mobile-ring .center-card-entry .played-card .card-heading>span,
+.mobile-game .play-dock .hand-card .card-heading>.suit{font-size:10px!important;line-height:10px!important}
+.mobile-game .mobile-ring .center-card-entry .played-card .card-illustration{min-height:0!important;max-height:22px;margin:0!important}
+.mobile-game .mobile-ring .center-card-entry .played-card .card-type{font-size:8px!important;line-height:10px!important;position:static!important;margin:0!important}
+.mobile-game .mobile-ring .center-card-entry .card-info-icon{top:auto!important;bottom:3px!important;right:3px!important;width:16px!important;min-width:16px!important;height:16px!important;min-height:16px!important;font-size:10px!important}

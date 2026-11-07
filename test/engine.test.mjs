@@ -74,3 +74,16 @@ test('successful Attack responses announce their card, while passing does not',a
  assert.ok(g.effects.some(e=>e.kind==='announce'&&e.label==='Attack'&&e.sourceId===p.id));
  const count=g.effects.length;assert.equal(await g.response(p,'sha','Duel: Play Attack'),false);assert.equal(g.effects.length,count);
 });
+
+test('equipment does not open an opponent response window',async()=>{
+ const prompts=[];
+ const g=game((p,q,f)=>{prompts.push({p,q});return f;});
+ const [owner,opponent]=g.players;opponent.hand=[card('negate')];
+ g.sharedResponses=()=>assert.fail('equipment opened a shared response window');
+ const sword=card('qinggang');owner.hand=[sword];
+ await g.play(owner,'play:qinggang:'+sword.id);
+ assert.equal(owner.equip.weapon,sword);
+ assert.equal(prompts.length,0);
+ assert.equal(g.responseWindow,null);
+ assert.equal(opponent.hand.length,1);
+});

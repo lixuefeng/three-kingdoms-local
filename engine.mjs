@@ -528,7 +528,7 @@ export class Game {
   if(!p)return null;
   const cards={};for(const c of p.hand){
    if(prompt?.options.some(o=>o.id===c.id||o.cardIds?.includes(c.id))){cards[c.id]=null;continue;}
-   let reason=!p.alive?'You are eliminated.':!prompt?'Waiting for another player.':prompt.zone!=='turn'?'This card cannot answer the current request.':null;
+   let reason=!p.alive?'You are eliminated.':!prompt?'No card action is available right now.':prompt.zone!=='turn'?'This card cannot answer the current request.':null;
    if(!reason){if(c.kind==='shan')reason='Dodge is a response card.';else if(c.kind==='negate')reason='Negation is used during a Negation window.';else if(c.kind==='tao'&&p.hp>=p.maxHp)reason='You already have full health.';else if(['sha','fireSha','thunderSha'].includes(c.kind))reason=(this.attackForbidden(p)||this.used.sha>=this.attackLimit(p))?'Attack already used this Play Phase.':'No legal target in your attack range.';else if(c.kind==='wine'&&this.used.wine)reason='Wine already used this Play Phase.';else if(c.kind==='lightning')reason='Lightning is already in your Judgment zone.';else reason='No legal target or use is available now.';}
    cards[c.id]=reason;
   }
